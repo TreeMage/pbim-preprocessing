@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "pbim-preprocessor"
+version = "0.1.0"
+description = "Tool for parsing and preprocessing P-BIM project measurements"
+authors = ["Johannes <johannes.kohlmann@stud-mail.uni-wuerzburg.de>"]
+readme = "README.md"
+packages = [{include = "pbim_preprocessor"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
