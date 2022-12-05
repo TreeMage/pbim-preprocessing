@@ -36,7 +36,7 @@ class PBimParser:
 
     @staticmethod
     def _parse_body(f: BinaryIO, mittelungszahl: int) -> List[Measurement]:
-        data = np.fromfile(f, dtype=np.int32)
+        data = np.fromfile(f, dtype=np.float32)
         frequency = MAGIC_FREQUENCY_CONSTANT / mittelungszahl
         return [
             Measurement(time=index / frequency, measurement=measurement)

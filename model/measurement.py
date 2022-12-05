@@ -17,4 +17,4 @@ class MeasurementFile:
     measurements: List[Measurement]
 
     def __str__(self):
-        return f"MeasurementFile(name={self.name}, description={self.description}, timestamp={self.timestamp}, #measurements={len(self.measurements)}"
+        return f"MeasurementFile(name={self.name}, description={self.description}, timestamp={self.timestamp}, #measurements={len(self.measurements)})"

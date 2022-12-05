@@ -9,8 +9,6 @@ def main():
     parser = PBimParser()
     data = parser.parse(path)
     print(data)
-    print(data.measurements[0])
-
 
 if __name__ == "__main__":
     main()
