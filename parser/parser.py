@@ -110,8 +110,8 @@ class PBimParser:
     ) -> None:
         time_channel = CHANNEL_TIME_MAP[channel.name]
         if not time_channel:
-            return data
+            return
         time_data = time_channels[time_channel.value]
         assert len(time_data) == len(data)
         for i, dat in enumerate(data):
-            i.time = time_data[i]
+            dat.time = time_data[i].measurement
