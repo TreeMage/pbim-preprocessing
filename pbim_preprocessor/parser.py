@@ -1,13 +1,10 @@
-import dataclasses
-import json
 from enum import Enum
 from pathlib import Path
 from typing import List, Dict
 
-from model.measurement import Measurement
-from model.parser import ChannelHeader
-from parser.data_parser import PBimDataParser
-from parser.metadata_parser import PBimMetadataParser
+from pbim_preprocessor.model import ChannelHeader, Measurement
+from .data_parser import PBimDataParser
+from .metadata_parser import PBimMetadataParser
 
 MAGIC_FREQUENCY_CONSTANT = 270135
 

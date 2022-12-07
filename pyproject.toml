@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Tool for parsing and preprocessing P-BIM project measurements"
 authors = ["Johannes <johannes.kohlmann@stud-mail.uni-wuerzburg.de>"]
 readme = "README.md"
-packages = [{include = "pbim_preprocessor"}]
+packages = [{include = "pbim_preprocessor", from = "."}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

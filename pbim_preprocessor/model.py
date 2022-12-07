@@ -21,3 +21,9 @@ class ChannelHeader:
     channel_type: Optional[str] = None
     data_offset: Optional[int] = None
     measurements: Optional[int] = None
+
+
+@dataclass
+class Measurement:
+    measurement: float
+    time: Optional[float] = None

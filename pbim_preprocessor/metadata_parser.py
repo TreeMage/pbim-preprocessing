@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Tuple, List
 
-from model.parser import GlobalHeader, ChannelHeader
+from pbim_preprocessor.model import GlobalHeader, ChannelHeader
 
 HEADER_MAGIC = "DIAEXTENDED"
 ENCODING = "cp1252"

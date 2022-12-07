@@ -2,8 +2,7 @@ import struct
 from pathlib import Path
 from typing import List, BinaryIO, Dict
 
-from model.measurement import Measurement
-from model.parser import ChannelHeader
+from pbim_preprocessor.model import ChannelHeader, Measurement
 
 
 class PBimDataParser:
