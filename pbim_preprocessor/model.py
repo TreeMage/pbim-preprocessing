@@ -1,13 +1,14 @@
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
+import datetime
 
 from dataclasses_json import dataclass_json
 
 
 @dataclass(frozen=True)
 class GlobalHeader:
-    date: Optional[str] = None
-    time: Optional[str] = None
+    date: Optional[datetime.datetime] = None
+    time: Optional[datetime.datetime] = None
 
 
 @dataclass_json
@@ -26,4 +27,11 @@ class ChannelHeader:
 @dataclass
 class Measurement:
     measurement: float
-    time: Optional[float] = None
+    # Epoch in milliseconds
+    time: Optional[int] = None
+
+
+@dataclass
+class ParsedChannel:
+    channel_header: ChannelHeader
+    measurements: List[Measurement]

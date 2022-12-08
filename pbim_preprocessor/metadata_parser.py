@@ -1,4 +1,5 @@
 import dataclasses
+import datetime
 import re
 from enum import Enum
 from pathlib import Path
@@ -103,11 +104,13 @@ class PBimMetadataParser:
         match int(command):
             case 104:
                 self._current_global_header = dataclasses.replace(
-                    self._current_global_header, date=value
+                    self._current_global_header,
+                    date=datetime.datetime.strptime(value, "%m-%d-%Y"),
                 )
             case 105:
                 self._current_global_header = dataclasses.replace(
-                    self._current_global_header, time=value
+                    self._current_global_header,
+                    time=datetime.datetime.strptime(value, "%H:%M:%S"),
                 )
             case _:
                 return

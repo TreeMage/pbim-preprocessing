@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: p-bim-preprocess
+spec:
+  template:
+    spec:
+      priorityClassName: research-med
+      containers:
+        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/<namespace>-pytorch-test:0.0.1
+          name: preprocess
+          imagePullPolicy: "Always"
+          env:
+            - name: ZIP_FILE_PATH
+              value: "/data/HiDrive-IBF_BW402e_Messdaten_2018.zip"
+            - name: OUTPUT_PATH
+              value: "/out"
+            - name: TMP_PATH
+              value: "/tmp"
+            - name: WORKERS
+              value: 16
+          resources:
+            limits:
+              cpu: "16"
+              memory: "32Gi"
+            requests:
+              cpu: "16"
+              memory: "32Gi"
+          command: ["./scrips/preprocess.sh"]
+          volumeMounts:
+            - mountPath: /data # directory IN the container
+              name: data # matches volume-name from below
+            - mountPath: /out
+              name: out
+      imagePullSecrets:
+        - name: lsx-registry
+      restartPolicy: "Never"
+      volumes:
+        - name: data
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
+            user: studkohlmann
+            path: "/scratch/p-bim/"
+            secretRef:
+              name: ceph-secret
+        - name: out
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
+            user: studkohlmann
+            path: "/home/stud/kohlmann/MA/data/processed"
+            secretRef:
+              name: ceph-secret

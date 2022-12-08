@@ -1,14 +1,15 @@
+import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Dict
 
-from pbim_preprocessor.model import ChannelHeader, Measurement
+from pbim_preprocessor.model import Measurement, ParsedChannel
 from .data_parser import PBimDataParser
 from .metadata_parser import PBimMetadataParser
 
 MAGIC_FREQUENCY_CONSTANT = 270135
 
-ALL_EXTENSIONS = ["R32", "DAT", "TSX", "events"]
+ALL_EXTENSIONS = ["R32", "DAT"]
 
 
 def ensure_files_exist(directory: Path, name: str, extensions: List[str]) -> None:
@@ -85,30 +86,55 @@ class PBimParser:
         self._metadata_parser = PBimMetadataParser()
         self._data_parser = PBimDataParser()
 
-    def parse(self, directory: Path, name: str):
+    def parse(
+        self, directory: Path, name: str, channels: List[str]
+    ) -> Dict[str, ParsedChannel]:
         ensure_files_exist(directory, name, ALL_EXTENSIONS)
+        channels_with_time = channels + [channel.value for channel in TimeChannel]
         global_header, channel_header = self._metadata_parser.parse(directory, name)
-        data = self._data_parser.parse_all(directory, name, channel_header)
+        start_date, start_time = global_header.date, global_header.time
+        t0 = datetime.datetime(
+            year=start_date.year,
+            month=start_date.month,
+            day=start_date.day,
+            hour=start_time.hour,
+            minute=start_time.minute,
+            second=start_time.second,
+            microsecond=start_time.microsecond,
+        )
+        filtered_headers = [
+            header for header in channel_header if header.name in channels_with_time
+        ]
+        data = self._data_parser.parse_all(directory, name, filtered_headers)
         time_channels = {
-            channel.name: measurements
-            for channel, measurements in data.items()
-            if channel.name in TIME_CHANNELS
+            name: parsed_channel.measurements
+            for name, parsed_channel in data.items()
+            if name in TIME_CHANNELS
         }
-        for channel in data.keys():
-            if channel.name in POST_PROCESSABLE_CHANNELS:
-                self._post_process(channel, data[channel], time_channels)
-        return data
+        for name, parsed_channel in data.items():
+            if name in POST_PROCESSABLE_CHANNELS and name in channels:
+                self._post_process(parsed_channel, time_channels, t0)
+        return {
+            name: parsed_channel
+            for name, parsed_channel in data.items()
+            if name in channels
+        }
+
+    def reset(self):
+        self._metadata_parser.reset()
 
     @staticmethod
     def _post_process(
-        channel: ChannelHeader,
-        data: List[Measurement],
+        channel: ParsedChannel,
         time_channels: Dict[str, List[Measurement]],
+        start_time: datetime.datetime,
     ) -> None:
-        time_channel = CHANNEL_TIME_MAP[channel.name]
+        time_channel = CHANNEL_TIME_MAP[channel.channel_header.name]
         if not time_channel:
             return
         time_data = time_channels[time_channel.value]
-        assert len(time_data) == len(data)
-        for i, dat in enumerate(data):
-            dat.time = time_data[i].measurement
+        assert len(time_data) == len(channel.measurements)
+        start_time_in_milliseconds = int(start_time.timestamp() * 1000)
+        for i, dat in enumerate(channel.measurements):
+            # Round to the nearest millisecond
+            dat.time = start_time_in_milliseconds + int(time_data[i].measurement * 1000)

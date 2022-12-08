@@ -2,27 +2,30 @@ import struct
 from pathlib import Path
 from typing import List, BinaryIO, Dict
 
-from pbim_preprocessor.model import ChannelHeader, Measurement
+from pbim_preprocessor.model import ChannelHeader, Measurement, ParsedChannel
 
 
 class PBimDataParser:
     def parse(
         self, directory: Path, name: str, channel: ChannelHeader
-    ) -> List[Measurement]:
+    ) -> ParsedChannel:
         encoding = self._infer_encoding(channel)
         actual_offset = self._compute_actual_offset(channel)
         with open(directory / f"{name}.r32", "rb") as f:
             f.seek(actual_offset)
-            return [
-                self._parse_measurement(f, encoding)
-                for _ in range(channel.measurements)
-            ]
+            return ParsedChannel(
+                channel_header=channel,
+                measurements=[
+                    self._parse_measurement(f, encoding)
+                    for _ in range(channel.measurements)
+                ],
+            )
 
     def parse_all(
         self, directory: Path, name: str, channel_headers: List[ChannelHeader]
-    ) -> Dict[ChannelHeader, List[Measurement]]:
+    ) -> Dict[str, ParsedChannel]:
         return {
-            channel_header: self.parse(directory, name, channel_header)
+            channel_header.name: self.parse(directory, name, channel_header)
             for channel_header in channel_headers
         }
 
