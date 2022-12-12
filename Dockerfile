@@ -10,7 +10,7 @@ ENV PATH="/opt/poetry/bin:${PATH}"
 RUN chmod o+rx /opt/poetry/bin/poetry
 RUN python -m venv /venv
 COPY . /app
-RUN poery export -f requirements.txt | /venv/bin/pip install -r /dev/stdin
+RUN poetry export -f requirements.txt | /venv/bin/pip install -r /dev/stdin
 RUN poetry build && /venv/bin/pip install dist/*.whl
 
 FROM builder as final
