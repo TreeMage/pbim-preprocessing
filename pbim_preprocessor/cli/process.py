@@ -62,8 +62,7 @@ def process(zip_file_path: Path, output_base_path: Path, workers: int, reset: bo
     output_base_path.mkdir(exist_ok=True, parents=True)
     with zipfile.ZipFile(zip_file_path, "r") as zip_file:
         file_names = zip_file.namelist()
-    names = list(set([Path(name).stem for name in file_names if Path(name).is_file()]))
-    names = sorted(names, key=_parse_name)
+    names = sorted([Path(name).stem for name in file_names if Path(name).suffix == ".R32"], key=_parse_name)
     LOGGER.info(f"Processing {len(names)} measurement jobs using {workers} workers.")
 
     chunks = _split(names, workers)
