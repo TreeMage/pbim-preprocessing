@@ -9,7 +9,7 @@ FROM builder as base
 COPY . /app
 WORKDIR /app
 RUN chmod o+rx scripts/preprocess.sh
-RUN poetry config cache-dir /app/.cache/poetry
-RUN poetry install --no-dev
+RUN poetry config virtualenvs.create false
+RUN poetry install --without dev
 
 
