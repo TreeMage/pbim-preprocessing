@@ -11,7 +11,7 @@ class PBimDataParser:
     ) -> ParsedChannel:
         encoding = self._infer_encoding(channel)
         actual_offset = self._compute_actual_offset(channel)
-        with open(directory / f"{name}.r32", "rb") as f:
+        with open(directory / f"{name}.R32", "rb") as f:
             f.seek(actual_offset)
             return ParsedChannel(
                 channel_header=channel,

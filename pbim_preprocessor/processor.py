@@ -71,7 +71,7 @@ class Processor:
 
     @staticmethod
     def _serialize_measurement(measurement: Measurement) -> bytes:
-        return struct.pack("<ff", measurement.time, measurement.measurement)
+        return struct.pack("<qf", measurement.time, measurement.measurement)
 
     def get_output_path(self, file_name: str, channel_name: str) -> Path:
         match = FILE_NAME_PATTERN.match(file_name)
