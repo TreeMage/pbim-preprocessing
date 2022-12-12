@@ -53,7 +53,9 @@ class Processor:
         tmp_path.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(self._zip_file_path, "r") as zip_file:
             for extension in ["DAT", "R32"]:
-                zip_file.extract(f"{name}.{extension}", tmp_path)
+                data = zip_file.read(f"{name}.{extension}")
+                out_file_path = tmp_path / f"{Path(name).stem}.{extension}"
+                out_file_path.write_bytes(data)
         return tmp_path
 
     def serialize(self, data: Dict[str, ParsedChannel], name: str):
