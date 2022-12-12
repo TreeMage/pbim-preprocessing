@@ -33,7 +33,9 @@ class Processor:
     def process(self):
         total = len(self._names)
         for i, name in enumerate(self._names):
-            LOGGER.info(f"Started processing '{name}' ({i + 1}/{total})", self._identifier)
+            LOGGER.info(
+                f"Started processing '{name}' ({i + 1}/{total})", self._identifier
+            )
             self._parser.reset()
             path = self._unpack(name)
             LOGGER.info(f"Unpacked '{name}' ({i + 1}/{total})", self._identifier)
@@ -42,7 +44,9 @@ class Processor:
             self.serialize(data, name)
             LOGGER.info(f"Saved '{name}' ({i + 1}/{total})", self._identifier)
             shutil.rmtree(path)
-            LOGGER.info(f"Finished processing '{name}' ({i + 1}/{total})", self._identifier)
+            LOGGER.info(
+                f"Finished processing '{name}' ({i + 1}/{total})", self._identifier
+            )
 
     def _unpack(self, name: str) -> Path:
         tmp_path = self._tmp_path / name

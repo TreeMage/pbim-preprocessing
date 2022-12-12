@@ -5,7 +5,9 @@ from typing import Optional
 class Logger:
     @staticmethod
     def log(level: str, msg: str, identifier: Optional[str] = None) -> None:
-        print(f"[{datetime.now()}][{level}]{f'[{identifier}]' if identifier else ''} {msg}")
+        print(
+            f"[{datetime.now()}][{level}]{f'[{identifier}]' if identifier else ''} {msg}"
+        )
 
     def info(self, msg: str, identifier: Optional[str] = None) -> None:
         self.log("INFO", msg, identifier)
