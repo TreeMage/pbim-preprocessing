@@ -14,7 +14,7 @@ from pbim_preprocessor.utils import LOGGER
 
 
 def _parse_name(name: str) -> datetime.datetime:
-    return datetime.datetime.strptime(Path(name).stem, "Job1_%Y_%m_%d_%H_%M_%S")
+    return datetime.datetime.strptime(name, "Job1_%Y_%m_%d_%H_%M_%S")
 
 
 def _split(names: List[str], n_chunks: int) -> List[List[str]]:
@@ -62,7 +62,8 @@ def process(zip_file_path: Path, output_base_path: Path, workers: int, reset: bo
     output_base_path.mkdir(exist_ok=True, parents=True)
     with zipfile.ZipFile(zip_file_path, "r") as zip_file:
         file_names = zip_file.namelist()
-    names = sorted(list(set([Path(name).stem for name in file_names])), key=_parse_name)
+    names = list(set([Path(name).stem for name in file_names]))
+    names = sorted(names, key=_parse_name)
     LOGGER.info(f"Processing {len(names)} measurement jobs using {workers} workers.")
 
     chunks = _split(names, workers)
