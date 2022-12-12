@@ -38,7 +38,7 @@ class PBimMetadataParser:
     def parse(
         self, directory: Path, name: str
     ) -> Tuple[GlobalHeader, List[ChannelHeader]]:
-        with open(directory / f"{name}.dat", "r", encoding=ENCODING) as f:
+        with open(directory / f"{name}.DAT", "r", encoding=ENCODING) as f:
             for line in f.readlines():
                 self._parse_line(line.strip())
         return self._current_global_header, self._channel_headers
