@@ -7,7 +7,7 @@ spec:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/<namespace>-pytorch-test:0.0.1
+        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
@@ -18,15 +18,15 @@ spec:
             - name: TMP_PATH
               value: "/tmp"
             - name: WORKERS
-              value: 16
+              value: "16"
           resources:
             limits:
-              cpu: "16"
-              memory: "32Gi"
+              cpu: "20"
+              memory: "48Gi"
             requests:
               cpu: "16"
-              memory: "32Gi"
-          command: ["./scrips/preprocess.sh"]
+              memory: "48Gi"
+          command: ["bash", "./scripts/preprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
@@ -44,6 +44,7 @@ spec:
             path: "/scratch/p-bim/"
             secretRef:
               name: ceph-secret
+            readOnly: true
         - name: out
           cephfs:
             monitors:
