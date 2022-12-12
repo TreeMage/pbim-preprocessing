@@ -32,12 +32,13 @@ class Processor:
 
     def process(self):
         total = len(self._names)
-        for i, name in enumerate(self._names):
+        for i, raw_name in enumerate(self._names):
             LOGGER.info(
-                f"Started processing '{name}' ({i + 1}/{total})", self._identifier
+                f"Started processing '{raw_name}' ({i + 1}/{total})", self._identifier
             )
             self._parser.reset()
-            path = self._unpack(name)
+            path = self._unpack(raw_name)
+            name = Path(raw_name).stem
             LOGGER.info(f"Unpacked '{name}' ({i + 1}/{total})", self._identifier)
             data = self._parser.parse(path, name, self._channels)
             LOGGER.info(f"Parsed '{name}' ({i + 1}/{total})", self._identifier)
