@@ -22,10 +22,10 @@ spec:
           resources:
             limits:
               cpu: "20"
-              memory: "48Gi"
+              memory: "256Gi"
             requests:
-              cpu: "16"
-              memory: "48Gi"
+              cpu: "20"
+              memory: "256Gi"
           command: ["bash", "./scripts/preprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
