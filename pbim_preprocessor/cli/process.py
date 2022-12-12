@@ -1,5 +1,6 @@
 import concurrent
 import datetime
+import os
 import shutil
 import zipfile
 from concurrent.futures import ProcessPoolExecutor
@@ -36,10 +37,13 @@ def _split(names: List[str], n_chunks: int) -> List[List[str]]:
 def _process(
     zip_file_path: Path, output_base_path: Path, tmp_path: Path, names: List[str]
 ):
-    processor = Processor(
-        zip_file_path, output_base_path, tmp_path, names, CHANNELS_TO_PROCESS
-    )
-    processor.process()
+    try:
+        processor = Processor(
+            zip_file_path, output_base_path, tmp_path, names, CHANNELS_TO_PROCESS
+        )
+        processor.process()
+    except Exception as e:
+        LOGGER.error(f"Processing failed: {e}", identifier=os.getpid())
 
 
 @click.command()
