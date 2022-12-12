@@ -4,7 +4,7 @@ WORKDIR /app
 
 FROM base as builder
 ENV POETRY_HOME=/opt/poetry
-RUN apt update && apt install -y curl
+RUN apt update && apt install -y curl vim
 RUN curl -sSL https://install.python-poetry.org/ | python -
 ENV PATH="/opt/poetry/bin:${PATH}"
 RUN chmod o+rx /opt/poetry/bin/poetry
