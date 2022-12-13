@@ -11,6 +11,7 @@ from pbim_preprocessor.parser import PBimParser
 from pbim_preprocessor.utils import LOGGER
 
 FILE_NAME_PATTERN = re.compile(r"^Job1_(\d{4})_(\d{2})_(\d{2})_.*$")
+MEASUREMENT_SIZE_IN_BYTES = 12
 
 
 class Processor:

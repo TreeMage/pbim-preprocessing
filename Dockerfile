@@ -15,4 +15,4 @@ RUN poetry build && /venv/bin/pip install dist/*.whl
 
 FROM builder as final
 COPY --from=builder /venv /venv
-RUN chmod o+rx scripts/preprocess.sh
+RUN chmod o+rx scripts/*

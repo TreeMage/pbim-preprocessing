@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-preprocess
+  name: p-bim-assemble
 spec:
   template:
     spec:
@@ -11,22 +11,26 @@ spec:
           name: preprocess
           imagePullPolicy: "Always"
           env:
-            - name: ZIP_FILE_PATH
-              value: "/data/HiDrive-IBF_BW402e_Messdaten_2019.zip"
+            - name: BASE_PATH
+              value: "/data"
             - name: OUTPUT_PATH
-              value: "/out"
-            - name: TMP_PATH
-              value: "/tmp"
-            - name: WORKERS
-              value: "18"
+              value: "/out/dataset.csv"
+            - name: START_TIME
+              value: ""
+            - name: END_TIME
+              value: ""
+            - name: RESOLUTION
+              value: 1
+            - name: STRATEGY
+              value: "interpolate"
           resources:
             limits:
-              cpu: "20"
-              memory: "256Gi"
+              cpu: "4"
+              memory: "8Gi"
             requests:
-              cpu: "20"
-              memory: "256Gi"
-          command: ["bash", "./scripts/preprocess.sh"]
+              cpu: "2"
+              memory: "4Gi"
+          command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
@@ -41,7 +45,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim/"
+            path: "/scratch/p-bim-preprocesed/"
             secretRef:
               name: ceph-secret
             readOnly: true
@@ -50,6 +54,6 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/"
+            path: "/home/stud/kohlmann/MA/datasets"
             secretRef:
               name: ceph-secret
