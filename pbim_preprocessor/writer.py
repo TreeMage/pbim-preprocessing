@@ -4,7 +4,6 @@ from typing import List, Dict
 
 
 class Writer(abc.ABC):
-
     @abc.abstractmethod
     def __enter__(self):
         pass
@@ -36,4 +35,3 @@ class CsvWriter(Writer):
     def write_step(self, data: Dict[str, float]) -> None:
         line = self._delimiter.join([f"{data[header]:.6f}" for header in self._header])
         self._f.write(line + "\n")
-

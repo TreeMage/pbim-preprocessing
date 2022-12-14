@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TypeVar, Generator, Any
 
 
 class Logger:
@@ -20,3 +20,15 @@ class Logger:
 
 
 LOGGER = Logger()
+
+
+T = TypeVar("T")
+U = TypeVar("U")
+
+
+class GeneratorWithReturnValue:
+    def __init__(self, gen: Generator[T, Any, U]):
+        self.gen = gen
+
+    def __iter__(self):
+        self.value = yield from self.gen
