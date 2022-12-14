@@ -14,13 +14,13 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/dataset.csv"
+              value: "/out/assembled-2018-11-01T00:00:00-2018-11-07T23:59:59.dat"
             - name: START_TIME
               value: "2018-11-01T00:00:00"
             - name: END_TIME
               value: "2018-11-07T23:59:59"
             - name: RESOLUTION
-              value: 60
+              value: "60"
             - name: STRATEGY
               value: "interpolate"
             - name: FORMAT

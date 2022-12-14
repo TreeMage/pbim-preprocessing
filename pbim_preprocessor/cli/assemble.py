@@ -41,7 +41,7 @@ def assemble(
     end_time: datetime.datetime,
     resolution: int,
     strategy: str,
-    output_format: str
+    output_format: str,
 ):
     output_path.parent.mkdir(exist_ok=True, parents=True)
     assembler = Assembler(STRATEGIES[strategy], resolution)

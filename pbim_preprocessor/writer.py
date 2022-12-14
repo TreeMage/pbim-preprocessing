@@ -5,7 +5,6 @@ from typing import List, Dict
 
 
 class Writer(abc.ABC):
-
     def __init__(self, path: Path, headers: List[str]):
         self._path = path
         self._headers = headers
@@ -58,4 +57,3 @@ class BinaryWriter(Writer):
         values = [data[channel] for channel in self._headers]
         binary_format = f"<i{len(values)}f"
         self._f.write(struct.pack(binary_format, time, *values))
-

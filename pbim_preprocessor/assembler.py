@@ -165,8 +165,7 @@ class Assembler:
 
     @staticmethod
     def _make_file_path(path: Path, time: datetime.datetime, channel: str):
-        year, month, day = time.year, time.month, time.day
-        return path / f"{year}" / f"{month}" / f"{day}" / f"{channel}.dat"
+        return path / f"{time:%Y}" / f"{time:%m}" / f"{time:%d}" / f"{channel}.dat"
 
     @staticmethod
     def _read_timestamp(f: BinaryIO) -> datetime.datetime:
