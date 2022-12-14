@@ -1,6 +1,7 @@
 import concurrent
 import datetime
 import os
+import re
 import shutil
 import zipfile
 from concurrent.futures import ProcessPoolExecutor
@@ -17,6 +18,10 @@ from pbim_preprocessor.utils import LOGGER
 def _parse_name(name: str) -> datetime.datetime:
     print(name)
     return datetime.datetime.strptime(Path(name).stem, "Job1_%Y_%m_%d_%H_%M_%S")
+
+
+def _file_filter(name: str) -> bool:
+    return Path(name).suffix == ".R32" and not re.match(r"^\(\d\)$", name[-7:-4])
 
 
 def _split(names: List[str], n_chunks: int) -> List[List[str]]:
@@ -70,11 +75,7 @@ def process(
     with zipfile.ZipFile(zip_file_path, "r") as zip_file:
         file_names = zip_file.namelist()
     names = sorted(
-        [
-            str(Path(name).with_suffix(""))
-            for name in file_names
-            if Path(name).suffix == ".R32"
-        ],
+        [str(Path(name).with_suffix("")) for name in file_names if _file_filter(name)],
         key=_parse_name,
     )
     LOGGER.info(f"Processing {len(names)} measurement jobs using {workers} workers.")
