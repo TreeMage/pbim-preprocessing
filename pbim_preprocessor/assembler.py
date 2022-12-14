@@ -77,18 +77,20 @@ class Assembler:
         # check if we need to change file
         if time < t0:
             LOGGER.info(f"Target too early. Switching files.", identifier=channel)
-            f.close()
-            f = open(
-                self._make_file_path(path, time - datetime.timedelta(days=1), channel),
-                "rb",
+            path = self._make_file_path(
+                path, time - datetime.timedelta(days=1), channel
             )
+            LOGGER.info(f"New file handle: {path}")
+            f.close()
+            f = open(path, "rb")
         elif time > t_final:
             LOGGER.info(f"Target too late. Switching files.", identifier=channel)
-            f.close()
-            f = open(
-                self._make_file_path(path, time + datetime.timedelta(days=1), channel),
-                "rb",
+            path = self._make_file_path(
+                path, time + datetime.timedelta(days=1), channel
             )
+            LOGGER.info(f"New file handle: {path}")
+            f.close()
+            f = open(path, "rb")
         else:
             f.seek(0)
         # seek to the correct time (last measurement prior to the target one)
