@@ -80,21 +80,22 @@ class Assembler:
             path = self._make_file_path(
                 path, time - datetime.timedelta(days=1), channel
             )
-            LOGGER.info(f"New file handle: {path}")
+            LOGGER.info(f"New file handle: {path}", identifier=channel)
             f.close()
             f = open(path, "rb")
+            t0 = self._read_timestamp(f)
         elif time > t_final:
             LOGGER.info(f"Target too late. Switching files.", identifier=channel)
             path = self._make_file_path(
                 path, time + datetime.timedelta(days=1), channel
             )
-            LOGGER.info(f"New file handle: {path}")
+            LOGGER.info(f"New file handle: {path}", identifier=channel)
             f.close()
             f = open(path, "rb")
-        else:
-            f.seek(0)
+            t0 = self._read_timestamp(f)
         # seek to the correct time (last measurement prior to the target one)
         LOGGER.info("Seeking to target offset.", identifier=channel)
+        f.seek(0)
         return self._jump_to(f, time, t0, self._approximate_step(f))
 
     def _process_channel(
