@@ -1,5 +1,6 @@
 import datetime
 from pathlib import Path
+from typing import List
 
 import click
 
@@ -9,11 +10,15 @@ from pbim_preprocessor.sampling import (
     MeanSamplingStrategy,
     LinearInterpolationSamplingStrategy,
 )
-from pbim_preprocessor.writer import CsvWriter
+from pbim_preprocessor.writer import CsvWriter, Writer, BinaryWriter
 
 STRATEGIES = {
     "mean": MeanSamplingStrategy(),
     "interpolate": LinearInterpolationSamplingStrategy(),
+}
+FORMATS = {
+    "csv": CsvWriter,
+    "binary": BinaryWriter,
 }
 
 CHANNELS = POST_PROCESSABLE_CHANNELS
@@ -28,6 +33,7 @@ CHANNELS = POST_PROCESSABLE_CHANNELS
 @click.argument("end-time", type=click.DateTime())
 @click.argument("resolution", type=click.INT)
 @click.option("--strategy", default="mean", type=click.Choice(list(STRATEGIES.keys())))
+@click.option("--output-format", default="csv", type=click.Choice(list(FORMATS.keys())))
 def assemble(
     path: Path,
     output_path: Path,
@@ -35,11 +41,14 @@ def assemble(
     end_time: datetime.datetime,
     resolution: int,
     strategy: str,
+    output_format: str
 ):
     output_path.parent.mkdir(exist_ok=True, parents=True)
     assembler = Assembler(STRATEGIES[strategy], resolution)
-    with CsvWriter(output_path, CHANNELS + ["time"]) as writer:
+    writer_type = FORMATS[output_format]
+    with writer_type(output_path, CHANNELS) as writer:
         for step in assembler.assemble(
             path, start_time=start_time, end_time=end_time, channels=CHANNELS
         ):
-            writer.write_step(step)
+            time = int(step["time"])
+            writer.write_step(step, time)

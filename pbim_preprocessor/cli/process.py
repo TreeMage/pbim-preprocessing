@@ -16,11 +16,11 @@ from pbim_preprocessor.utils import LOGGER
 
 
 def _parse_name(name: str) -> datetime.datetime:
-    print(name)
     return datetime.datetime.strptime(Path(name).stem, "Job1_%Y_%m_%d_%H_%M_%S")
 
 
 def _file_filter(name: str) -> bool:
+    # Select .R32 files and ignore duplicates
     return Path(name).suffix == ".R32" and not re.match(r"^\(\d\)$", name[-7:-4])
 
 
