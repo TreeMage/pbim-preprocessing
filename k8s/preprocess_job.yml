@@ -12,7 +12,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: ZIP_FILE_PATH
-              value: "/data/HiDrive-IBF_BW402e_Messdaten_2020.zip"
+              value: "/data/HiDrive-IBF_BW402e_Messdaten_2021.zip"
             - name: OUTPUT_PATH
               value: "/out"
             - name: TMP_PATH
