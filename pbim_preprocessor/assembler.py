@@ -55,7 +55,7 @@ class Assembler:
                         f"Current file exhausted at time {current_time}. Preparing new file handle.",
                         identifier=channel,
                     )
-                    new_handle = self._prepare_file_handle(path, current_time, channel)
+                    new_handle = self._prepare_file_handle(path, current_time, channel, previous_file_exhausted=True)
                     handles[channel] = new_handle
                     _, _, additional_values = self._process_channel(
                         new_handle, current_time, window_end
