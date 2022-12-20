@@ -66,7 +66,13 @@ class Assembler:
             window_start = window_end
             window_end = window_start + datetime.timedelta(seconds=self._resolution)
 
-    def _prepare_file_handle(self, path: Path, time: datetime.datetime, channel: str):
+    def _prepare_file_handle(
+        self,
+        path: Path,
+        time: datetime.datetime,
+        channel: str,
+        previous_file_exhausted: bool = False,
+    ) -> BinaryIO:
         LOGGER.info(f"Preparing file handle at time {time}.", identifier=channel)
         f = open(self._make_file_path(path, time, channel), "rb")
         # find the first timestamp in the file
@@ -76,6 +82,17 @@ class Assembler:
         LOGGER.info(f"Initial file spans {t0} - {t_final}.", identifier=channel)
         # check if we need to change file
         if time < t0:
+            if previous_file_exhausted:
+                LOGGER.warn(
+                    "Target time stamp is to early for this file but the previous one is exhausted. There is data missing.",
+                    identifier=channel,
+                )
+                LOGGER.warn(
+                    "Using current time step as target instead.", identifier=channel
+                )
+                f.seek(0)
+                return f
+
             LOGGER.info(f"Target too early. Switching files.", identifier=channel)
             path = self._make_file_path(
                 path, time - datetime.timedelta(days=1), channel
@@ -113,8 +130,14 @@ class Assembler:
 
         current_time = self._read_timestamp(f)
         f.seek(-MEASUREMENT_SIZE_IN_BYTES, 1)
+        # Only seek back if we are not at the beginning of the file. Necessary because of small gaps in the recording.
         if current_time > start:
-            self._find_linear(f, start, forward=False)
+            if f.tell() == 0:
+                LOGGER.warn(
+                    "File exhausted at start of file. This is probably caused by missing measurement data."
+                )
+            else:
+                self._find_linear(f, start, forward=False)
 
         generator = GeneratorWithReturnValue(self._read_until(f, end))
         values = [m for m in generator]

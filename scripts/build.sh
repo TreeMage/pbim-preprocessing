@@ -6,4 +6,4 @@ then
     exit
 fi
 
-fastbuildah bud -t ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1 -f ./Dockerfile .
+fastbuildah bud --layers=true -t ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1 -f ./Dockerfile .
