@@ -34,9 +34,14 @@ class Assembler:
             f"Assembling data from {start_time} to {end_time} with a resolution of {self._resolution}s."
         )
         LOGGER.info(f"Using {len(channels)} channels.")
+
         handles = {
             channel: self._prepare_file_handle(path, start_time, channel)
             for channel in channels
+        }
+
+        approximate_steps = {
+            channel: self._approximate_step(handles[channel]) for channel in channels
         }
 
         steps = int((end_time - start_time).total_seconds() / self._resolution)
@@ -47,18 +52,28 @@ class Assembler:
             LOGGER.info(f"Processing step {i+1} of {steps}. Current time: {target}.")
             data = {"time": target.timestamp()}
             for channel, handle in handles.items():
+                approximate_step = approximate_steps[channel]
                 done, current_time, values = self._process_channel(
-                    handle, window_start, window_end
+                    handle, window_start, window_end, approximate_step=approximate_step
                 )
                 if not done:
                     LOGGER.info(
                         f"Current file exhausted at time {current_time}. Preparing new file handle.",
                         identifier=channel,
                     )
-                    new_handle = self._prepare_file_handle(path, current_time, channel, previous_file_exhausted=True)
+                    new_handle = self._prepare_file_handle(
+                        path,
+                        current_time,
+                        channel,
+                        approximate_step=approximate_step,
+                        previous_file_exhausted=True,
+                    )
                     handles[channel] = new_handle
                     _, _, additional_values = self._process_channel(
-                        new_handle, current_time, window_end
+                        new_handle,
+                        current_time,
+                        window_end,
+                        approximate_step=approximate_step,
                     )
                     values += additional_values
                 data[channel] = self._sampling_strategy.sample(values, target)
@@ -71,6 +86,7 @@ class Assembler:
         path: Path,
         time: datetime.datetime,
         channel: str,
+        approximate_step: Optional[datetime.timedelta] = None,
         previous_file_exhausted: bool = False,
     ) -> BinaryIO:
         LOGGER.info(f"Preparing file handle at time {time}.", identifier=channel)
@@ -113,13 +129,14 @@ class Assembler:
         # seek to the correct time (last measurement prior to the target one)
         LOGGER.info("Seeking to target offset.", identifier=channel)
         f.seek(0)
-        return self._jump_to(f, time, t0, self._approximate_step(f))
+        return self._jump_to(f, time, t0, approximate_step or self._approximate_step(f))
 
     def _process_channel(
         self,
         f: BinaryIO,
         start: datetime.datetime,
         end: datetime.datetime,
+        approximate_step: Optional[datetime.timedelta] = None,
     ):
         # Ensure we are at the start
         if not f.read(1):
@@ -139,7 +156,11 @@ class Assembler:
             else:
                 self._find_linear(f, start, forward=False)
 
-        generator = GeneratorWithReturnValue(self._read_until(f, end))
+        generator = GeneratorWithReturnValue(
+            self._read_until_buffered(
+                f, end, approximate_step or self._approximate_step(f)
+            )
+        )
         values = [m for m in generator]
         done = generator.value
         end_time = datetime.datetime.fromtimestamp(values[-1].time / 1000)
@@ -189,6 +210,30 @@ class Assembler:
         except struct.error:
             return False
 
+    def _read_until_buffered(
+        self, f: BinaryIO, time: datetime.datetime, approx_step: datetime.timedelta
+    ) -> Generator[Measurement, Any, bool]:
+        try:
+            current = self._read_measurement(f)
+            yield current
+            num_measurements = int(
+                (time - datetime.datetime.fromtimestamp(current.time / 1000))
+                / approx_step
+            )
+            buffer = f.read(num_measurements * MEASUREMENT_SIZE_IN_BYTES)
+            offset = 0
+            while current.time / 1000 < time.timestamp():
+                current = self._read_measurement_from_buffer(
+                    buffer[offset : offset + MEASUREMENT_SIZE_IN_BYTES]
+                )
+                offset += MEASUREMENT_SIZE_IN_BYTES
+                yield current
+                if offset >= len(buffer):
+                    return (yield from self._read_until(f, time))
+            return True
+        except struct.error:
+            return False
+
     @staticmethod
     def _make_file_path(path: Path, time: datetime.datetime, channel: str):
         return path / f"{time:%Y}" / f"{time:%m}" / f"{time:%d}" / f"{channel}.dat"
@@ -198,6 +243,11 @@ class Assembler:
         return datetime.datetime.fromtimestamp(
             struct.unpack("<q", f.read(MEASUREMENT_SIZE_IN_BYTES)[:8])[0] / 1000
         )
+
+    @staticmethod
+    def _read_measurement_from_buffer(buffer: bytes) -> Measurement:
+        time, value = struct.unpack("<qf", buffer)
+        return Measurement(measurement=value, time=time)
 
     @staticmethod
     def _read_measurement(f: BinaryIO) -> Measurement:
