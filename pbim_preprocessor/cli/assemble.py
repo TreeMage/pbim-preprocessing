@@ -60,6 +60,7 @@ def _write_metadata_file(path: Path, metadata: DatasetMetadata):
 @click.argument("resolution", type=click.INT)
 @click.option("--strategy", default="mean", type=click.Choice(list(STRATEGIES.keys())))
 @click.option("--output-format", default="csv", type=click.Choice(list(FORMATS.keys())))
+@click.option("--channel", default=CHANNELS, multiple=True)
 def assemble(
     path: Path,
     output_path: Path,
@@ -68,15 +69,17 @@ def assemble(
     resolution: int,
     strategy: str,
     output_format: str,
+    channel: List[str],
 ):
     output_path.parent.mkdir(exist_ok=True, parents=True)
+    channels = list(channel)
     assembler = Assembler(STRATEGIES[strategy], resolution)
     writer_type = FORMATS[output_format]
     statistics_collector = StatisticsCollector()
-    with writer_type(output_path, CHANNELS) as writer:
+    with writer_type(output_path, channels) as writer:
         length = 0
         for step in assembler.assemble(
-            path, start_time=start_time, end_time=end_time, channels=CHANNELS
+            path, start_time=start_time, end_time=end_time, channels=channels
         ):
             time = int(step["time"])
             statistics_collector.add_all(step)
@@ -86,11 +89,11 @@ def assemble(
     _write_metadata_file(
         output_path,
         DatasetMetadata(
-            channel_order=["Time"] + CHANNELS,
+            channel_order=["Time"] + channels,
             start_time=int(start_time.timestamp()),
             end_time=int(end_time.timestamp()),
             # Time + Channels
-            measurement_size_in_bytes=4 + len(CHANNELS) * 4,
+            measurement_size_in_bytes=4 + len(channels) * 4,
             resolution=resolution,
             length=length,
             statistics=statistics_collector.get_all_channel_statistics(),
