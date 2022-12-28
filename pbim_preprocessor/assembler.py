@@ -132,7 +132,7 @@ class Assembler:
         if not approximate_step:
             approximate_step = self._approximate_step(f)
         LOGGER.info(f"Approximate step: {approximate_step}.", identifier=channel)
-        return self._jump_to(f, time, t0, approximate_step or self._approximate_step(f))
+        return self._jump_to(f, time, t0, approximate_step)
 
     def _process_channel(
         self,
@@ -166,7 +166,7 @@ class Assembler:
         )
         values = [m for m in generator]
         done = generator.value
-        end_time = datetime.datetime.fromtimestamp(values[-1].time / 1000)
+        end_time = self._make_datetime(values[-1].time)
         return (
             done,
             end_time,
@@ -227,8 +227,7 @@ class Assembler:
             current = self._read_measurement(f)
             yield current
             num_measurements = int(
-                (time - datetime.datetime.fromtimestamp(current.time / 1000))
-                / approx_step
+                (time - self._make_datetime(int(current.time))) / approx_step
             )
             buffer = f.read(num_measurements * MEASUREMENT_SIZE_IN_BYTES)
             offset = 0
@@ -248,10 +247,9 @@ class Assembler:
     def _make_file_path(path: Path, time: datetime.datetime, channel: str):
         return path / f"{time:%Y}" / f"{time:%m}" / f"{time:%d}" / f"{channel}.dat"
 
-    @staticmethod
-    def _read_timestamp(f: BinaryIO) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(
-            struct.unpack("<q", f.read(MEASUREMENT_SIZE_IN_BYTES)[:8])[0] / 1000
+    def _read_timestamp(self, f: BinaryIO) -> datetime.datetime:
+        return self._make_datetime(
+            struct.unpack("<q", f.read(MEASUREMENT_SIZE_IN_BYTES)[:8])[0]
         )
 
     @staticmethod
@@ -264,14 +262,18 @@ class Assembler:
         time, value = struct.unpack("<qf", f.read(MEASUREMENT_SIZE_IN_BYTES))
         return Measurement(measurement=value, time=time)
 
-    @staticmethod
-    def _approximate_step(f: BinaryIO, samples: int = 100) -> datetime.timedelta:
+    def _approximate_step(self, f: BinaryIO, samples: int = 1000) -> datetime.timedelta:
         current = f.tell()
         data = f.read(samples * MEASUREMENT_SIZE_IN_BYTES)
         f.seek(current)
-        t0 = datetime.datetime.fromtimestamp(struct.unpack("<q", data[:8])[0] / 1000)
-        t1 = datetime.datetime.fromtimestamp(
+        t0 = self._make_datetime(struct.unpack("<q", data[:8])[0])
+        t1 = self._make_datetime(
             struct.unpack("<q", data[samples * MEASUREMENT_SIZE_IN_BYTES - 12 : -4])[0]
-            / 1000
         )
         return (t1 - t0) / samples
+
+    @staticmethod
+    def _make_datetime(timestamp: int, is_millis: bool = True) -> datetime.datetime:
+        return datetime.datetime.utcfromtimestamp(
+            timestamp / (1000 if is_millis else 1)
+        )
