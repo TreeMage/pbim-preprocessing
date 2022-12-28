@@ -129,6 +129,9 @@ class Assembler:
         # seek to the correct time (last measurement prior to the target one)
         LOGGER.info("Seeking to target offset.", identifier=channel)
         f.seek(0)
+        if not approximate_step:
+            approximate_step = self._approximate_step(f)
+        LOGGER.info(f"Approximate step: {approximate_step}.", identifier=channel)
         return self._jump_to(f, time, t0, approximate_step or self._approximate_step(f))
 
     def _process_channel(
@@ -184,7 +187,8 @@ class Assembler:
                 "Jumped over the end of the file. Seeking back to target linearly."
             )
             f.seek(-MEASUREMENT_SIZE_IN_BYTES, 2)
-        f.seek(-1, 1)
+        else:
+            f.seek(-1, 1)
         current_time = self._read_timestamp(f)
         if current_time == time:
             return f
