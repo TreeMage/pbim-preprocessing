@@ -180,8 +180,11 @@ class Assembler:
         steps = int((time - t0) / assumed_step)
         f.seek(steps * MEASUREMENT_SIZE_IN_BYTES)
         if f.read(1) == b"":
-            LOGGER.warn("Jumped over the end of the file. Seeking back to target linearly.")
+            LOGGER.warn(
+                "Jumped over the end of the file. Seeking back to target linearly."
+            )
             f.seek(-MEASUREMENT_SIZE_IN_BYTES, 2)
+        f.seek(-1, 1)
         current_time = self._read_timestamp(f)
         if current_time == time:
             return f

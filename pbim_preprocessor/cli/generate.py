@@ -8,21 +8,24 @@ import jinja2
 from dataclasses_json import dataclass_json, config
 from marshmallow import fields
 
+
 def date_field():
     return field(
         metadata=config(
             encoder=lambda x: x.strftime("%Y-%m-%dT%H:%M:%S"),
             decoder=lambda x: datetime.datetime.strptime(x, "%Y-%m-%dT%H:%M:%S"),
-            mm_field=fields.DateTime(format="%Y-%m-%dT%H:%M:%S")
-        ))
+            mm_field=fields.DateTime(format="%Y-%m-%dT%H:%M:%S"),
+        )
+    )
+
 
 def path_field():
     return field(
         metadata=config(
-            encoder=lambda x: str(x),
-            decoder=Path,
-            mm_field=fields.String()
-        ))
+            encoder=lambda x: str(x), decoder=Path, mm_field=fields.String()
+        )
+    )
+
 
 @dataclass_json
 @dataclass
@@ -49,7 +52,9 @@ def load_template(template_path: Path) -> jinja2.Template:
 
 
 @click.command()
-@click.argument("config-path", type=click.Path(exists=True, file_okay=True, path_type=Path))
+@click.argument(
+    "config-path", type=click.Path(exists=True, file_okay=True, path_type=Path)
+)
 def generate(config_path: Path):
     config = Config.from_json(config_path.read_text())
     template = load_template(config.template_path)
