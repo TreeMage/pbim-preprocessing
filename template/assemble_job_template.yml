@@ -38,6 +38,8 @@ spec:
               name: data # matches volume-name from below
             - mountPath: /out
               name: out
+            - mountPath: /tmp
+              name: tmp
       imagePullSecrets:
         - name: lsx-registry
       restartPolicy: "Never"
@@ -59,3 +61,5 @@ spec:
             path: "/home/stud/kohlmann/MA/assembled"
             secretRef:
               name: ceph-secret
+        - name: tmp
+          emptyDir: {}

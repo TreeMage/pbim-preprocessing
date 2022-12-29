@@ -53,13 +53,11 @@ class Assembler:
             LOGGER.debug(f"Window: {window_start} - {window_end} with target {target}.")
             data = {"time": target.timestamp()}
             for channel, handle in handles.items():
-                approximate_step = approximate_steps[channel]
                 done, current_time, values = self._process_channel(
                     channel,
                     handle,
                     window_start,
                     window_end,
-                    approximate_step=approximate_step,
                 )
                 if not done:
                     LOGGER.info(
@@ -70,7 +68,7 @@ class Assembler:
                         path,
                         current_time,
                         channel,
-                        approximate_step=approximate_step,
+                        approximate_step=approximate_steps[channel],
                         previous_file_exhausted=True,
                     )
                     handles[channel] = new_handle
@@ -79,7 +77,6 @@ class Assembler:
                         new_handle,
                         current_time,
                         window_end,
-                        approximate_step=approximate_step,
                     )
                     values += additional_values
                 data[channel] = self._sampling_strategy.sample(values, target)
@@ -146,7 +143,6 @@ class Assembler:
         f: BinaryIO,
         start: datetime.datetime,
         end: datetime.datetime,
-        approximate_step: Optional[datetime.timedelta] = None,
     ):
         if not f.read(1):
             # There is no data left
@@ -169,11 +165,7 @@ class Assembler:
             else:
                 self._find_linear(f, start, forward=False)
 
-        generator = GeneratorWithReturnValue(
-            self._read_until_buffered(
-                f, end, approximate_step or self._approximate_step(f)
-            )
-        )
+        generator = GeneratorWithReturnValue(self._read_until(f, end))
         values = [m for m in generator]
         done = generator.value
         end_time = self._make_datetime(values[-1].time)
@@ -233,6 +225,7 @@ class Assembler:
         except struct.error:
             return False
 
+    # FIXME: This is broken for some reason
     def _read_until_buffered(
         self, f: BinaryIO, time: datetime.datetime, approx_step: datetime.timedelta
     ) -> Generator[Measurement, Any, bool]:

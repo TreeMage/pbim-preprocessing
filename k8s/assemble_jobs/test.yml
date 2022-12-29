@@ -59,3 +59,5 @@ spec:
             path: "/home/stud/kohlmann/MA/assembled"
             secretRef:
               name: ceph-secret
+        - name: tmp
+          emptyDir: {}
