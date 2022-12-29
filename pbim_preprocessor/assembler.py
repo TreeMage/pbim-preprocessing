@@ -50,11 +50,16 @@ class Assembler:
         for i in range(steps):
             target = window_start + (window_end - window_start) / 2
             LOGGER.info(f"Processing step {i+1} of {steps}. Current time: {target}.")
+            LOGGER.debug(f"Window: {window_start} - {window_end} with target {target}.")
             data = {"time": target.timestamp()}
             for channel, handle in handles.items():
                 approximate_step = approximate_steps[channel]
                 done, current_time, values = self._process_channel(
-                    handle, window_start, window_end, approximate_step=approximate_step
+                    channel,
+                    handle,
+                    window_start,
+                    window_end,
+                    approximate_step=approximate_step,
                 )
                 if not done:
                     LOGGER.info(
@@ -70,6 +75,7 @@ class Assembler:
                     )
                     handles[channel] = new_handle
                     _, _, additional_values = self._process_channel(
+                        channel,
                         new_handle,
                         current_time,
                         window_end,
@@ -136,12 +142,12 @@ class Assembler:
 
     def _process_channel(
         self,
+        channel: str,
         f: BinaryIO,
         start: datetime.datetime,
         end: datetime.datetime,
         approximate_step: Optional[datetime.timedelta] = None,
     ):
-        # Ensure we are at the start
         if not f.read(1):
             # There is no data left
             return False, start, []
@@ -150,11 +156,15 @@ class Assembler:
 
         current_time = self._read_timestamp(f)
         f.seek(-MEASUREMENT_SIZE_IN_BYTES, 1)
+        LOGGER.debug(
+            f"Current time: {current_time} at position {f.tell()}", identifier=channel
+        )
         # Only seek back if we are not at the beginning of the file. Necessary because of small gaps in the recording.
         if current_time > start:
             if f.tell() == 0:
                 LOGGER.warn(
-                    "File exhausted at start of file. This is probably caused by missing measurement data."
+                    "File exhausted at start of file. This is probably caused by missing measurement data.",
+                    identifier=channel,
                 )
             else:
                 self._find_linear(f, start, forward=False)
@@ -181,8 +191,11 @@ class Assembler:
         assumed_step: datetime.timedelta,
     ) -> BinaryIO:
         steps = int((time - t0) / assumed_step)
+        LOGGER.debug(
+            f"Jumping {steps} steps (= {steps * MEASUREMENT_SIZE_IN_BYTES} bytes)."
+        )
         f.seek(steps * MEASUREMENT_SIZE_IN_BYTES)
-        if f.read(1) == b"":
+        if not f.read(1):
             LOGGER.warn(
                 "Jumped over the end of the file. Seeking back to target linearly."
             )
@@ -262,15 +275,15 @@ class Assembler:
         time, value = struct.unpack("<qf", f.read(MEASUREMENT_SIZE_IN_BYTES))
         return Measurement(measurement=value, time=time)
 
-    def _approximate_step(self, f: BinaryIO, samples: int = 1000) -> datetime.timedelta:
+    def _approximate_step(self, f: BinaryIO) -> datetime.timedelta:
         current = f.tell()
-        data = f.read(samples * MEASUREMENT_SIZE_IN_BYTES)
+        f.seek(0)
+        t0 = self._read_timestamp(f)
+        f.seek(-MEASUREMENT_SIZE_IN_BYTES, 2)
+        t1 = self._read_timestamp(f)
+        length = f.tell()
         f.seek(current)
-        t0 = self._make_datetime(struct.unpack("<q", data[:8])[0])
-        t1 = self._make_datetime(
-            struct.unpack("<q", data[samples * MEASUREMENT_SIZE_IN_BYTES - 12 : -4])[0]
-        )
-        return (t1 - t0) / samples
+        return (t1 - t0) / (length / MEASUREMENT_SIZE_IN_BYTES)
 
     @staticmethod
     def _make_datetime(timestamp: int, is_millis: bool = True) -> datetime.datetime:

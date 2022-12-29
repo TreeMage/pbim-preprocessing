@@ -14,6 +14,7 @@ from pbim_preprocessor.sampling import (
     LinearInterpolationSamplingStrategy,
 )
 from pbim_preprocessor.statistics import StatisticsCollector, ChannelStatistics
+from pbim_preprocessor.utils import LOGGER
 from pbim_preprocessor.writer import CsvWriter, BinaryWriter
 
 STRATEGIES = {
@@ -61,6 +62,7 @@ def _write_metadata_file(path: Path, metadata: DatasetMetadata):
 @click.option("--strategy", default="mean", type=click.Choice(list(STRATEGIES.keys())))
 @click.option("--output-format", default="csv", type=click.Choice(list(FORMATS.keys())))
 @click.option("--channel", default=CHANNELS, multiple=True)
+@click.option("--debug", is_flag=True, default=False)
 def assemble(
     path: Path,
     output_path: Path,
@@ -70,7 +72,9 @@ def assemble(
     strategy: str,
     output_format: str,
     channel: List[str],
+    debug: bool,
 ):
+    LOGGER.set_debug(debug)
     output_path.parent.mkdir(exist_ok=True, parents=True)
     channels = list(channel)
     assembler = Assembler(STRATEGIES[strategy], resolution)

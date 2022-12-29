@@ -3,6 +3,12 @@ from typing import Optional, TypeVar, Generator, Any
 
 
 class Logger:
+    def __init__(self, debug: bool = False) -> None:
+        self._debug = debug
+
+    def set_debug(self, debug: bool) -> None:
+        self._debug = debug
+
     @staticmethod
     def log(level: str, msg: str, identifier: Optional[str] = None) -> None:
         print(
@@ -17,6 +23,10 @@ class Logger:
 
     def warn(self, msg: str, identifier: Optional[str] = None) -> None:
         self.log("WARN", msg, identifier)
+
+    def debug(self, msg: str, identifier: Optional[str] = None) -> None:
+        if self._debug:
+            self.log("DEBUG", msg, identifier)
 
 
 LOGGER = Logger()
