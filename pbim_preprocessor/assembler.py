@@ -49,7 +49,9 @@ class Assembler:
         window_end = window_start + datetime.timedelta(seconds=self._resolution / 2)
         for i in range(steps):
             target = window_start + (window_end - window_start) / 2
-            LOGGER.info(f"Processing step {i+1} of {steps}. Current time: {target}.")
+            LOGGER.info(
+                f"Processing step {i+1} of {steps}. Current time: {target.strftime('%Y-%M-%d %H:%M:%S')}."
+            )
             LOGGER.debug(f"Window: {window_start} - {window_end} with target {target}.")
             data = {"time": target.timestamp()}
             for channel, handle in handles.items():
@@ -280,6 +282,6 @@ class Assembler:
 
     @staticmethod
     def _make_datetime(timestamp: int, is_millis: bool = True) -> datetime.datetime:
-        return datetime.datetime.utcfromtimestamp(
-            timestamp / (1000 if is_millis else 1)
+        return datetime.datetime.fromtimestamp(
+            timestamp / (1000 if is_millis else 1), tz=datetime.timezone.utc
         )

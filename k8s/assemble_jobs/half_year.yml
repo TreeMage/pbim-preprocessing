@@ -14,11 +14,11 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/half-year/assembled-2021-01-01T00:00:00-2021-06-30T23:59:59.dat"
+              value: "/out/half-year/assembled-2017-12-01T00:00:00-2018-05-31T23:59:59.dat"
             - name: START_TIME
-              value: "2021-01-01T00:00:00"
+              value: "2017-12-01T00:00:00"
             - name: END_TIME
-              value: "2021-06-30T23:59:59"
+              value: "2018-05-31T23:59:59"
             - name: RESOLUTION
               value: "60"
             - name: STRATEGY

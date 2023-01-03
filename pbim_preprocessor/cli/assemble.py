@@ -77,13 +77,18 @@ def assemble(
     LOGGER.set_debug(debug)
     output_path.parent.mkdir(exist_ok=True, parents=True)
     channels = list(channel)
+    if "all" in channels:
+        channels = CHANNELS
     assembler = Assembler(STRATEGIES[strategy], resolution)
     writer_type = FORMATS[output_format]
     statistics_collector = StatisticsCollector()
     with writer_type(output_path, channels) as writer:
         length = 0
         for step in assembler.assemble(
-            path, start_time=start_time, end_time=end_time, channels=channels
+            path,
+            start_time=start_time.replace(tzinfo=datetime.timezone.utc),
+            end_time=end_time.replace(tzinfo=datetime.timezone.utc),
+            channels=channels,
         ):
             time = int(step["time"])
             statistics_collector.add_all(step)

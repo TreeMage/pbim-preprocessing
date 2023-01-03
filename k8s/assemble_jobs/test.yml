@@ -16,15 +16,17 @@ spec:
             - name: OUTPUT_PATH
               value: "/out/test/assembled-2019-11-22T00:00:00-2019-11-28T23:59:59.dat"
             - name: START_TIME
-              value: "2019-11-22T00:00:00"
+              value: "2017-12-23T22:00:00"
             - name: END_TIME
-              value: "2019-11-23T23:59:59"
+              value: "2017-12-24T02:00:00"
             - name: RESOLUTION
-              value: "1"
+              value: "5"
             - name: STRATEGY
-              value: "mean"
+              value: "interpolate"
             - name: FORMAT
               value: "binary"
+            - name: CHANNEL
+              value: "MS22"
           resources:
             limits:
               cpu: "4"
