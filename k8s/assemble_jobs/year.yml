@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: p-bim-assemble-year
 spec:
+  backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med
@@ -28,10 +29,10 @@ spec:
           resources:
             limits:
               cpu: "4"
-              memory: "8Gi"
+              memory: "24Gi"
             requests:
               cpu: "2"
-              memory: "4Gi"
+              memory: "16Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
@@ -49,7 +50,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/"
+            path: "/scratch/p-bim-preprocesed/intermediate"
             secretRef:
               name: ceph-secret
             readOnly: true

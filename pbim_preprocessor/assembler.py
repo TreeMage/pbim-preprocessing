@@ -199,7 +199,8 @@ class Assembler:
         else:
             f.seek(-1, 1)
 
-        current_time = self._read_timestamp(f)
+        current = self._read_measurement(f)
+        current_time = self._make_datetime(current.time)
         f.seek(-MEASUREMENT_SIZE_IN_BYTES, 1)
         LOGGER.debug(
             f"Current time: {current_time} at position {f.tell()}", identifier=channel
@@ -214,8 +215,9 @@ class Assembler:
             else:
                 self._find_linear(f, start, forward=False)
 
-        generator = GeneratorWithReturnValue(self._read_until_buffered(f, end, approximate_step))
+        generator = GeneratorWithReturnValue(self._read_until_buffered(f, end, approximate_step, current))
         values = [m for m in generator]
+        LOGGER.debug(f"Read {len(values)} measurements.", identifier=channel)
         done = generator.value
         end_time = self._make_datetime(values[-1].time)
         return (
