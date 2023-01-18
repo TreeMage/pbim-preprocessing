@@ -150,9 +150,13 @@ class Assembler:
             approximate_step = self._approximate_step(f)
         LOGGER.info(f"Approximate step: {approximate_step}.", identifier=channel)
         return (
-            self._jump_to(f, time, t0, approximate_step),
-            time,
-        ) if missing else f, t0
+            (
+                self._jump_to(f, time, t0, approximate_step),
+                time,
+            )
+            if not missing
+            else (f, t0)
+        )
 
     def _open_file_handle(
         self, path: Path, time: datetime.datetime, channel: str, forward: bool
@@ -191,7 +195,7 @@ class Assembler:
         f: BinaryIO,
         start: datetime.datetime,
         end: datetime.datetime,
-        approximate_step: datetime.timedelta
+        approximate_step: datetime.timedelta,
     ):
         if not f.read(1):
             # There is no data left
@@ -215,9 +219,10 @@ class Assembler:
             else:
                 self._find_linear(f, start, forward=False)
 
-        generator = GeneratorWithReturnValue(self._read_until_buffered(f, end, approximate_step, current))
+        generator = GeneratorWithReturnValue(
+            self._read_until_buffered(f, end, approximate_step, current)
+        )
         values = [m for m in generator]
-        LOGGER.debug(f"Read {len(values)} measurements.", identifier=channel)
         done = generator.value
         end_time = self._make_datetime(values[-1].time)
         return (
@@ -278,7 +283,11 @@ class Assembler:
 
     # FIXME: This is broken for some reason
     def _read_until_buffered(
-        self, f: BinaryIO, time: datetime.datetime, approx_step: datetime.timedelta, current: Optional[Measurement] = None,
+        self,
+        f: BinaryIO,
+        time: datetime.datetime,
+        approx_step: datetime.timedelta,
+        current: Optional[Measurement] = None,
     ) -> Generator[Measurement, Any, bool]:
         try:
             if not current:
