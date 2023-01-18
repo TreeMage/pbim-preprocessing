@@ -30,13 +30,13 @@ class LinearInterpolationSamplingStrategy(SamplingStrategy):
     @staticmethod
     def _find_left(data: List[Measurement], target_timestamp: int) -> Measurement:
         current_index = 0
-        while data[current_index].time < target_timestamp and current_index < len(data):
+        while current_index < len(data) and data[current_index].time < target_timestamp:
             current_index += 1
         return data[max(0, current_index - 1)]
 
     @staticmethod
     def _find_right(data: List[Measurement], target_timestamp: int) -> Measurement:
         current_index = len(data) - 1
-        while data[current_index].time > target_timestamp and current_index > 0:
+        while current_index > 0 and data[current_index].time > target_timestamp:
             current_index -= 1
         return data[min(len(data) - 1, current_index + 1)]
