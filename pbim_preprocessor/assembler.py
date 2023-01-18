@@ -224,7 +224,7 @@ class Assembler:
         )
         values = [m for m in generator]
         done = generator.value
-        end_time = self._make_datetime(values[-1].time)
+        end_time = self._make_datetime(values[-1].time) if len(values) > 0 else start
         return (
             done,
             end_time,
