@@ -1,9 +1,8 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-all
+  name: p-bim-assemble-year
 spec:
-  backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med
@@ -15,26 +14,24 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/all/assembled-2017-02-12T00:00:00-2021-11-29T23:59:59.dat"
+              value: "/out/two_year/assembled-2017-05-24T00:00:00-2019-07-09T23:59:59.dat"
             - name: START_TIME
-              value: "2017-02-12T00:00:00"
+              value: "2017-05-24T00:00:00"
             - name: END_TIME
-              value: "2021-11-29T23:59:59"
+              value: "2019-07-09T23:59:59"
             - name: RESOLUTION
               value: "60"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT
               value: "binary"
-            - name: CHANNEL
-              value: "all"
           resources:
             limits:
               cpu: "4"
-              memory: "24Gi"
+              memory: "8Gi"
             requests:
               cpu: "2"
-              memory: "16Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
@@ -52,7 +49,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/intermediate"
+            path: "/scratch/p-bim-preprocesed/"
             secretRef:
               name: ceph-secret
             readOnly: true

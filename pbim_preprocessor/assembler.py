@@ -66,6 +66,7 @@ class Assembler:
                     handle,
                     window_start,
                     window_end,
+                    approximate_steps[channel],
                 )
                 if not done:
                     LOGGER.info(
@@ -92,6 +93,7 @@ class Assembler:
                             new_handle,
                             current_time,
                             window_end,
+                            approximate_steps[channel],
                         )
                         values += additional_values
                 data[channel] = self._sampling_strategy.sample(values, target)
@@ -189,6 +191,7 @@ class Assembler:
         f: BinaryIO,
         start: datetime.datetime,
         end: datetime.datetime,
+        approximate_step: datetime.timedelta
     ):
         if not f.read(1):
             # There is no data left
@@ -211,7 +214,7 @@ class Assembler:
             else:
                 self._find_linear(f, start, forward=False)
 
-        generator = GeneratorWithReturnValue(self._read_until(f, end))
+        generator = GeneratorWithReturnValue(self._read_until_buffered(f, end, approximate_step))
         values = [m for m in generator]
         done = generator.value
         end_time = self._make_datetime(values[-1].time)
@@ -273,25 +276,29 @@ class Assembler:
 
     # FIXME: This is broken for some reason
     def _read_until_buffered(
-        self, f: BinaryIO, time: datetime.datetime, approx_step: datetime.timedelta
+        self, f: BinaryIO, time: datetime.datetime, approx_step: datetime.timedelta, current: Optional[Measurement] = None,
     ) -> Generator[Measurement, Any, bool]:
         try:
-            current = self._read_measurement(f)
-            yield current
+            if not current:
+                current = self._read_measurement(f)
+                yield current
             num_measurements = int(
                 (time - self._make_datetime(int(current.time))) / approx_step
             )
             buffer = f.read(num_measurements * MEASUREMENT_SIZE_IN_BYTES)
             offset = 0
-            while current.time / 1000 < time.timestamp():
+            if len(buffer) == 0:
+                return False
+            while offset < len(buffer):
                 current = self._read_measurement_from_buffer(
                     buffer[offset : offset + MEASUREMENT_SIZE_IN_BYTES]
                 )
                 offset += MEASUREMENT_SIZE_IN_BYTES
                 yield current
-                if offset >= len(buffer):
-                    return (yield from self._read_until(f, time))
-            return True
+                if current.time / 1000 >= time.timestamp():
+                    f.seek(-len(buffer) + offset, 1)
+                    return True
+            return (yield from self._read_until_buffered(f, time, approx_step, current))
         except struct.error:
             return False
 
