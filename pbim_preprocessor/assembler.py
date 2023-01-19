@@ -52,7 +52,6 @@ class Assembler:
         steps = int((end_time - start_time).total_seconds() / self._resolution)
         window_start = start_time
         window_end = window_start + datetime.timedelta(seconds=self._resolution / 2)
-        actual_steps = steps
         should_stop = False
         for i in range(steps):
             if window_end > end_time:
@@ -67,7 +66,7 @@ class Assembler:
                 break
             target = window_start + (window_end - window_start) / 2
             LOGGER.info(
-                f"Processing step {i+1} of {steps} ({actual_steps}). Current time: {target.strftime('%Y-%m-%d %H:%M:%S')}."
+                f"Processing step {i+1} of {steps}. Current time: {target.strftime('%Y-%m-%d %H:%M:%S')}."
             )
             LOGGER.debug(f"Window: {window_start} - {window_end} with target {target}.")
             data = {"time": target.timestamp()}
@@ -102,7 +101,6 @@ class Assembler:
                         LOGGER.warn(
                             "Adjusting window start to new file handle due to missing data."
                         )
-                        actual_steps -= int(24 * 60 * 60 / self._resolution)
                         override_window_start = t
                     else:
                         _, _, additional_values = self._process_channel(
@@ -174,6 +172,11 @@ class Assembler:
                 return None, None, True
             t0, t_final = self._compute_file_span(f)
             LOGGER.info(f"New file spans {t0} - {t_final}.", identifier=channel)
+        if not t0 <= time <= t_final:
+            LOGGER.warn(
+                "Switched files but still did not find target time stamp. There is data missing."
+            )
+            return f, t0, False
         # seek to the correct time (last measurement prior to the target one)
         LOGGER.info("Seeking to target offset.", identifier=channel)
         f.seek(0)

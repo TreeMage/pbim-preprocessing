@@ -4,7 +4,7 @@
   "assembly_configs": [
     {
       "identifier": "01",
-      "start_time": "2017-02-01T00:00:00",
+      "start_time": "2017-01-02T00:00:00",
       "end_time": "2017-01-30T23:59:59",
       "resolution": "60",
       "strategy": "mean",
