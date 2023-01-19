@@ -34,11 +34,15 @@ class Assembler:
             f"Assembling data from {start_time} to {end_time} with a resolution of {self._resolution}s."
         )
         LOGGER.info(f"Using {len(channels)} channels.")
-
-        handles = {
-            channel: self._prepare_file_handle(path, start_time, channel)[0]
-            for channel in channels
-        }
+        handles = {}
+        for channel in channels:
+            handle, _, stop = self._prepare_file_handle(path, start_time, channel)
+            if stop:
+                LOGGER.error(
+                    f"Could not prepare file handle for start time {start_time}."
+                )
+                return None
+            handles[channel] = handle
 
         approximate_steps = {
             channel: self._approximate_step(handles[channel]) for channel in channels
@@ -47,10 +51,16 @@ class Assembler:
         window_start = start_time
         window_end = window_start + datetime.timedelta(seconds=self._resolution / 2)
         actual_steps = steps
+        should_stop = False
         for i in range(steps):
             if window_end > end_time:
                 LOGGER.warn(
                     "Stopping early because end time is reached. This is caused by missing data."
+                )
+                break
+            if should_stop:
+                LOGGER.warn(
+                    "Stopping early because all files are exhausted. This is caused by missing data."
                 )
                 break
             target = window_start + (window_end - window_start) / 2
@@ -60,6 +70,7 @@ class Assembler:
             LOGGER.debug(f"Window: {window_start} - {window_end} with target {target}.")
             data = {"time": target.timestamp()}
             override_window_start = None
+            skip_step = False
             for channel, handle in handles.items():
                 done, current_time, values = self._process_channel(
                     channel,
@@ -73,7 +84,7 @@ class Assembler:
                         f"Current file exhausted at time {current_time}. Preparing new file handle.",
                         identifier=channel,
                     )
-                    new_handle, t = self._prepare_file_handle(
+                    new_handle, t, stop = self._prepare_file_handle(
                         path,
                         current_time,
                         channel,
@@ -81,6 +92,10 @@ class Assembler:
                         previous_file_exhausted=True,
                     )
                     handles[channel] = new_handle
+                    if stop:
+                        should_stop = True
+                        skip_step = True
+                        break
                     if t != current_time:
                         LOGGER.warn(
                             "Adjusting window start to new file handle due to missing data."
@@ -96,8 +111,14 @@ class Assembler:
                             approximate_steps[channel],
                         )
                         values += additional_values
-                data[channel] = self._sampling_strategy.sample(values, target)
-            yield data
+                value = self._sampling_strategy.sample(values, target)
+                if value is None:
+                    LOGGER.warn(
+                        f"Could not sample data for channel {channel} at time {target} (no values). Skipping this step."
+                    )
+                    skip_step = True
+            if skip_step:
+                yield data
             window_start = override_window_start or window_end
             window_end = window_start + datetime.timedelta(seconds=self._resolution)
 
@@ -108,13 +129,15 @@ class Assembler:
         channel: str,
         approximate_step: Optional[datetime.timedelta] = None,
         previous_file_exhausted: bool = False,
-    ) -> Tuple[BinaryIO, datetime.datetime]:
+    ) -> Tuple[Optional[BinaryIO], Optional[datetime.datetime], bool]:
         LOGGER.info(f"Preparing file handle at time {time}.", identifier=channel)
-        f, missing = self._open_file_handle(path, time, channel, forward=True)
+        f, missing, stop = self._open_file_handle(path, time, channel, forward=True)
         # find the first timestamp in the file
+        if stop:
+            return None, None, True
         t0, t_final = self._compute_file_span(f)
         if missing:
-            return f, t0
+            return f, t0, False
         LOGGER.info(f"Initial file spans {t0} - {t_final}.", identifier=channel)
         # check if we need to change file
         if time < t0:
@@ -126,21 +149,25 @@ class Assembler:
                 LOGGER.warn(
                     "Using current time step as target instead.", identifier=channel
                 )
-                return f, t0
+                return f, t0, False
 
             LOGGER.info(f"Target too early. Switching files.", identifier=channel)
             f.close()
-            f, missing = self._open_file_handle(
+            f, missing, stop = self._open_file_handle(
                 path, time - datetime.timedelta(days=1), channel, forward=False
             )
+            if stop:
+                return None, None, True
             t0, t_final = self._compute_file_span(f)
             LOGGER.info(f"New file spans {t0} - {t_final}.", identifier=channel)
         elif time > t_final:
             LOGGER.info(f"Target too late. Switching files.", identifier=channel)
             f.close()
-            f, missing = self._open_file_handle(
+            f, missing, stop = self._open_file_handle(
                 path, time + datetime.timedelta(days=1), channel, forward=True
             )
+            if stop:
+                return None, None, True
             t0, t_final = self._compute_file_span(f)
             LOGGER.info(f"New file spans {t0} - {t_final}.", identifier=channel)
         # seek to the correct time (last measurement prior to the target one)
@@ -153,14 +180,15 @@ class Assembler:
             (
                 self._jump_to(f, time, t0, approximate_step),
                 time,
+                False,
             )
             if not missing
-            else (f, t0)
+            else (f, t0, False)
         )
 
     def _open_file_handle(
         self, path: Path, time: datetime.datetime, channel: str, forward: bool
-    ) -> Tuple[BinaryIO, bool]:
+    ) -> Tuple[Optional[BinaryIO], bool, bool]:
         file_path = self._make_file_path(path, time, channel)
         missing_file = False
         while not file_path.exists():
@@ -175,9 +203,12 @@ class Assembler:
                 else time - datetime.timedelta(days=1)
             )
             file_path = self._make_file_path(path, time, channel)
+            if time.year < 2017 or time.year > 2021:
+                return None, False, True
+
         LOGGER.info(f"New file handle: {file_path}", identifier=channel)
         f = open(file_path, "rb")
-        return f, missing_file
+        return f, missing_file, False
 
     def _compute_file_span(
         self, f: BinaryIO

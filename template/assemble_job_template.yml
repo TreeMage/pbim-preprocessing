@@ -51,7 +51,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/"
+            path: "/scratch/p-bim-preprocesed/intermediate"
             secretRef:
               name: ceph-secret
             readOnly: true
@@ -60,7 +60,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled"
+            path: "/home/stud/kohlmann/MA/assembled/2017"
             secretRef:
               name: ceph-secret
         - name: tmp

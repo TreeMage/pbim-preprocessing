@@ -1,33 +1,89 @@
 {
   "template_path": "template/assemble_job_template.yml",
-  "output_path": "k8s/assemble_jobs/",
+  "output_path": "k8s/assemble_jobs/2017/",
   "assembly_configs": [
     {
-      "identifier": "all",
-      "start_time": "2017-02-12T00:00:00",
-      "end_time": "2021-11-29T23:59:59",
-      "resolution": "3600",
-      "strategy": "mean"
-    },
-    {
-      "identifier": "year",
-      "start_time": "2021-01-01T00:00:00",
-      "end_time": "2021-11-29T23:59:59",
+      "identifier": "2017-january",
+      "start_time": "2017-01-01T00:00:00",
+      "end_time": "2021-01-30T23:59:59",
       "resolution": "60",
       "strategy": "mean"
     },
     {
-      "identifier": "month",
-      "start_time": "2021-11-01T00:00:00",
-      "end_time": "2021-11-29T23:59:59",
-      "resolution": "5",
+      "identifier": "2017-feburary",
+      "start_time": "2017-02-01T00:00:00",
+      "end_time": "2021-02-28T23:59:59",
+      "resolution": "60",
       "strategy": "mean"
     },
     {
-      "identifier": "week",
-      "start_time": "2019-11-22T00:00:00",
-      "end_time": "2019-11-28T23:59:59",
-      "resolution": "1",
+      "identifier": "2017-march",
+      "start_time": "2017-03-01T00:00:00",
+      "end_time": "2021-03-31T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+    {
+      "identifier": "2017-april",
+      "start_time": "2017-04-01T00:00:00",
+      "end_time": "2021-04-30T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+ {
+      "identifier": "2017-may",
+      "start_time": "2017-05-01T00:00:00",
+      "end_time": "2021-05-31T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    }   ,
+    {
+      "identifier": "2017-june",
+      "start_time": "2017-06-01T00:00:00",
+      "end_time": "2021-06-30T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+    {
+      "identifier": "2017-july",
+      "start_time": "2017-07-01T00:00:00",
+      "end_time": "2021-07-31T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+    {
+      "identifier": "2017-august",
+      "start_time": "2017-08-01T00:00:00",
+      "end_time": "2021-08-31T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+    {
+      "identifier": "2017-september",
+      "start_time": "2017-09-01T00:00:00",
+      "end_time": "2021-09-30T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+    {
+      "identifier": "2017-october",
+      "start_time": "2017-10-01T00:00:00",
+      "end_time": "2021-10-31T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+      {
+      "identifier": "2017-november",
+      "start_time": "2017-11-01T00:00:00",
+      "end_time": "2021-11-30T23:59:59",
+      "resolution": "60",
+      "strategy": "mean"
+    },
+    {
+      "identifier": "2017-december",
+      "start_time": "2017-12-01T00:00:00",
+      "end_time": "2021-12-31T23:59:59",
+      "resolution": "60",
       "strategy": "mean"
     }
   ]

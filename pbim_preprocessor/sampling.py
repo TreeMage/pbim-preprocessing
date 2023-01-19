@@ -1,24 +1,32 @@
 import abc
 import datetime
 from statistics import mean
-from typing import List
+from typing import List, Optional
 
 from pbim_preprocessor.model import Measurement
 
 
 class SamplingStrategy(abc.ABC):
     @abc.abstractmethod
-    def sample(self, data: List[Measurement], target: datetime.datetime) -> float:
+    def sample(
+        self, data: List[Measurement], target: datetime.datetime
+    ) -> Optional[float]:
         pass
 
 
 class MeanSamplingStrategy(SamplingStrategy):
-    def sample(self, data: List[Measurement], target: datetime.datetime) -> float:
-        return mean([m.measurement for m in data])
+    def sample(
+        self, data: List[Measurement], target: datetime.datetime
+    ) -> Optional[float]:
+        return mean([m.measurement for m in data]) if len(data) > 0 else None
 
 
 class LinearInterpolationSamplingStrategy(SamplingStrategy):
-    def sample(self, data: List[Measurement], target: datetime.datetime) -> float:
+    def sample(
+        self, data: List[Measurement], target: datetime.datetime
+    ) -> Optional[float]:
+        if len(data) == 0:
+            return None
         timestamp = int(target.timestamp()) * 1000
         left = self._find_left(data, timestamp)
         right = self._find_right(data, timestamp)
