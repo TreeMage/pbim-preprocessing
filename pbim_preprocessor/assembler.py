@@ -326,9 +326,17 @@ class Assembler:
             if not current:
                 current = self._read_measurement(f)
                 yield current
+            if current.time / 1000 > time.timestamp():
+                return True
             num_measurements = int(
                 (time - self._make_datetime(int(current.time))) / approx_step
             )
+            if num_measurements < 0:
+                raise ValueError(
+                    f"Negative number of measurements to read: {num_measurements}. Current time: {current.time}, target time: {time.timestamp()}."
+                )
+            if num_measurements == 0:
+                return True
             buffer = f.read(num_measurements * MEASUREMENT_SIZE_IN_BYTES)
             offset = 0
             if len(buffer) == 0:
