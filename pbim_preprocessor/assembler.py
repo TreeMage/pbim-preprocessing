@@ -119,7 +119,9 @@ class Assembler:
                         f"Could not sample data for channel {channel} at time {target} (no values). Skipping this step."
                     )
                     skip_step = True
-            if skip_step:
+                else:
+                    data[channel] = value
+            if not skip_step:
                 yield data
             window_start = override_window_start or window_end
             window_end = window_start + datetime.timedelta(seconds=self._resolution)
