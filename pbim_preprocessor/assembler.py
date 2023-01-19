@@ -171,6 +171,7 @@ class Assembler:
                     path, time, channel, forward=True
                 )
                 t0, t_final = self._compute_file_span(f)
+                return f, t0, False
         elif time > t_final:
             LOGGER.info(f"Target too late. Switching files.", identifier=channel)
             f.close()
