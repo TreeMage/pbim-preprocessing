@@ -168,7 +168,7 @@ class Assembler:
                 )
                 f.close()
                 f, _, _ = self._open_file_handle(
-                    path, time + datetime.timedelta(days=1), channel, forward=True
+                    path, time, channel, forward=True
                 )
                 t0, t_final = self._compute_file_span(f)
         elif time > t_final:
