@@ -77,6 +77,9 @@ def assemble(
     LOGGER.set_debug(debug)
     output_path.parent.mkdir(exist_ok=True, parents=True)
     channels = list(channel)
+    if "relevant" in channels:
+        ignore_channels = ["MS17", "MS18", "MS19", "MS20", "MS21", "MS22"]
+        channels = [c for c in CHANNELS if c not in ignore_channels]
     if "all" in channels:
         channels = CHANNELS
     assembler = Assembler(STRATEGIES[strategy], resolution)

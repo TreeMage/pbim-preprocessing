@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: p-bim-assemble-2017-feburary
 spec:
+  backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med

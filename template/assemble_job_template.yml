@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: p-bim-assemble-{{identifier}}
 spec:
+  backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med
@@ -26,7 +27,7 @@ spec:
             - name: FORMAT
               value: "binary"
             - name: CHANNEL
-              value: "all"
+              value: "relevant"
           resources:
             limits:
               cpu: "4"
