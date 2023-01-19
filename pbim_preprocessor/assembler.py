@@ -36,14 +36,16 @@ class Assembler:
         LOGGER.info(f"Using {len(channels)} channels.")
         handles = {}
         for channel in channels:
-            handle, _, stop = self._prepare_file_handle(path, start_time, channel)
+            handle, time, stop = self._prepare_file_handle(path, start_time, channel)
             if stop:
                 LOGGER.error(
                     f"Could not prepare file handle for start time {start_time}."
                 )
                 return None
+            if time > start_time:
+                start_time = time
             handles[channel] = handle
-
+        LOGGER.info(f"Earliest time with data is {start_time}.")
         approximate_steps = {
             channel: self._approximate_step(handles[channel]) for channel in channels
         }

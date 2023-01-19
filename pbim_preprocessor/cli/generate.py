@@ -33,6 +33,7 @@ class AssemblyConfig:
     identifier: str
     resolution: int
     strategy: str
+    pod_suffix: str
     start_time: datetime.datetime = date_field()
     end_time: datetime.datetime = date_field()
 

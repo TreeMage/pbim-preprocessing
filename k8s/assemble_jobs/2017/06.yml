@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-2017-feburary
+  name: p-bim-assemble-2017-06
 spec:
   backoffLimit: 0
   template:
@@ -15,11 +15,11 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/2017-feburary/assembled-2017-02-01T00:00:00-2021-02-28T23:59:59.dat"
+              value: "/out/06/assembled-2017-06-01T00:00:00-2017-06-30T23:59:59.dat"
             - name: START_TIME
-              value: "2017-02-01T00:00:00"
+              value: "2017-06-01T00:00:00"
             - name: END_TIME
-              value: "2021-02-28T23:59:59"
+              value: "2017-06-30T23:59:59"
             - name: RESOLUTION
               value: "60"
             - name: STRATEGY
@@ -27,7 +27,7 @@ spec:
             - name: FORMAT
               value: "binary"
             - name: CHANNEL
-              value: "all"
+              value: "relevant"
           resources:
             limits:
               cpu: "4"
