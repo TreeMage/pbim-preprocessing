@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-2020-07
+  name: p-bim-merge
 spec:
   backoffLimit: 0
   template:
@@ -14,28 +14,16 @@ spec:
           env:
             - name: BASE_PATH
               value: "/data"
-            - name: OUTPUT_PATH
-              value: "/out/07/assembled-2020-07-01T00:00:00-2020-07-31T23:59:59.dat"
-            - name: START_TIME
-              value: "2020-07-01T00:00:00"
-            - name: END_TIME
-              value: "2020-07-31T23:59:59"
-            - name: RESOLUTION
-              value: "60"
-            - name: STRATEGY
-              value: "mean"
-            - name: FORMAT
-              value: "binary"
-            - name: CHANNEL
-              value: "relevant"
+            - name: OUTPUT_FILE
+              value: "/out/assembled-2017-01-02T00:00:00-2017-01-30T23:59:59.dat"
           resources:
             limits:
               cpu: "2"
-              memory: "12Gi"
+              memory: "8Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
-          command: ["bash", "./scripts/assemble.sh"]
+              memory: "4Gi"
+          command: ["bash", "./scripts/merge.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
@@ -52,7 +40,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/intermediate"
+            path: "/home/stud/kohlmann/MA/assembled"
             secretRef:
               name: ceph-secret
             readOnly: true
@@ -61,7 +49,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled/2017"
+            path: "/home/stud/kohlmann/MA/assembled/merged"
             secretRef:
               name: ceph-secret
         - name: tmp

@@ -1,12 +1,13 @@
 import json
 import struct
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, BinaryIO
 
 import click
 
 from pbim_preprocessor.cli.assemble import DatasetMetadata
 from pbim_preprocessor.statistics import StatisticsCollector
+from pbim_preprocessor.utils import LOGGER
 
 
 def _find_start_path(data_directory: Path) -> Path:
@@ -25,7 +26,14 @@ def _find_next_path(data_directory: Path, current: Path) -> Optional[Path]:
         month = 1
     else:
         month += 1
-    return next((data_directory / str(year) / str(month).zfill(2)).glob("*.dat"))
+    next_path = data_directory / str(year) / str(month)
+    if next_path.exists():
+        f = [p for p in next_path.iterdir() if p.is_file() and p.name.endswith(".dat")]
+        if len(f) > 0:
+            return f[0]
+        return _find_next_path(data_directory, next_path)
+    else:
+        return None
 
 
 def _load_metadata(path: Path) -> DatasetMetadata:
@@ -41,6 +49,13 @@ def _parse_values(data: bytes) -> List[float]:
 CHUNK_SIZE = 1024 * 1024
 
 
+def _estimate_steps(f: BinaryIO, chunk_size: int) -> int:
+    f.seek(0, 2)
+    size = f.tell()
+    f.seek(0)
+    return size // chunk_size
+
+
 @click.command()
 @click.argument("path", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.argument(
@@ -53,7 +68,15 @@ def merge(path: Path, output_file: Path):
     with open(output_file, "wb") as f:
         while current_path.exists():
             with open(current_path, "rb") as current_file:
+                steps = _estimate_steps(current_file, CHUNK_SIZE)
+                LOGGER.info(
+                    f"Processing {current_path.parent.name}/{current_path.name} (Estimated steps: {steps})"
+                )
+                i = 0
                 while True:
+                    LOGGER.info(
+                        f"Processing chunk {i + 1}/{steps} of {current_path.parent.name}/{current_path.name}"
+                    )
                     chunk = current_file.read(CHUNK_SIZE)
                     if chunk:
                         f.write(chunk)
@@ -67,6 +90,7 @@ def merge(path: Path, output_file: Path):
                                 statistics_collector.add(channel, value)
                     else:
                         break
+                    i += 1
             current_path = _find_next_path(path, current_path)
     with open(output_file.parent / f"{output_file.stem}.metadata.json", "w") as f:
         json.dump(

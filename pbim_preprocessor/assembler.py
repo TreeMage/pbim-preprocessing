@@ -162,6 +162,15 @@ class Assembler:
                 return None, None, True
             t0, t_final = self._compute_file_span(f)
             LOGGER.info(f"New file spans {t0} - {t_final}.", identifier=channel)
+            if not time <= t_final:
+                LOGGER.warn(
+                    "Switched files but still did not find target time stamp. Switching forward again"
+                )
+                f.close()
+                f, _, _ = self._open_file_handle(
+                    path, time + datetime.timedelta(days=1), channel, forward=True
+                )
+                t0, t_final = self._compute_file_span(f)
         elif time > t_final:
             LOGGER.info(f"Target too late. Switching files.", identifier=channel)
             f.close()
@@ -172,16 +181,16 @@ class Assembler:
                 return None, None, True
             t0, t_final = self._compute_file_span(f)
             LOGGER.info(f"New file spans {t0} - {t_final}.", identifier=channel)
-        if not t0 <= time <= t_final:
-            LOGGER.warn(
-                "Switched files but still did not find target time stamp. There is data missing."
-            )
-            return f, t0, False
+            if not time >= t0:
+                LOGGER.warn(
+                    "Switched files but still did not find target time stamp. Using current time step as target instead."
+                )
+                t0, t_final = self._compute_file_span(f)
+                return f, t0, False
         # seek to the correct time (last measurement prior to the target one)
         LOGGER.info("Seeking to target offset.", identifier=channel)
         f.seek(0)
-        if not approximate_step:
-            approximate_step = self._approximate_step(f)
+        approximate_step = self._approximate_step(f)
         LOGGER.info(f"Approximate step: {approximate_step}.", identifier=channel)
         return (
             (
