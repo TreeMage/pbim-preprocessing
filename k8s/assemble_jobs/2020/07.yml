@@ -61,7 +61,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled/2017"
+            path: "/home/stud/kohlmann/MA/assembled/2020"
             secretRef:
               name: ceph-secret
         - name: tmp

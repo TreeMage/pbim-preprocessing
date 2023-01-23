@@ -31,10 +31,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "8Gi"
+              memory: "4Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "2Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
@@ -61,7 +61,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled/2017"
+            path: "/home/stud/kohlmann/MA/assembled/2018"
             secretRef:
               name: ceph-secret
         - name: tmp

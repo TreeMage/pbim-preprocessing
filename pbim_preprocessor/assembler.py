@@ -1,7 +1,7 @@
 import datetime
 import struct
 from pathlib import Path
-from typing import List, Optional, BinaryIO, Generator, Dict, Any, Tuple
+from typing import List, Optional, BinaryIO, Generator, Dict, Any, Tuple, TextIO
 
 from pbim_preprocessor.model import Measurement
 from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS
@@ -10,20 +10,23 @@ from pbim_preprocessor.sampling import SamplingStrategy
 from pbim_preprocessor.utils import GeneratorWithReturnValue, LOGGER
 
 
-class Assembler:
-    def __init__(self, sampling_strategy: SamplingStrategy, resolution: int):
+class PBimAssembler:
+    def __init__(
+        self, path: Path, sampling_strategy: SamplingStrategy, resolution: int
+    ):
         """
+        :param path: Path to the data directory.
         :param sampling_strategy: The strategy to use for sampling the data
         :param resolution: The resolution to use for the sampling window in seconds.
         For instance, choosing a resolution of 60 will create a time-series that contains
         a value for every minute.
         """
+        self._path = path
         self._sampling_strategy = sampling_strategy
         self._resolution = resolution
 
     def assemble(
         self,
-        path: Path,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
         channels: Optional[List[str]] = None,
@@ -36,7 +39,7 @@ class Assembler:
         LOGGER.info(f"Using {len(channels)} channels.")
         handles = {}
         for channel in channels:
-            handle, time, stop = self._prepare_file_handle(path, start_time, channel)
+            handle, time, stop = self._prepare_file_handle(start_time, channel)
             if stop:
                 LOGGER.error(
                     f"Could not prepare file handle for start time {start_time}."
@@ -86,7 +89,6 @@ class Assembler:
                         identifier=channel,
                     )
                     new_handle, t, stop = self._prepare_file_handle(
-                        path,
                         current_time,
                         channel,
                         approximate_step=approximate_steps[channel],
@@ -126,14 +128,15 @@ class Assembler:
 
     def _prepare_file_handle(
         self,
-        path: Path,
         time: datetime.datetime,
         channel: str,
         approximate_step: Optional[datetime.timedelta] = None,
         previous_file_exhausted: bool = False,
     ) -> Tuple[Optional[BinaryIO], Optional[datetime.datetime], bool]:
         LOGGER.info(f"Preparing file handle at time {time}.", identifier=channel)
-        f, missing, stop = self._open_file_handle(path, time, channel, forward=True)
+        f, missing, stop = self._open_file_handle(
+            self._path, time, channel, forward=True
+        )
         # find the first timestamp in the file
         if stop:
             return None, None, True
@@ -156,7 +159,7 @@ class Assembler:
             LOGGER.info(f"Target too early. Switching files.", identifier=channel)
             f.close()
             f, missing, stop = self._open_file_handle(
-                path, time - datetime.timedelta(days=1), channel, forward=False
+                self._path, time - datetime.timedelta(days=1), channel, forward=False
             )
             if stop:
                 return None, None, True
@@ -168,7 +171,7 @@ class Assembler:
                 )
                 f.close()
                 f, _, _ = self._open_file_handle(
-                    path, time, channel, forward=True
+                    self._path, time, channel, forward=True
                 )
                 t0, t_final = self._compute_file_span(f)
                 return f, t0, False
@@ -176,7 +179,7 @@ class Assembler:
             LOGGER.info(f"Target too late. Switching files.", identifier=channel)
             f.close()
             f, missing, stop = self._open_file_handle(
-                path, time + datetime.timedelta(days=1), channel, forward=True
+                self._path, time + datetime.timedelta(days=1), channel, forward=True
             )
             if stop:
                 return None, None, True
@@ -329,7 +332,6 @@ class Assembler:
         except struct.error:
             return False
 
-    # FIXME: This is broken for some reason
     def _read_until_buffered(
         self,
         f: BinaryIO,
@@ -403,3 +405,73 @@ class Assembler:
         return datetime.datetime.fromtimestamp(
             timestamp / (1000 if is_millis else 1), tz=datetime.timezone.utc
         )
+
+
+class GrandStandAssembler:
+    def __init__(self, path: Path):
+        self._path = path
+
+    def assemble(
+        self, scenario: str, channels: List[str]
+    ) -> Generator[Dict[str, float], Any, None]:
+        path = self._make_path(scenario)
+        with open(path, "r") as f:
+            line, channel_order = self._parse_channel_order(f)
+            if not channel_order:
+                raise ValueError(f"Failed to parse metadata for scenario {scenario}.")
+            yield self._annotate(self._parse_line(line), channel_order, 0)
+            for i, line in enumerate(f):
+                yield self._annotate(self._parse_line(line), channel_order, i + 1)
+
+    @staticmethod
+    def _annotate(
+        data: List[float],
+        channel_order: List[str],
+        measurement_index: int,
+        desired_channels: Optional[List[str]] = None,
+    ) -> Dict[str, float]:
+        time_index = channel_order.index("time")
+        data[time_index] = measurement_index
+        return {
+            channel: value
+            for channel, value in zip(channel_order, data)
+            if desired_channels is None or channel in desired_channels
+        }
+
+    @staticmethod
+    def _parse_line(line: str) -> List[float]:
+        return [float(x) for x in line.split("\t")]
+
+    @staticmethod
+    def _parse_channel_order(f: TextIO) -> Tuple[str, Optional[List[str]]]:
+        order = None
+        while (line := f.readline()).startswith('"'):
+            if line.startswith('"Y Axis DOFS"'):
+                order = ["time"] + [
+                    "Joint " + x.strip().replace('"', "") for x in line.split("\t")[1:]
+                ]
+        return line, order
+
+    def _make_path(self, scenario: str) -> Path:
+        return self._path / f"{scenario}.txt"
+
+
+class AssemblerWrapper:
+    def __init__(self, mode: str, base_assembler: PBimAssembler | GrandStandAssembler):
+        self._mode = mode
+        self._base_assembler = base_assembler
+
+    def assemble(
+        self,
+        start_time: Optional[datetime.datetime],
+        end_time: Optional[datetime.datetime],
+        scenario: str,
+        channels: List[str],
+    ) -> Generator[Dict[str, float], Any, None]:
+        match self._mode:
+            case "pbim":
+                yield from self._base_assembler.assemble(start_time, end_time, channels)
+            case "grandstand":
+                yield from self._base_assembler.assemble(scenario, channels)
+            case _:
+                raise ValueError(f"Unknown mode {self._mode}")

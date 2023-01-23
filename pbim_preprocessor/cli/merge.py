@@ -1,3 +1,4 @@
+import datetime
 import json
 import struct
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import Optional, List, BinaryIO
 import click
 
 from pbim_preprocessor.cli.assemble import DatasetMetadata
-from pbim_preprocessor.statistics import StatisticsCollector
+from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER
 
 
@@ -61,9 +62,20 @@ def _estimate_steps(f: BinaryIO, chunk_size: int) -> int:
 @click.argument(
     "output-file", type=click.Path(writable=True, dir_okay=False, path_type=Path)
 )
-def merge(path: Path, output_file: Path):
+@click.option("--start", type=click.DateTime(formats=["%Y-%m-%d"]))
+@click.option("--end", type=click.DateTime(formats=["%Y-%m-%d"]))
+def merge(
+    path: Path,
+    output_file: Path,
+    start: Optional[datetime.datetime] = None,
+    end: Optional[datetime.datetime] = None,
+):
     statistics_collector = StatisticsCollector()
-    current_path = _find_start_path(path)
+    current_path = (
+        _find_start_path(path)
+        if start is None
+        else next((path / str(start.year) / str(start.month).zfill(2)).glob("*.dat"))
+    )
     metadata = _load_metadata(current_path)
     with open(output_file, "wb") as f:
         while current_path.exists():
@@ -92,6 +104,13 @@ def merge(path: Path, output_file: Path):
                         break
                     i += 1
             current_path = _find_next_path(path, current_path)
+            if (
+                end is not None
+                and current_path is not None
+                and current_path.parent.parent.name == str(end.year)
+                and current_path.parent.name == str(end.month).zfill(2)
+            ):
+                break
     with open(output_file.parent / f"{output_file.stem}.metadata.json", "w") as f:
         json.dump(
             metadata.to_dict(),
