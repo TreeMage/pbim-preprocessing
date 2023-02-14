@@ -183,6 +183,9 @@ def _validate_args(
         case "grandstand":
             if scenario is None:
                 _raise("scenario")
+        case "z24":
+            if resolution is None:
+                _raise("resolution")
 
 
 def _prepare_channels(mode: str, channels: List[str]) -> List[str]:

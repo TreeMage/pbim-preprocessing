@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-z24
+  name: z24-assemble-dataset
 spec:
   backoffLimit: 0
   template:
@@ -16,12 +16,6 @@ spec:
               value: "/data"
             - name: OUTPUT_PATH
               value: "/out/assembled-1s.dat"
-            - name: MODE
-              value: "z24"
-            - name: START_TIME
-              value: ""
-            - name: END_TIME
-              value: ""
             - name: RESOLUTION
               value: "1"
             - name: STRATEGY
@@ -35,7 +29,7 @@ spec:
             requests:
               cpu: "1"
               memory: "2Gi"
-          command: ["bash", "./scripts/assemble.sh"]
+          command: ["bash", "./scripts/assemble_z24_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
