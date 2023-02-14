@@ -1,10 +1,11 @@
 import datetime
 import struct
 from pathlib import Path
+from statistics import mean
 from typing import List, Optional, BinaryIO, Generator, Dict, Any, Tuple, TextIO
 
-from pbim_preprocessor.model import Measurement
-from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS
+from pbim_preprocessor.model import Measurement, EOF, ParsedZ24File
+from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS, Z24UndamagedParser
 from pbim_preprocessor.processor import MEASUREMENT_SIZE_IN_BYTES
 from pbim_preprocessor.sampling import SamplingStrategy
 from pbim_preprocessor.utils import GeneratorWithReturnValue, LOGGER
@@ -456,8 +457,92 @@ class GrandStandAssembler:
         return self._path / f"{scenario}.txt"
 
 
+class Z24Assembler:
+    def __init__(
+        self, path: Path, sampling_strategy: SamplingStrategy, resolution: int
+    ):
+        self._path = path
+        self._parser = Z24UndamagedParser()
+        self._sampling_strategy = sampling_strategy
+        self._resolution = resolution
+
+    @staticmethod
+    def _make_environmental_data(data: ParsedZ24File):
+        def _mean(values: List[Measurement]) -> float:
+            return mean([x.measurement for x in values])
+
+        pre = data.pre_measurement_environmental_data
+        post = data.post_measurement_environmental_data
+        return {
+            channel: (
+                _mean(pre[channel].measurements) - _mean(post[channel].measurements)
+            )
+            / 2
+            for channel in pre.keys()
+        }
+
+    @staticmethod
+    def _find_start_time(data: ParsedZ24File) -> int:
+        channel = list(data.acceleration_data.keys())[0]
+        return min([x.time for x in data.acceleration_data[channel].measurements])
+
+    def _make_acceleration_data(self, data: ParsedZ24File):
+        def _find_until(
+            values: List[Measurement], timestamp: int, offset: int = 0
+        ) -> List[Measurement]:
+            return [v for v in values[offset:] if v.time <= timestamp]
+
+        sampled = {}
+        for channel, values in data.acceleration_data.items():
+            # All in milliseconds
+            end_time = (
+                min([x.time for x in values.measurements]) + self._resolution * 1000
+            )
+            offset = 0
+            sampled_values = []
+            while offset < len(values.measurements):
+                sample = _find_until(values.measurements, end_time, offset)
+                value = self._sampling_strategy.sample(
+                    sample,
+                    datetime.datetime.fromtimestamp(
+                        end_time / 1000 - self._resolution / 2
+                    ),
+                )
+                sampled_values.append(value)
+                offset += len(sample)
+                end_time += self._resolution * 1000
+            sampled[channel] = sampled_values
+        return sampled
+
+    def _make_measurement_dict(
+        self, data: ParsedZ24File
+    ) -> Generator[Dict[str, float], Any, None]:
+        start_time = self._find_start_time(data)
+        environmental_data = self._make_environmental_data(data)
+        acceleration_data = self._make_acceleration_data(data)
+        lengths = list(set([len(x) for x in acceleration_data.values()]))
+        if len(lengths) != 1:
+            raise ValueError("Unequal number of measurements for channels.")
+        for i in range(lengths[0]):
+            sample_acceleration_data = {
+                channel: value[i] for channel, value in acceleration_data.items()
+            }
+            # Start time + middle of current sample in milliseconds
+            time = start_time + 1.5 * i * self._resolution * 1000
+            yield {"time": time, **environmental_data, **sample_acceleration_data}
+
+    def assemble(self):
+        for data in self._parser.parse(self._path):
+            yield from self._make_measurement_dict(data)
+            yield EOF()
+
+
 class AssemblerWrapper:
-    def __init__(self, mode: str, base_assembler: PBimAssembler | GrandStandAssembler):
+    def __init__(
+        self,
+        mode: str,
+        base_assembler: PBimAssembler | GrandStandAssembler | Z24Assembler,
+    ):
         self._mode = mode
         self._base_assembler = base_assembler
 
@@ -465,13 +550,15 @@ class AssemblerWrapper:
         self,
         start_time: Optional[datetime.datetime],
         end_time: Optional[datetime.datetime],
-        scenario: str,
-        channels: List[str],
-    ) -> Generator[Dict[str, float], Any, None]:
+        scenario: Optional[str],
+        channels: Optional[List[str]],
+    ) -> Generator[Dict[str, float] | EOF, Any, None]:
         match self._mode:
             case "pbim":
                 yield from self._base_assembler.assemble(start_time, end_time, channels)
             case "grandstand":
                 yield from self._base_assembler.assemble(scenario, channels)
+            case "z24":
+                yield from self._base_assembler.assemble()
             case _:
                 raise ValueError(f"Unknown mode {self._mode}")

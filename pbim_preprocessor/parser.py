@@ -1,11 +1,21 @@
 import datetime
+import os
+import re
+import tempfile
+import zipfile
+import io
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Generator, Any
 
-from pbim_preprocessor.model import Measurement, ParsedChannel
-from .data_parser import PBimDataParser
-from .metadata_parser import PBimMetadataParser
+from pbim_preprocessor.model import Measurement, ParsedPBimChannel, ParsedZ24File, EOF
+from pbim_preprocessor.data_parser import (
+    PBimDataParser,
+    Z24AccelerationDataParser,
+    Z24EnvironmentalDataParser,
+)
+from pbim_preprocessor.metadata_parser import PBimMetadataParser
+from pbim_preprocessor.utils import LOGGER
 
 MAGIC_FREQUENCY_CONSTANT = 270135
 
@@ -88,7 +98,7 @@ class PBimParser:
 
     def parse(
         self, directory: Path, name: str, channels: List[str]
-    ) -> Dict[str, ParsedChannel]:
+    ) -> Dict[str, ParsedPBimChannel]:
         ensure_files_exist(directory, name, ALL_EXTENSIONS)
         channels_with_time = channels + [channel.value for channel in TimeChannel]
         global_header, channel_header = self._metadata_parser.parse(directory, name)
@@ -125,7 +135,7 @@ class PBimParser:
 
     @staticmethod
     def _post_process(
-        channel: ParsedChannel,
+        channel: ParsedPBimChannel,
         time_channels: Dict[str, List[Measurement]],
         start_time: datetime.datetime,
     ) -> None:
@@ -138,3 +148,92 @@ class PBimParser:
         for i, dat in enumerate(channel.measurements):
             # Round to the nearest millisecond
             dat.time = start_time_in_milliseconds + int(time_data[i].measurement * 1000)
+
+
+Z24_EMS_REGEX = re.compile(r"Z24ems(\d+).zip")
+Z24_INNER_ZIP_REGEX = re.compile(r"(\d{2})([A-G])(\d{2}).zip")
+
+
+class Z24UndamagedParser:
+    def __init__(self):
+        self._acceleration_parser = Z24AccelerationDataParser()
+        self._environmental_data_parser = Z24EnvironmentalDataParser()
+
+    @staticmethod
+    def _find_and_sort_ems_files(directory: Path) -> List[Path]:
+        files = [f for f in os.listdir(directory) if Z24_EMS_REGEX.match(f)]
+        files = sorted(files, key=lambda f: int(Z24_EMS_REGEX.match(f).group(1)))
+        return [directory / f for f in files]
+
+    @staticmethod
+    def _parser_inner_file_name(name: str) -> datetime.datetime:
+        match = Z24_INNER_ZIP_REGEX.match(name)
+        if not match:
+            raise ValueError(f"Could not parse {name}")
+        week = int(match.group(1)) - 1  # 0-indexed
+        day = ord(match.group(2)) - ord("A")  # 0-indexed
+        hour = int(match.group(3))
+        return datetime.datetime(year=1, month=1, day=1) + datetime.timedelta(
+            weeks=week, days=day, hours=hour
+        )
+
+    @staticmethod
+    def _extract_inner_file(
+        zip_file: zipfile.ZipFile, inner_file: str, output_path: Path
+    ) -> Path:
+        zip_file.extract(inner_file, path=output_path)
+        return output_path / inner_file
+
+    def _parse_inner_file(self, inner_file_path: Path) -> ParsedZ24File:
+        with zipfile.ZipFile(inner_file_path) as inner_zip_file:
+            data = {}
+            pre_env_measurements = None
+            post_env_measurements = None
+            files = inner_zip_file.namelist()
+            for file in files:
+                f = io.TextIOWrapper(
+                    inner_zip_file.open(file, "r"), encoding="ISO-8859-1", newline=None
+                )
+                if file.endswith(".aaa"):
+                    if "car" in file:
+                        continue
+                    channel = file[-6:-4]
+                    data[channel] = self._acceleration_parser.parse(f)
+                elif file.endswith(".env"):
+                    if "PRE" in file:
+                        pre_env_measurements = self._environmental_data_parser.parse(f)
+                    elif "POS" in file:
+                        post_env_measurements = self._environmental_data_parser.parse(f)
+                    else:
+                        raise ValueError(f"Unknown env file {file}")
+                else:
+                    raise ValueError(f"Unknown file type {file}")
+            if not pre_env_measurements or not post_env_measurements:
+                raise ValueError(f"Missing env file in {inner_file_path}")
+            return ParsedZ24File(
+                pre_measurement_environmental_data=pre_env_measurements,
+                post_measurement_environmental_data=post_env_measurements,
+                acceleration_data=data,
+            )
+
+    def _parse_ems_file(
+        self, ems_file_path: Path, output_path: Path
+    ) -> Generator[ParsedZ24File, Any, None]:
+        with zipfile.ZipFile(ems_file_path) as ems_file:
+            inner_files = sorted(ems_file.namelist(), key=self._parser_inner_file_name)
+            for inner_file in inner_files:
+                LOGGER.info(f"Parsing {inner_file}")
+                inner_file_path = self._extract_inner_file(
+                    ems_file, inner_file, output_path
+                )
+                yield self._parse_inner_file(inner_file_path)
+                inner_file_path.unlink()
+
+    def parse(self, directory: Path) -> Generator[ParsedZ24File, Any, None]:
+        LOGGER.info(f"Parsing Z24 undamaged data from {directory}")
+        ems_files = self._find_and_sort_ems_files(directory)
+        LOGGER.info(f"Found {len(ems_files)} EMS files")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for ems_file_path in ems_files:
+                LOGGER.info(f"Parsing {ems_file_path}")
+                yield from self._parse_ems_file(ems_file_path, Path(temp_dir))

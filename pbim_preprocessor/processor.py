@@ -1,3 +1,4 @@
+import abc
 import os
 import re
 import shutil
@@ -6,7 +7,7 @@ import zipfile
 from pathlib import Path
 from typing import List, Dict
 
-from pbim_preprocessor.model import ParsedChannel, Measurement
+from pbim_preprocessor.model import ParsedPBimChannel, Measurement
 from pbim_preprocessor.parser import PBimParser
 from pbim_preprocessor.utils import LOGGER
 
@@ -14,7 +15,13 @@ FILE_NAME_PATTERN = re.compile(r"^Job1_(\d{4})_(\d{2})_(\d{2})_.*$")
 MEASUREMENT_SIZE_IN_BYTES = 12
 
 
-class Processor:
+class Processor(abc.ABC):
+    @abc.abstractmethod
+    def process(self):
+        pass
+
+
+class PBIMProcessor(Processor):
     def __init__(
         self,
         zip_file_path: Path,
@@ -60,7 +67,7 @@ class Processor:
                 out_file_path.write_bytes(data)
         return tmp_path
 
-    def serialize(self, data: Dict[str, ParsedChannel], name: str):
+    def serialize(self, data: Dict[str, ParsedPBimChannel], name: str):
         for channel_name, parsed_channel in data.items():
             path = self.get_output_path(name, channel_name)
             path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import Optional, List, Dict
 import datetime
 
 from dataclasses_json import dataclass_json
@@ -13,7 +13,7 @@ class GlobalHeader:
 
 @dataclass_json
 @dataclass(frozen=True)
-class ChannelHeader:
+class PBimChannelHeader:
     name: Optional[str] = None
     unit: Optional[str] = None
     encoding: Optional[str] = None
@@ -31,7 +31,35 @@ class Measurement:
     time: Optional[int] = None
 
 
+@dataclass_json
 @dataclass
-class ParsedChannel:
-    channel_header: ChannelHeader
+class ParsedPBimChannel:
+    channel_header: PBimChannelHeader
     measurements: List[Measurement]
+
+
+@dataclass_json
+@dataclass
+class Z24ChannelHeader:
+    name: str
+    frequency: Optional[float]
+    num_samples: int
+
+
+@dataclass_json
+@dataclass
+class ParsedZ24Channel:
+    channel_header: Z24ChannelHeader
+    measurements: List[Measurement]
+
+
+@dataclass_json
+@dataclass
+class ParsedZ24File:
+    acceleration_data: Dict[str, ParsedZ24Channel]
+    pre_measurement_environmental_data: Dict[str, ParsedZ24Channel]
+    post_measurement_environmental_data: Dict[str, ParsedZ24Channel]
+
+
+class EOF:
+    pass

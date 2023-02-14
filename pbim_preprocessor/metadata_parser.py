@@ -5,7 +5,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Tuple, List
 
-from pbim_preprocessor.model import GlobalHeader, ChannelHeader
+from pbim_preprocessor.model import GlobalHeader, PBimChannelHeader
 
 HEADER_MAGIC = "DIAEXTENDED"
 ENCODING = "cp1252"
@@ -37,7 +37,7 @@ class PBimMetadataParser:
 
     def parse(
         self, directory: Path, name: str
-    ) -> Tuple[GlobalHeader, List[ChannelHeader]]:
+    ) -> Tuple[GlobalHeader, List[PBimChannelHeader]]:
         with open(directory / f"{name}.DAT", "r", encoding=ENCODING) as f:
             for line in f.readlines():
                 self._parse_line(line.strip())
@@ -77,7 +77,7 @@ class PBimMetadataParser:
                 self._state = PBimMetadataParserState.NONE
             case "#BEGINCHANNELHEADER":
                 self._state = PBimMetadataParserState.CHANNEL_HEADER
-                self._current_channel_header = ChannelHeader()
+                self._current_channel_header = PBimChannelHeader()
             case "#ENDCHANNELHEADER":
                 if self._current_channel_header:
                     self._channel_headers.append(self._current_channel_header)

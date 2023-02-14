@@ -11,7 +11,10 @@ from pbim_preprocessor.assembler import (
     PBimAssembler,
     GrandStandAssembler,
     AssemblerWrapper,
+    Z24Assembler,
 )
+from pbim_preprocessor.index import _write_index
+from pbim_preprocessor.model import EOF
 from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS
 from pbim_preprocessor.sampling import (
     MeanSamplingStrategy,
@@ -32,7 +35,63 @@ FORMATS = {
 
 CHANNELS = {
     "pbim": POST_PROCESSABLE_CHANNELS,
-    "grandstand": [f"Joint {i}" for i in range(1, 30)],
+    "grandstand": [f"Joint {i}" for i in range(1, 31)],
+    "z24": [
+        "WS",
+        "WD",
+        "AT",
+        "R",
+        "H",
+        "TE",
+        "ADU",
+        "ADK",
+        "TSPU1",
+        "TSPU2",
+        "TSPU3",
+        "TSAU1",
+        "TSAU2",
+        "TSAU3",
+        "TSPK1",
+        "TSPK2",
+        "TSPK3",
+        "TSAK1",
+        "TSAK2",
+        "TSAK3",
+        "TBC1",
+        "TBC2",
+        "TSWS1",
+        "TSWN1",
+        "TWS1",
+        "TWC1",
+        "TWN1",
+        "TP1",
+        "TDT1",
+        "TDS1",
+        "TS1",
+        "TSWS2",
+        "TSWN2",
+        "TWS2",
+        "TWC2",
+        "TWN2",
+        "TP2",
+        "TDT2",
+        "TDS2",
+        "TS2",
+        "TWS3",
+        "TWN3",
+        "TWC3",
+        "TP3",
+        "TDT3",
+        "TS3",
+        "03",
+        "05",
+        "06",
+        "07",
+        "10",
+        "12",
+        "14",
+        "16",
+    ],
 }
 
 
@@ -90,6 +149,17 @@ def _make_metadata(
                 length=length,
                 statistics=statistics,
             )
+        case "z24":
+            return DatasetMetadata(
+                channel_order=channels,
+                start_time=None,
+                end_time=None,
+                # Times + Channels
+                measurement_size_in_bytes=4 + len(channels) * 4,
+                resolution=None,
+                length=length,
+                statistics=statistics,
+            )
 
 
 def _validate_args(
@@ -131,8 +201,20 @@ def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
     return channels
 
 
+def _make_assembler(
+    mode: str, path: Path, strategy: str, resolution: int
+) -> PBimAssembler | GrandStandAssembler | Z24Assembler:
+    match mode:
+        case "pbim":
+            return PBimAssembler(path, STRATEGIES[strategy], resolution)
+        case "grandstand":
+            return GrandStandAssembler(path)
+        case "z24":
+            return Z24Assembler(path, STRATEGIES[strategy], resolution)
+
+
 @click.command()
-@click.argument("mode", type=click.Choice(["pbim", "grandstand"]))
+@click.argument("mode", type=click.Choice(["pbim", "grandstand", "z24"]))
 @click.option("--scenario", type=click.STRING)
 @click.argument("path", type=click.Path(exists=True, file_okay=False, path_type=Path))
 @click.argument(
@@ -153,7 +235,7 @@ def assemble(
     start_time: Optional[datetime.datetime],
     end_time: Optional[datetime.datetime],
     resolution: Optional[int],
-    strategy: str,
+    strategy: Optional[str],
     output_format: str,
     channel: List[str],
     debug: bool,
@@ -164,14 +246,13 @@ def assemble(
     channels = _prepare_channels(mode, list(channel))
     assembler = AssemblerWrapper(
         mode,
-        PBimAssembler(path, STRATEGIES[strategy], resolution)
-        if mode == "pbim"
-        else GrandStandAssembler(path),
+        _make_assembler(mode, path, strategy, resolution),
     )
     writer_type = FORMATS[output_format]
     statistics_collector = StatisticsCollector()
     with writer_type(output_path, channels) as writer:
         length = 0
+        index = []
         for step in assembler.assemble(
             start_time=start_time.replace(tzinfo=datetime.timezone.utc)
             if start_time
@@ -182,10 +263,13 @@ def assemble(
             scenario=scenario,
             channels=channels,
         ):
-            time = int(step["time"])
-            statistics_collector.add_all(step)
-            writer.write_step(step, time)
-            length += 1
+            if isinstance(step, dict):
+                time = int(step["time"])
+                statistics_collector.add_all(step)
+                writer.write_step(step, time)
+                length += 1
+            elif isinstance(step, EOF):
+                index += [length]
 
     _write_metadata_file(
         output_path,
@@ -199,3 +283,7 @@ def assemble(
             statistics_collector.get_all_channel_statistics(),
         ),
     )
+    if len(index) > 0:
+        _write_index(
+            index, False, output_path.parent / f"{output_path.stem}.index.json"
+        )
