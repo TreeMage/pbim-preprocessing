@@ -522,7 +522,14 @@ class Z24Assembler:
         acceleration_data = self._make_acceleration_data(data)
         lengths = list(set([len(x) for x in acceleration_data.values()]))
         if len(lengths) != 1:
-            raise ValueError("Unequal number of measurements for channels.")
+            shortest = min(lengths)
+            LOGGER.warn(
+                f"Unequal lengths for acceleration data: {lengths}. Cutting to {shortest}."
+            )
+            acceleration_data = {
+                channel: value[:shortest]
+                for channel, value in acceleration_data.items()
+            }
         for i in range(lengths[0]):
             sample_acceleration_data = {
                 channel: value[i] for channel, value in acceleration_data.items()
