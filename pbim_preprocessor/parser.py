@@ -6,13 +6,14 @@ import zipfile
 import io
 from enum import Enum
 from pathlib import Path
-from typing import List, Dict, Generator, Any
+from typing import List, Dict, Generator, Any, Literal
 
 from pbim_preprocessor.model import Measurement, ParsedPBimChannel, ParsedZ24File, EOF
 from pbim_preprocessor.data_parser import (
     PBimDataParser,
     Z24AccelerationDataParser,
     Z24EnvironmentalDataParser,
+    Z24PDTAccelerationParser,
 )
 from pbim_preprocessor.metadata_parser import PBimMetadataParser
 from pbim_preprocessor.utils import LOGGER
@@ -237,3 +238,38 @@ class Z24UndamagedParser:
             for ems_file_path in ems_files:
                 LOGGER.info(f"Parsing {ems_file_path}")
                 yield from self._parse_ems_file(ems_file_path, Path(temp_dir))
+
+
+class Z24DamagedParser:
+    NUM_SCENARIOS = 9
+
+    def __init__(self):
+        self._data_parser = Z24PDTAccelerationParser()
+
+    @staticmethod
+    def _make_data_path(scenario: int, mode: Literal["avt", "fvt"], index: int) -> str:
+        return f"{scenario:02d}/{mode}/{scenario:02d}setup{index:02d}.mat"
+
+    def parse(
+        self, zip_path: Path, scenario: int, mode: Literal["avt", "fvt"]
+    ) -> ParsedZ24File:
+        LOGGER.info(f"Parsing Z24 damaged data from {zip_path}")
+        with zipfile.ZipFile(zip_path) as zip_file:
+            in_file_paths = [
+                self._make_data_path(scenario, mode, i)
+                for i in range(1, self.NUM_SCENARIOS + 1)
+            ]
+            with tempfile.TemporaryDirectory() as temp_dir:
+                paths = [
+                    Path(zip_file.extract(path, path=temp_dir))
+                    for path in in_file_paths
+                ]
+                data = [self._data_parser.parse(path) for path in paths]
+        merged = {}
+        for scenario in data:
+            merged.update(scenario)
+        return ParsedZ24File(
+            pre_measurement_environmental_data={},
+            post_measurement_environmental_data={},
+            acceleration_data=merged,
+        )

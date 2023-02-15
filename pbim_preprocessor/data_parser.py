@@ -1,7 +1,9 @@
 import datetime
 import struct
 from pathlib import Path
-from typing import List, BinaryIO, Dict, TextIO, IO, Callable, Tuple
+from typing import List, BinaryIO, Dict, TextIO, Callable, Tuple
+
+import scipy
 
 from pbim_preprocessor.model import (
     PBimChannelHeader,
@@ -200,3 +202,26 @@ class Z24EnvironmentalDataParser:
             )
             for i in range(len(header))
         }
+
+
+class Z24PDTAccelerationParser:
+    def __init__(self):
+        pass
+
+    def parse(self, path: Path) -> Dict[str, ParsedZ24Channel]:
+        data = scipy.io.loadmat(str(path))
+        labels = data["labelshulp"].tolist()
+        measurements = data["data"]
+        parsed = {}
+        for i, label in enumerate(labels):
+            header = Z24ChannelHeader(
+                name=label, num_samples=measurements.shape[0], frequency=100
+            )
+            channel_measurements = [
+                Measurement(measurement=m, time=j)
+                for j, m in enumerate(measurements[:, i])
+            ]
+            parsed[label] = ParsedZ24Channel(
+                channel_header=header, measurements=channel_measurements
+            )
+        return parsed

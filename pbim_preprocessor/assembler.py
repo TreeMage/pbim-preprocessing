@@ -2,10 +2,24 @@ import datetime
 import struct
 from pathlib import Path
 from statistics import mean
-from typing import List, Optional, BinaryIO, Generator, Dict, Any, Tuple, TextIO
+from typing import (
+    List,
+    Optional,
+    BinaryIO,
+    Generator,
+    Dict,
+    Any,
+    Tuple,
+    TextIO,
+    Literal,
+)
 
 from pbim_preprocessor.model import Measurement, EOF, ParsedZ24File
-from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS, Z24UndamagedParser
+from pbim_preprocessor.parser import (
+    POST_PROCESSABLE_CHANNELS,
+    Z24UndamagedParser,
+    Z24DamagedParser,
+)
 from pbim_preprocessor.processor import MEASUREMENT_SIZE_IN_BYTES
 from pbim_preprocessor.sampling import SamplingStrategy
 from pbim_preprocessor.utils import GeneratorWithReturnValue, LOGGER
@@ -457,7 +471,7 @@ class GrandStandAssembler:
         return self._path / f"{scenario}.txt"
 
 
-class Z24Assembler:
+class Z24UndamgedAssembler:
     def __init__(
         self, path: Path, sampling_strategy: SamplingStrategy, resolution: int
     ):
@@ -544,11 +558,41 @@ class Z24Assembler:
             yield EOF()
 
 
+class Z24DamagedAssembler:
+    def __init__(self, zip_directory: Path):
+        self._zip_directory = zip_directory
+        self._parser = Z24DamagedParser()
+
+    def assemble(
+        self, scenario: int, mode: Literal["avt", "fvt"]
+    ) -> Generator[Dict[str, float], Any, None]:
+        data = self._parser.parse(self._zip_directory, scenario, mode)
+        lengths = list(
+            set([len(x.measurements) for x in data.acceleration_data.values()])
+        )
+        if len(lengths) != 1:
+            shortest = min(lengths)
+            LOGGER.warn(
+                f"Unequal lengths for acceleration data: {lengths}. Cutting to {shortest}."
+            )
+            data = {channel: value[:shortest] for channel, value in data.items()}
+        for i in range(lengths[0]):
+            step_data = {
+                channel: value.measurements[i].measurement
+                for channel, value in data.acceleration_data.items()
+            }
+            step_data["time"] = i
+            yield step_data
+
+
 class AssemblerWrapper:
     def __init__(
         self,
         mode: str,
-        base_assembler: PBimAssembler | GrandStandAssembler | Z24Assembler,
+        base_assembler: PBimAssembler
+        | GrandStandAssembler
+        | Z24UndamgedAssembler
+        | Z24DamagedAssembler,
     ):
         self._mode = mode
         self._base_assembler = base_assembler
@@ -559,13 +603,16 @@ class AssemblerWrapper:
         end_time: Optional[datetime.datetime],
         scenario: Optional[str],
         channels: Optional[List[str]],
+        mode: Optional[Literal["avt", "fvt"]],
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
         match self._mode:
             case "pbim":
                 yield from self._base_assembler.assemble(start_time, end_time, channels)
             case "grandstand":
                 yield from self._base_assembler.assemble(scenario, channels)
-            case "z24":
+            case "z24-undamged":
                 yield from self._base_assembler.assemble()
+            case "z24-damaged":
+                yield from self._base_assembler.assemble(int(scenario), mode)
             case _:
                 raise ValueError(f"Unknown mode {self._mode}")

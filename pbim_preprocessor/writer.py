@@ -55,5 +55,5 @@ class BinaryWriter(Writer):
 
     def write_step(self, data: Dict[str, float], time: int) -> None:
         values = [data[channel] for channel in self._headers]
-        binary_format = f"<q{len(values)}f"
+        binary_format = f"<i{len(values)}f"
         self._f.write(struct.pack(binary_format, time, *values))
