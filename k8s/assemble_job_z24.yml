@@ -17,7 +17,7 @@ spec:
             - name: OUTPUT_PATH
               value: "/out/undamaged.dat"
             - name: RESOLUTION
-              value: "0"
+              value: "0.1"
             - name: START_TIME
               value: "1997-11-10T00:00:00"
             - name: END_TIME
@@ -29,10 +29,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "4Gi"
+              memory: "12Gi"
             requests:
               cpu: "1"
-              memory: "2Gi"
+              memory: "8Gi"
           command: ["bash", "./scripts/assemble_z24_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

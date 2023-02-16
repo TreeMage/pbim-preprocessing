@@ -27,7 +27,7 @@ from pbim_preprocessor.utils import GeneratorWithReturnValue, LOGGER
 
 class PBimAssembler:
     def __init__(
-        self, path: Path, sampling_strategy: SamplingStrategy, resolution: int
+        self, path: Path, sampling_strategy: SamplingStrategy, resolution: float
     ):
         """
         :param path: Path to the data directory.
@@ -473,7 +473,7 @@ class GrandStandAssembler:
 
 class Z24UndamagedAssembler:
     def __init__(
-        self, path: Path, sampling_strategy: SamplingStrategy, resolution: int
+        self, path: Path, sampling_strategy: SamplingStrategy, resolution: float
     ):
         self._path = path
         self._parser = Z24UndamagedParser()
@@ -502,9 +502,15 @@ class Z24UndamagedAssembler:
 
     def _make_acceleration_data(self, data: ParsedZ24File):
         def _find_until(
-            values: List[Measurement], timestamp: int, offset: int = 0
+            values: List[Measurement], timestamp: float, offset: int = 0
         ) -> List[Measurement]:
-            return [v for v in values[offset:] if v.time <= timestamp]
+            results = []
+            for value in values[offset:]:
+                if value.time <= timestamp:
+                    results.append(value)
+                else:
+                    break
+            return results
 
         sampled = {}
         for channel, values in data.acceleration_data.items():

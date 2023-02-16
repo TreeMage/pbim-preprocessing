@@ -441,7 +441,7 @@ def _validate_args(
     mode: str,
     start_time: Optional[datetime.datetime],
     end_time: Optional[datetime.datetime],
-    resolution: Optional[int],
+    resolution: Optional[float],
     scenario: Optional[str],
 ):
     def _raise(parameter: str):
@@ -480,7 +480,7 @@ def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
 
 
 def _make_assembler(
-    mode: str, path: Path, strategy: str, resolution: int
+    mode: str, path: Path, strategy: str, resolution: float
 ) -> PBimAssembler | GrandStandAssembler | Z24UndamagedAssembler | Z24DamagedAssembler:
     match mode:
         case "pbim":
@@ -504,7 +504,7 @@ def _make_assembler(
 )
 @click.option("--start-time", default=None, type=click.DateTime())
 @click.option("--end-time", default=None, type=click.DateTime())
-@click.option("--resolution", default=None, type=click.INT)
+@click.option("--resolution", default=None, type=click.FLOAT)
 @click.option("--strategy", default="mean", type=click.Choice(list(STRATEGIES.keys())))
 @click.option("--output-format", default="csv", type=click.Choice(list(FORMATS.keys())))
 @click.option("--channel", multiple=True)
@@ -518,7 +518,7 @@ def assemble(
     output_path: Path,
     start_time: Optional[datetime.datetime],
     end_time: Optional[datetime.datetime],
-    resolution: Optional[int],
+    resolution: Optional[float],
     strategy: Optional[str],
     output_format: str,
     channel: List[str],
@@ -570,7 +570,7 @@ def assemble(
             resolution,
             length,
             statistics_collector.get_all_channel_statistics(),
-            time_byte_size
+            time_byte_size,
         ),
     )
     _write_index(

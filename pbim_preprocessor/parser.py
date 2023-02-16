@@ -242,13 +242,17 @@ class Z24UndamagedParser:
 
     def parse(
         self,
-        directory: Path,
+        path: Path,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
     ) -> Generator[ParsedZ24File, Any, None]:
-        LOGGER.info(f"Parsing Z24 undamaged data from {directory}")
-        ems_files = self._find_and_sort_ems_files(directory)
-        LOGGER.info(f"Found {len(ems_files)} EMS files")
+        LOGGER.info(f"Parsing Z24 undamaged data from {path} between {start_time} and {end_time}")
+        if path.is_dir():
+            LOGGER.info("Given path is a directory, searching for EMS files")
+            ems_files = self._find_and_sort_ems_files(path)
+            LOGGER.info(f"Found {len(ems_files)} EMS files")
+        else:
+            ems_files = [path]
         with tempfile.TemporaryDirectory() as temp_dir:
             for ems_file_path in ems_files:
                 LOGGER.info(f"Parsing {ems_file_path}")
