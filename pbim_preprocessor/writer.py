@@ -42,9 +42,10 @@ class CsvWriter(Writer):
 
 
 class BinaryWriter(Writer):
-    def __init__(self, path: Path, headers: List[str]):
+    def __init__(self, path: Path, headers: List[str], time_byte_size: int = 4):
         super().__init__(path, headers)
         self._f = None
+        self._time_byte_size = time_byte_size
 
     def __enter__(self):
         self._f = open(self._path, "wb")
@@ -55,5 +56,6 @@ class BinaryWriter(Writer):
 
     def write_step(self, data: Dict[str, float], time: int) -> None:
         values = [data[channel] for channel in self._headers]
-        binary_format = f"<i{len(values)}f"
+        time_format = "q" if self._time_byte_size == 8 else "i"
+        binary_format = f"<{time_format}{len(values)}f"
         self._f.write(struct.pack(binary_format, time, *values))

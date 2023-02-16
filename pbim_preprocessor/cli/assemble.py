@@ -11,7 +11,7 @@ from pbim_preprocessor.assembler import (
     PBimAssembler,
     GrandStandAssembler,
     AssemblerWrapper,
-    Z24UndamgedAssembler,
+    Z24UndamagedAssembler,
     Z24DamagedAssembler,
 )
 from pbim_preprocessor.index import _write_index
@@ -369,6 +369,16 @@ def _write_metadata_file(path: Path, metadata: DatasetMetadata):
         )
 
 
+def _make_writer(write_type: str, path: Path, headers: List[str], **kwargs):
+    match write_type:
+        case "csv":
+            delimiter = kwargs.get("delimiter", ",")
+            return CsvWriter(path, headers, delimiter)
+        case "binary":
+            time_byte_size = kwargs.get("time_byte_size", 4)
+            return BinaryWriter(path, headers, time_byte_size)
+
+
 def _make_metadata(
     mode: str,
     channels: List[str],
@@ -469,14 +479,14 @@ def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
 
 def _make_assembler(
     mode: str, path: Path, strategy: str, resolution: int
-) -> PBimAssembler | GrandStandAssembler | Z24UndamgedAssembler | Z24DamagedAssembler:
+) -> PBimAssembler | GrandStandAssembler | Z24UndamagedAssembler | Z24DamagedAssembler:
     match mode:
         case "pbim":
             return PBimAssembler(path, STRATEGIES[strategy], resolution)
         case "grandstand":
             return GrandStandAssembler(path)
         case "z24-undamaged":
-            return Z24UndamgedAssembler(path, STRATEGIES[strategy], resolution)
+            return Z24UndamagedAssembler(path, STRATEGIES[strategy], resolution)
         case "z24-damaged":
             return Z24DamagedAssembler(path)
 
@@ -498,6 +508,7 @@ def _make_assembler(
 @click.option("--channel", multiple=True)
 @click.option("--debug", is_flag=True, default=False)
 @click.option("--z24-mode", type=click.Choice(["avt", "fvt"]))
+@click.option("--time-byte-size", default=4, type=click.INT)
 def assemble(
     mode: str,
     scenario: Optional[str],
@@ -511,6 +522,7 @@ def assemble(
     channel: List[str],
     debug: bool,
     z24_mode: Optional[str],
+    time_byte_size: int,
 ):
     LOGGER.set_debug(debug)
     _validate_args(mode, start_time, end_time, resolution, scenario)
@@ -520,9 +532,11 @@ def assemble(
         mode,
         _make_assembler(mode, path, strategy, resolution),
     )
-    writer_type = FORMATS[output_format]
+
     statistics_collector = StatisticsCollector()
-    with writer_type(output_path, channels) as writer:
+    with _make_writer(
+        output_format, output_path, channels, time_byte_size=time_byte_size
+    ) as writer:
         length = 0
         index = []
         for step in assembler.assemble(

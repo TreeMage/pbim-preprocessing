@@ -15,11 +15,13 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/assembled-1s.dat"
-            - name: MODE
-              value: "z24"
+              value: "/out/undamaged.dat"
             - name: RESOLUTION
-              value: "1"
+              value: "0"
+            - name: START_TIME
+              value: "1997-11-10T00:00:00"
+            - name: END_TIME
+              value: "1998-08-08T23:59:59"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT

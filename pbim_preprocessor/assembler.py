@@ -471,7 +471,7 @@ class GrandStandAssembler:
         return self._path / f"{scenario}.txt"
 
 
-class Z24UndamgedAssembler:
+class Z24UndamagedAssembler:
     def __init__(
         self, path: Path, sampling_strategy: SamplingStrategy, resolution: int
     ):
@@ -508,6 +508,10 @@ class Z24UndamgedAssembler:
 
         sampled = {}
         for channel, values in data.acceleration_data.items():
+            # No need to sample
+            if self._resolution == 0:
+                sampled[channel] = [m.measurement for m in values.measurements]
+                continue
             # All in milliseconds
             end_time = (
                 min([x.time for x in values.measurements]) + self._resolution * 1000
@@ -552,8 +556,8 @@ class Z24UndamgedAssembler:
             time = start_time + 1.5 * i * self._resolution * 1000
             yield {"time": time, **environmental_data, **sample_acceleration_data}
 
-    def assemble(self):
-        for data in self._parser.parse(self._path):
+    def assemble(self, start_time: datetime.datetime, end_time: datetime.datetime):
+        for data in self._parser.parse(self._path, start_time, end_time):
             yield from self._make_measurement_dict(data)
             yield EOF()
 
@@ -591,7 +595,7 @@ class AssemblerWrapper:
         mode: str,
         base_assembler: PBimAssembler
         | GrandStandAssembler
-        | Z24UndamgedAssembler
+        | Z24UndamagedAssembler
         | Z24DamagedAssembler,
     ):
         self._mode = mode
@@ -610,8 +614,8 @@ class AssemblerWrapper:
                 yield from self._base_assembler.assemble(start_time, end_time, channels)
             case "grandstand":
                 yield from self._base_assembler.assemble(scenario, channels)
-            case "z24-undamged":
-                yield from self._base_assembler.assemble()
+            case "z24-undamaged":
+                yield from self._base_assembler.assemble(start_time, end_time)
             case "z24-damaged":
                 yield from self._base_assembler.assemble(int(scenario), mode)
             case _:

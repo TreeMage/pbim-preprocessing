@@ -172,11 +172,11 @@ class Z24UndamagedParser:
         if not match:
             raise ValueError(f"Could not parse {name}")
         week = int(match.group(1)) - 1  # 0-indexed
-        day = ord(match.group(2)) - ord("A")  # 0-indexed
+        day = ord(match.group(2)) - ord("A") - 2  # 0-indexed but C is Monday
         hour = int(match.group(3))
-        return datetime.datetime(year=1, month=1, day=1) + datetime.timedelta(
-            weeks=week, days=day, hours=hour
-        )
+        return datetime.datetime(
+            year=1997, month=11, day=10, tzinfo=datetime.timezone.utc
+        ) + datetime.timedelta(weeks=week, days=day, hours=hour)
 
     @staticmethod
     def _extract_inner_file(
@@ -218,26 +218,43 @@ class Z24UndamagedParser:
             )
 
     def _parse_ems_file(
-        self, ems_file_path: Path, output_path: Path
+        self,
+        ems_file_path: Path,
+        output_path: Path,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
     ) -> Generator[ParsedZ24File, Any, None]:
         with zipfile.ZipFile(ems_file_path) as ems_file:
             inner_files = sorted(ems_file.namelist(), key=self._parser_inner_file_name)
             for inner_file in inner_files:
                 LOGGER.info(f"Parsing {inner_file}")
+
                 inner_file_path = self._extract_inner_file(
                     ems_file, inner_file, output_path
                 )
+                time = self._parser_inner_file_name(inner_file)
+                if time < start_time:
+                    continue
+                if time > end_time:
+                    break
                 yield self._parse_inner_file(inner_file_path)
                 inner_file_path.unlink()
 
-    def parse(self, directory: Path) -> Generator[ParsedZ24File, Any, None]:
+    def parse(
+        self,
+        directory: Path,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+    ) -> Generator[ParsedZ24File, Any, None]:
         LOGGER.info(f"Parsing Z24 undamaged data from {directory}")
         ems_files = self._find_and_sort_ems_files(directory)
         LOGGER.info(f"Found {len(ems_files)} EMS files")
         with tempfile.TemporaryDirectory() as temp_dir:
             for ems_file_path in ems_files:
                 LOGGER.info(f"Parsing {ems_file_path}")
-                yield from self._parse_ems_file(ems_file_path, Path(temp_dir))
+                yield from self._parse_ems_file(
+                    ems_file_path, Path(temp_dir), start_time, end_time
+                )
 
 
 class Z24DamagedParser:
