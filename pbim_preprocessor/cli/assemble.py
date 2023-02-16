@@ -357,6 +357,7 @@ class DatasetMetadata:
     resolution: Optional[int]
     length: int
     statistics: Dict[str, ChannelStatistics]
+    time_byte_size: int
 
 
 def _write_metadata_file(path: Path, metadata: DatasetMetadata):
@@ -387,6 +388,7 @@ def _make_metadata(
     resolution: Optional[int],
     length: int,
     statistics: Dict[str, ChannelStatistics],
+    time_byte_size: int,
 ) -> DatasetMetadata:
     match mode:
         case "pbim":
@@ -395,7 +397,7 @@ def _make_metadata(
                 start_time=int(start_time.timestamp()) if start_time else None,
                 end_time=int(end_time.timestamp()) if end_time else None,
                 # Time + Channels
-                measurement_size_in_bytes=4 + len(channels) * 4,
+                measurement_size_in_bytes=time_byte_size + len(channels) * 4,
                 resolution=resolution,
                 length=length,
                 statistics=statistics,
@@ -406,7 +408,7 @@ def _make_metadata(
                 start_time=None,
                 end_time=None,
                 # Channels (including time)
-                measurement_size_in_bytes=len(channels) * 4,
+                measurement_size_in_bytes=(len(channels) - 1) * 4 + time_byte_size,
                 resolution=None,
                 length=length,
                 statistics=statistics,
@@ -417,7 +419,7 @@ def _make_metadata(
                 start_time=None,
                 end_time=None,
                 # Channels (including time)
-                measurement_size_in_bytes=len(channels) * 4,
+                measurement_size_in_bytes=(len(channels) - 1) * 4 + time_byte_size,
                 resolution=None,
                 length=length,
                 statistics=statistics,
@@ -428,7 +430,7 @@ def _make_metadata(
                 start_time=None,
                 end_time=None,
                 # Channels (including time)
-                measurement_size_in_bytes=len(channels) * 4,
+                measurement_size_in_bytes=(len(channels) - 1) * 4 + time_byte_size,
                 resolution=None,
                 length=length,
                 statistics=statistics,
@@ -568,6 +570,7 @@ def assemble(
             resolution,
             length,
             statistics_collector.get_all_channel_statistics(),
+            time_byte_size
         ),
     )
     _write_index(
