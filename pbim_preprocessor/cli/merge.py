@@ -115,7 +115,7 @@ def _merge_predefined_files(
     output_file_handle: BinaryIO,
 ) -> List[int]:
     num_measurements = []
-    statistics_collector = StatisticsCollector() if config.keep_statistics else None
+    statistics_collector = StatisticsCollector() if not config.keep_statistics else None
     metadata = _load_metadata(config.base_path / config.files[0].relative_path)
     for file in config.files:
         num_measurements += [
@@ -149,7 +149,7 @@ def _write_metadata(
     statistics_collector: Optional[StatisticsCollector],
 ):
     metadata.length = num_measurements
-    if not config.keep_statistics and statistics_collector is not None:
+    if not config.keep_statistics:
         metadata.statistics = statistics_collector.get_all_channel_statistics()
     with open(
         config.output_file.parent / f"{config.output_file.stem}.metadata.json", "w"

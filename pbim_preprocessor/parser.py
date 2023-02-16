@@ -246,7 +246,9 @@ class Z24UndamagedParser:
         start_time: datetime.datetime,
         end_time: datetime.datetime,
     ) -> Generator[ParsedZ24File, Any, None]:
-        LOGGER.info(f"Parsing Z24 undamaged data from {path} between {start_time} and {end_time}")
+        LOGGER.info(
+            f"Parsing Z24 undamaged data from {path} between {start_time} and {end_time}"
+        )
         if path.is_dir():
             LOGGER.info("Given path is a directory, searching for EMS files")
             ems_files = self._find_and_sort_ems_files(path)

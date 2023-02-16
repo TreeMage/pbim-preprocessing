@@ -401,6 +401,7 @@ def _make_metadata(
                 resolution=resolution,
                 length=length,
                 statistics=statistics,
+                time_byte_size=time_byte_size,
             )
         case "grandstand":
             return DatasetMetadata(
@@ -412,6 +413,7 @@ def _make_metadata(
                 resolution=None,
                 length=length,
                 statistics=statistics,
+                time_byte_size=time_byte_size,
             )
         case "z24-undamaged":
             return DatasetMetadata(
@@ -423,6 +425,7 @@ def _make_metadata(
                 resolution=None,
                 length=length,
                 statistics=statistics,
+                time_byte_size=time_byte_size,
             )
         case "z24-damaged":
             return DatasetMetadata(
@@ -434,6 +437,7 @@ def _make_metadata(
                 resolution=None,
                 length=length,
                 statistics=statistics,
+                time_byte_size=time_byte_size,
             )
 
 

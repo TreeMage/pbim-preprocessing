@@ -1,0 +1,19 @@
+{
+  "base_path": "~/MA/assembled/Z24/",
+  "output_file": "~/MA/assembled/Z24/undamaged-full-0.1s.dat",
+  "keep_statistics": false,
+  "files": [
+    {
+      "relative_path": "undamaged-1-0.1s.dat",
+      "is_anomalous": false
+    },
+    {
+      "relative_path": "undamaged-2-0.1s.dat",
+      "is_anomalous": false
+    },
+    {
+      "relative_path": "undamaged-3-0.1s.dat",
+      "is_anomalous": false
+    }
+  ]
+}

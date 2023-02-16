@@ -18,7 +18,7 @@ class CutIndexEntry:
 def _write_index(
     measurements: List[int], anomalous: List[bool] | bool, output_path: Path
 ):
-    indices = [0] + np.cumsum(measurements).tolist()
+    indices = [0] + measurements
     entries = [
         CutIndexEntry(
             start,
