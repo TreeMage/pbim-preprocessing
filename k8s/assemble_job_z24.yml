@@ -13,13 +13,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: BASE_PATH
-              value: "/data"
+              value: "/data/pdt_01-08.zip"
             - name: OUTPUT_PATH
               value: "/out/assembled-1s.dat"
-            - name: RESOLUTION
+            - name: MODE
+              value: "avt"
+            - name: SCENARIO
               value: "1"
-            - name: STRATEGY
-              value: "mean"
             - name: FORMAT
               value: "binary"
           resources:
