@@ -12,10 +12,8 @@ spec:
           name: preprocess
           imagePullPolicy: "Always"
           env:
-            - name: BASE_PATH
-              value: "/data"
-            - name: OUTPUT_FILE
-              value: "/out/assembled-2017-01-02T00:00:00-2017-01-30T23:59:59.dat"
+            - name: CONFIG_PATH
+              value: "configs/merge_z24_dataset.yml"
           resources:
             limits:
               cpu: "2"
@@ -27,8 +25,6 @@ spec:
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
-            - mountPath: /out
-              name: out
             - mountPath: /tmp
               name: tmp
       imagePullSecrets:
@@ -40,17 +36,9 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled"
+            path: "/home/stud/kohlmann/MA/assembled/Z24"
             secretRef:
               name: ceph-secret
             readOnly: true
-        - name: out
-          cephfs:
-            monitors:
-              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
-            user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled/merged"
-            secretRef:
-              name: ceph-secret
         - name: tmp
           emptyDir: {}
