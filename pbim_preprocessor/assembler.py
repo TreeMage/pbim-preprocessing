@@ -563,13 +563,9 @@ class Z24UndamagedAssembler:
             yield {"time": time, **environmental_data, **sample_acceleration_data}
 
     def assemble(self, start_time: datetime.datetime, end_time: datetime.datetime):
-        i = 0
         for data in self._parser.parse(self._path, start_time, end_time):
             yield from self._make_measurement_dict(data)
             yield EOF()
-            i += 1
-            if i > 2:
-                break
 
 
 class Z24DamagedAssembler:
