@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "configs/merge_z24_dataset.yml"
+              value: "/app/configs/merge_z24_dataset.yml"
           resources:
             limits:
               cpu: "2"

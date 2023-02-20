@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: z24-assemble-dataset-1
+  name: z24-assemble-dataset-3
 spec:
   backoffLimit: 0
   template:
@@ -13,9 +13,9 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: BASE_PATH
-              value: "/data/Z24ems1.zip"
+              value: "/data/Z24ems3.zip"
             - name: OUTPUT_PATH
-              value: "/out/undamaged-1-0.1s.dat"
+              value: "/out/undamaged-3-0.1s.dat"
             - name: RESOLUTION
               value: "0.1"
             - name: START_TIME

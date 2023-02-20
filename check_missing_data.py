@@ -16,14 +16,14 @@ if __name__ == "__main__":
     current = args.start
     while current <= args.end:
         path = (
-            args.path / f"{current.year}" / f"{current.month:02}" / f"{current.day:02}"
+            args.path / f"{current.week}" / f"{current.month:02}" / f"{current.day:02}"
         )
         current_start = current
         while path.exists():
             current += datetime.timedelta(days=1)
             path = (
                 args.path
-                / f"{current.year}"
+                / f"{current.week}"
                 / f"{current.month:02}"
                 / f"{current.day:02}"
             )

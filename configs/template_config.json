@@ -1,102 +1,86 @@
 {
   "template_path": "template/assemble_job_template.yml",
-  "output_path": "k8s/assemble_jobs/2018/",
+  "output_path": "k8s/assemble_jobs/weeks/",
   "assembly_configs": [
     {
-      "identifier": "01",
-      "start_time": "2018-01-02T00:00:00",
-      "end_time": "2018-01-30T23:59:59",
-      "resolution": "60",
+      "identifier": "week-01",
+      "start_time": "2017-11-03T00:00:00",
+      "end_time": "2017-11-9T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "01"
     },
     {
-      "identifier": "02",
-      "start_time": "2018-02-01T00:00:00",
-      "end_time": "2018-02-28T23:59:59",
-      "resolution": "60",
+      "identifier": "week-02",
+      "start_time": "2017-11-10T00:00:00",
+      "end_time": "2017-11-16T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "02"
     },
     {
-      "identifier": "03",
-      "start_time": "2018-03-01T00:00:00",
-      "end_time": "2018-03-31T23:59:59",
-      "resolution": "60",
+      "identifier": "week-03",
+      "start_time": "2017-11-17T00:00:00",
+      "end_time": "2017-11-23T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "03"
     },
     {
-      "identifier": "04",
-      "start_time": "2018-04-01T00:00:00",
-      "end_time": "2018-04-30T23:59:59",
-      "resolution": "60",
+      "identifier": "week-04",
+      "start_time": "2017-11-24T00:00:00",
+      "end_time": "2017-11-30T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "04"
     },
  {
-      "identifier": "05",
-      "start_time": "2018-05-01T00:00:00",
-      "end_time": "2018-05-31T23:59:59",
-      "resolution": "60",
+      "identifier": "week-05",
+      "start_time": "2017-12-01T00:00:00",
+      "end_time": "2017-12-06T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-     "year": "2018"
-    }   ,
-    {
-      "identifier": "06",
-      "start_time": "2018-06-01T00:00:00",
-      "end_time": "2018-06-30T23:59:59",
-      "resolution": "60",
-      "strategy": "mean",
-      "year": "2018"
+      "week": "05"
     },
     {
-      "identifier": "07",
-      "start_time": "2018-07-01T00:00:00",
-      "end_time": "2018-07-31T23:59:59",
-      "resolution": "60",
+      "identifier": "week-06",
+      "start_time": "2017-12-07T00:00:00",
+      "end_time": "2017-12-13T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "06"
     },
     {
-      "identifier": "08",
-      "start_time": "2018-08-01T00:00:00",
-      "end_time": "2018-08-31T23:59:59",
-      "resolution": "60",
+      "identifier": "week-07",
+      "start_time": "2017-12-14T00:00:00",
+      "end_time": "2017-12-20T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "07"
     },
     {
-      "identifier": "09",
-      "start_time": "2018-09-01T00:00:00",
-      "end_time": "2018-09-30T23:59:59",
-      "resolution": "60",
+      "identifier": "week-08",
+      "start_time": "2017-12-21T00:00:00",
+      "end_time": "2017-12-27T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "08"
     },
     {
-      "identifier": "10",
-      "start_time": "2018-10-01T00:00:00",
-      "end_time": "2018-10-31T23:59:59",
-      "resolution": "60",
+      "identifier": "week-09",
+      "start_time": "2017-12-28T00:00:00",
+      "end_time": "2018-01-03T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
-    },
-      {
-      "identifier": "11",
-      "start_time": "2018-11-01T00:00:00",
-      "end_time": "2018-11-30T23:59:59",
-      "resolution": "60",
-      "strategy": "mean",
-        "year": "2018"
+      "week": "09"
     },
     {
-      "identifier": "12",
-      "start_time": "2018-12-01T00:00:00",
-      "end_time": "2018-12-31T23:59:59",
-      "resolution": "60",
+      "identifier": "week-10",
+      "start_time": "2018-01-04T00:00:00",
+      "end_time": "2018-01-10T23:59:59",
+      "resolution": "0.1",
       "strategy": "mean",
-      "year": "2018"
+      "week": "10"
     }
   ]
 }

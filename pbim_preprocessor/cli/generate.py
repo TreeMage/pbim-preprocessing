@@ -33,7 +33,7 @@ class AssemblyConfig:
     identifier: str
     resolution: int
     strategy: str
-    year: str
+    week: str
     start_time: datetime.datetime = date_field()
     end_time: datetime.datetime = date_field()
 
