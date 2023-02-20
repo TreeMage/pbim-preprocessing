@@ -88,7 +88,7 @@ class PBimAssembler:
                 f"Processing step {i+1} of {steps}. Current time: {target.strftime('%Y-%m-%d %H:%M:%S')}."
             )
             LOGGER.debug(f"Window: {window_start} - {window_end} with target {target}.")
-            data = {"time": target.timestamp()}
+            data = {"time": target.timestamp() * 1000}
             override_window_start = None
             skip_step = False
             for channel, handle in handles.items():

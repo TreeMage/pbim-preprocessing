@@ -5,4 +5,3 @@ python bin/main.py assemble z24-undamaged  $BASE_PATH $OUTPUT_PATH \
  --output-format $FORMAT \
  --start-time $START_TIME \
  --end-time $END_TIME \
- --time-byte-size 8

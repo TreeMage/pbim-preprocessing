@@ -25,6 +25,8 @@ from pbim_preprocessor.statistic import StatisticsCollector, ChannelStatistics
 from pbim_preprocessor.utils import LOGGER
 from pbim_preprocessor.writer import CsvWriter, BinaryWriter
 
+TIME_BYTE_SIZE = 8
+
 STRATEGIES = {
     "mean": MeanSamplingStrategy(),
     "interpolate": LinearInterpolationSamplingStrategy(),
@@ -376,8 +378,7 @@ def _make_writer(write_type: str, path: Path, headers: List[str], **kwargs):
             delimiter = kwargs.get("delimiter", ",")
             return CsvWriter(path, headers, delimiter)
         case "binary":
-            time_byte_size = kwargs.get("time_byte_size", 4)
-            return BinaryWriter(path, headers, time_byte_size)
+            return BinaryWriter(path, headers, 8)
 
 
 def _make_metadata(
@@ -405,7 +406,7 @@ def _make_metadata(
             )
         case "grandstand":
             return DatasetMetadata(
-                channel_order=channels,
+                channel_order=["Time"] + channels,
                 start_time=None,
                 end_time=None,
                 # Channels (including time)
@@ -417,7 +418,7 @@ def _make_metadata(
             )
         case "z24-undamaged":
             return DatasetMetadata(
-                channel_order=channels,
+                channel_order=["Time"] + channels,
                 start_time=None,
                 end_time=None,
                 # Channels (including time)
@@ -429,7 +430,7 @@ def _make_metadata(
             )
         case "z24-damaged":
             return DatasetMetadata(
-                channel_order=channels,
+                channel_order=["Time"] + channels,
                 start_time=None,
                 end_time=None,
                 # Channels (including time)
@@ -514,7 +515,6 @@ def _make_assembler(
 @click.option("--channel", multiple=True)
 @click.option("--debug", is_flag=True, default=False)
 @click.option("--z24-mode", type=click.Choice(["avt", "fvt"]))
-@click.option("--time-byte-size", default=4, type=click.INT)
 def assemble(
     mode: str,
     scenario: Optional[str],
@@ -528,7 +528,6 @@ def assemble(
     channel: List[str],
     debug: bool,
     z24_mode: Optional[str],
-    time_byte_size: int,
 ):
     LOGGER.set_debug(debug)
     _validate_args(mode, start_time, end_time, resolution, scenario)
@@ -540,9 +539,7 @@ def assemble(
     )
 
     statistics_collector = StatisticsCollector()
-    with _make_writer(
-        output_format, output_path, channels, time_byte_size=time_byte_size
-    ) as writer:
+    with _make_writer(output_format, output_path, channels) as writer:
         length = 0
         index = []
         for step in assembler.assemble(
@@ -568,13 +565,13 @@ def assemble(
         output_path,
         _make_metadata(
             mode,
-            ["Time"] + channels,
+            channels,
             start_time,
             end_time,
             resolution,
             length,
             statistics_collector.get_all_channel_statistics(),
-            time_byte_size,
+            TIME_BYTE_SIZE,
         ),
     )
     _write_index(
