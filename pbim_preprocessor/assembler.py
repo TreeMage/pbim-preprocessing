@@ -71,6 +71,7 @@ class PBimAssembler:
         window_start = start_time
         window_end = window_start + datetime.timedelta(seconds=self._resolution / 2)
         should_stop = False
+        last_values = None
         for i in range(steps):
             if window_end > end_time:
                 LOGGER.warn(
@@ -130,14 +131,21 @@ class PBimAssembler:
                         values += additional_values
                 value = self._sampling_strategy.sample(values, target)
                 if value is None:
-                    LOGGER.warn(
-                        f"Could not sample data for channel {channel} at time {target} (no values). Skipping this step."
-                    )
-                    skip_step = True
+                    if last_values is not None:
+                        LOGGER.warn(
+                            f"Could not sample data for channel {channel} at time {target} (no values). Using previous value."
+                        )
+                        data[channel] = last_values[channel]
+                    else:
+                        LOGGER.warn(
+                            f"Could not sample data for channel {channel} at time {target} (no values). Skipping this step."
+                        )
+                        skip_step = True
                 else:
                     data[channel] = value
             if not skip_step:
                 yield data
+                last_values = data
             window_start = override_window_start or window_end
             window_end = window_start + datetime.timedelta(seconds=self._resolution)
 
