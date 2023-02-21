@@ -1,6 +1,6 @@
 {
   "template_path": "template/assemble_job_template.yml",
-  "output_path": "k8s/assemble_jobs/weeks/",
+  "output_path": "k8s/assemble_jobs/weeks-100ms/",
   "assembly_configs": [
     {
       "identifier": "week-01",

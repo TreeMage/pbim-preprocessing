@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-week-05
+  name: p-bim-assemble-week-08-500ms
 spec:
   backoffLimit: 0
   template:
@@ -15,15 +15,15 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/week-05/assembled-week-05-2017-12-01T00:00:00-2017-12-06T23:59:59.dat"
+              value: "/out/week-08/assembled-week-08-2017-12-21T00:00:00-2017-12-27T23:59:59.dat"
             - name: MODE
               value: "pbim"
             - name: START_TIME
-              value: "2017-12-01T00:00:00"
+              value: "2017-12-21T00:00:00"
             - name: END_TIME
-              value: "2017-12-06T23:59:59"
+              value: "2017-12-27T23:59:59"
             - name: RESOLUTION
-              value: "0.1"
+              value: "0.5"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT
@@ -63,7 +63,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled/PBIM/weeks/"
+            path: "/home/stud/kohlmann/MA/assembled/PBIM/weeks-100ms/"
             secretRef:
               name: ceph-secret
         - name: tmp
