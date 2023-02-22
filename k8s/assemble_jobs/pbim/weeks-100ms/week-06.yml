@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-week-06-100ms
+  name: assemble-week-06-100ms
 spec:
   backoffLimit: 0
   template:

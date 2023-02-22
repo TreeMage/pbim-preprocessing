@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: z24-assemble-week-04-250ms
+  name: z24-assemble-{{identifier}}-{{(resolution|float * 1000)|int}}ms
 spec:
   backoffLimit: 0
   template:
@@ -15,15 +15,15 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/week-04/assembled-week-04-1998-02-01T00:00:00-1998-02-06T23:59:59.dat"
+              value: "/out/{{identifier}}/assembled-{{identifier}}-{{start_time}}-{{end_time}}.dat"
             - name: START_TIME
-              value: "1998-02-01T00:00:00"
+              value: "{{start_time}}"
             - name: END_TIME
-              value: "1998-02-06T23:59:59"
+              value: "{{end_time}}"
             - name: RESOLUTION
-              value: "0.25"
+              value: "{{resolution}}"
             - name: STRATEGY
-              value: "mean"
+              value: "{{strategy}}"
             - name: FORMAT
               value: "binary"
           resources:
@@ -59,7 +59,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: /home/stud/kohlmann/MA/assembled/Z24/weeks-250ms/
+            path: /home/stud/kohlmann/MA/assembled/Z24/weeks-{{(resolution|float * 1000)|int}}ms/
             secretRef:
               name: ceph-secret
         - name: tmp

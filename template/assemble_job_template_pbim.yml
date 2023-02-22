@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-{{identifier}}-{{(resolution|float * 1000)|int}}ms
+  name: assemble-{{identifier}}-{{(resolution|float * 1000)|int}}ms
 spec:
   backoffLimit: 0
   template:

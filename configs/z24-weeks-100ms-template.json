@@ -1,5 +1,5 @@
 {
-  "template_path": "template/assemble_job_template.yml",
+  "template_path": "template/assemble_job_template_z24.yml",
   "output_path": "k8s/assemble_jobs/z24/weeks-100ms/",
   "assembly_configs": [
     {
