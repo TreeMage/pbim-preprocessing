@@ -81,6 +81,14 @@
       "resolution": "0.1",
       "strategy": "mean",
       "week": "10"
+    },
+    {
+      "identifier": "week-11",
+      "start_time": "1998-09-01T00:00:00",
+      "end_time": "1998-09-06T23:59:59",
+      "resolution": "0.1",
+      "strategy": "mean",
+      "week": "11"
     }
   ]
 }

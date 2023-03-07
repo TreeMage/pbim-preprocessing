@@ -419,8 +419,8 @@ def _make_metadata(
         case "z24-undamaged":
             return DatasetMetadata(
                 channel_order=["Time"] + channels,
-                start_time=start_time,
-                end_time=end_time,
+                start_time=start_time.timestamp() if start_time else None,
+                end_time=end_time.timestamp() if end_time else None,
                 measurement_size_in_bytes=len(channels) * 4 + time_byte_size,
                 resolution=resolution,
                 length=length,
@@ -430,8 +430,8 @@ def _make_metadata(
         case "z24-damaged":
             return DatasetMetadata(
                 channel_order=["Time"] + channels,
-                start_time=start_time,
-                end_time=end_time,
+                start_time=start_time.timestamp() if start_time else None,
+                end_time=end_time.timestamp() if end_time else None,
                 # Channels (including time)
                 measurement_size_in_bytes=len(channels) * 4 + time_byte_size,
                 resolution=resolution,
