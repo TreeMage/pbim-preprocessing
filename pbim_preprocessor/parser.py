@@ -227,16 +227,22 @@ class Z24UndamagedParser:
         with zipfile.ZipFile(ems_file_path) as ems_file:
             inner_files = sorted(ems_file.namelist(), key=self._parser_inner_file_name)
             for inner_file in inner_files:
-                LOGGER.info(f"Parsing {inner_file}")
 
                 inner_file_path = self._extract_inner_file(
                     ems_file, inner_file, output_path
                 )
                 time = self._parser_inner_file_name(inner_file)
                 if time < start_time:
+                    LOGGER.info(
+                        f"Current file contains data for time {time} < {start_time}. Skipping."
+                    )
                     continue
                 if time > end_time:
+                    LOGGER.info(
+                        f"Current file contains data for time {time} > {end_time}. Stopping."
+                    )
                     break
+                LOGGER.info(f"Parsing {inner_file}")
                 yield self._parse_inner_file(inner_file_path)
                 inner_file_path.unlink()
 

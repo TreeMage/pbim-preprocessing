@@ -378,7 +378,7 @@ def _make_writer(write_type: str, path: Path, headers: List[str], **kwargs):
             delimiter = kwargs.get("delimiter", ",")
             return CsvWriter(path, headers, delimiter)
         case "binary":
-            return BinaryWriter(path, headers, 8)
+            return BinaryWriter(path, headers, TIME_BYTE_SIZE)
 
 
 def _make_metadata(
@@ -419,11 +419,10 @@ def _make_metadata(
         case "z24-undamaged":
             return DatasetMetadata(
                 channel_order=["Time"] + channels,
-                start_time=None,
-                end_time=None,
-                # Channels (including time)
-                measurement_size_in_bytes=(len(channels) - 1) * 4 + time_byte_size,
-                resolution=None,
+                start_time=start_time,
+                end_time=end_time,
+                measurement_size_in_bytes=len(channels) * 4 + time_byte_size,
+                resolution=resolution,
                 length=length,
                 statistics=statistics,
                 time_byte_size=time_byte_size,
@@ -431,11 +430,11 @@ def _make_metadata(
         case "z24-damaged":
             return DatasetMetadata(
                 channel_order=["Time"] + channels,
-                start_time=None,
-                end_time=None,
+                start_time=start_time,
+                end_time=end_time,
                 # Channels (including time)
-                measurement_size_in_bytes=(len(channels) - 1) * 4 + time_byte_size,
-                resolution=None,
+                measurement_size_in_bytes=len(channels) * 4 + time_byte_size,
+                resolution=resolution,
                 length=length,
                 statistics=statistics,
                 time_byte_size=time_byte_size,

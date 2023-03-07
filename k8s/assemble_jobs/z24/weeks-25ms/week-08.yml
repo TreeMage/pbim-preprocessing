@@ -33,7 +33,7 @@ spec:
             requests:
               cpu: "1"
               memory: "12Gi"
-          command: ["bash", "./scripts/assemble_24_dataset.sh"]
+          command: ["bash", "./scripts/assemble_z24_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
@@ -50,7 +50,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/intermediate"
+            path: "/scratch/p-bim/Z24_altrn"
             secretRef:
               name: ceph-secret
             readOnly: true
