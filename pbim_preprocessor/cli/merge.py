@@ -7,7 +7,7 @@ from typing import Optional, List, BinaryIO
 import click
 
 from pbim_preprocessor.cli.assemble import DatasetMetadata
-from pbim_preprocessor.index import _write_index
+from pbim_preprocessor.index import _write_index, CutIndexEntry
 from pbim_preprocessor.merge import MergeConfig
 from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER
@@ -43,6 +43,12 @@ def _load_metadata(path: Path) -> DatasetMetadata:
     meta_data_file = path.parent / f"{path.stem}.metadata.json"
     with open(meta_data_file, "r") as f:
         return DatasetMetadata.from_dict(json.load(f))
+
+
+def _load_index(path: Path) -> List[CutIndexEntry]:
+    index_path = path.parent / f"{path.stem}.index.json"
+    with open(index_path, "r") as f:
+        return [CutIndexEntry.from_dict(entry) for entry in json.load(f)]
 
 
 def _parse_values(data: bytes) -> List[float]:
@@ -118,6 +124,9 @@ def _merge_predefined_files(
     num_measurements = []
     statistics_collector = StatisticsCollector() if not config.keep_statistics else None
     metadata = _load_metadata(config.base_path / config.files[0].relative_path)
+    indices = [
+        _load_index(config.base_path / file.relative_path) for file in config.files
+    ]
     for file in config.files:
         num_measurements += [
             _write_file(
@@ -135,6 +144,7 @@ def _merge_predefined_files(
         num_measurements,
         anomalous,
         config.output_file.parent / f"{config.output_file.stem}.index.json",
+        exsiting_indices=indices,
     )
     return num_measurements
 
