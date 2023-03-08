@@ -116,7 +116,6 @@ def _write_file(
         return num_measurements
 
 
-# TODO: Also merge indices of the given files!
 def _merge_predefined_files(
     config: MergeConfig,
     output_file_handle: BinaryIO,
