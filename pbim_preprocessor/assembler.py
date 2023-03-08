@@ -479,7 +479,7 @@ class GrandStandAssembler:
         return self._path / f"{scenario}.txt"
 
 
-class Z24UndamagedAssembler:
+class Z24Assembler:
     def __init__(
         self, path: Path, sampling_strategy: SamplingStrategy, resolution: float
     ):
@@ -489,7 +489,9 @@ class Z24UndamagedAssembler:
         self._resolution = resolution
 
     @staticmethod
-    def _make_environmental_data(data: ParsedZ24File):
+    def _make_environmental_data(
+        data: ParsedZ24File, channels: List[str] | None
+    ) -> Dict[str, float]:
         def _mean(values: List[Measurement]) -> float:
             return mean([x.measurement for x in values])
 
@@ -501,6 +503,7 @@ class Z24UndamagedAssembler:
             )
             / 2
             for channel in pre.keys()
+            if channels is None or channel in channels
         }
 
     @staticmethod
@@ -508,7 +511,7 @@ class Z24UndamagedAssembler:
         channel = list(data.acceleration_data.keys())[0]
         return min([x.time for x in data.acceleration_data[channel].measurements])
 
-    def _make_acceleration_data(self, data: ParsedZ24File):
+    def _make_acceleration_data(self, data: ParsedZ24File, channels: List[str] | None):
         def _find_until(
             values: List[Measurement], timestamp: float, offset: int = 0
         ) -> List[Measurement]:
@@ -522,6 +525,8 @@ class Z24UndamagedAssembler:
 
         sampled = {}
         for channel, values in data.acceleration_data.items():
+            if channels is not None and channel not in channels:
+                continue
             # No need to sample
             if self._resolution == 0:
                 sampled[channel] = [m.measurement for m in values.measurements]
@@ -547,11 +552,11 @@ class Z24UndamagedAssembler:
         return sampled
 
     def _make_measurement_dict(
-        self, data: ParsedZ24File
+        self, data: ParsedZ24File, channels: List[str] | None
     ) -> Generator[Dict[str, float], Any, None]:
         start_time = self._find_start_time(data)
-        environmental_data = self._make_environmental_data(data)
-        acceleration_data = self._make_acceleration_data(data)
+        environmental_data = self._make_environmental_data(data, channels)
+        acceleration_data = self._make_acceleration_data(data, channels)
         lengths = list(set([len(x) for x in acceleration_data.values()]))
         if len(lengths) != 1:
             shortest = min(lengths)
@@ -570,9 +575,14 @@ class Z24UndamagedAssembler:
             time = start_time + 1.5 * i * self._resolution * 1000
             yield {"time": time, **environmental_data, **sample_acceleration_data}
 
-    def assemble(self, start_time: datetime.datetime, end_time: datetime.datetime):
+    def assemble(
+        self,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        channels: List[str] | None = None,
+    ) -> Generator[Dict[str, float] | EOF, Any, None]:
         for data in self._parser.parse(self._path, start_time, end_time):
-            yield from self._make_measurement_dict(data)
+            yield from self._make_measurement_dict(data, channels)
             yield EOF()
 
 
@@ -609,7 +619,7 @@ class AssemblerWrapper:
         mode: str,
         base_assembler: PBimAssembler
         | GrandStandAssembler
-        | Z24UndamagedAssembler
+        | Z24Assembler
         | Z24DamagedAssembler,
     ):
         self._mode = mode
@@ -621,16 +631,13 @@ class AssemblerWrapper:
         end_time: Optional[datetime.datetime],
         scenario: Optional[str],
         channels: Optional[List[str]],
-        mode: Optional[Literal["avt", "fvt"]],
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
         match self._mode:
             case "pbim":
                 yield from self._base_assembler.assemble(start_time, end_time, channels)
             case "grandstand":
                 yield from self._base_assembler.assemble(scenario, channels)
-            case "z24-undamaged":
-                yield from self._base_assembler.assemble(start_time, end_time)
-            case "z24-damaged":
-                yield from self._base_assembler.assemble(int(scenario), mode)
+            case "z24":
+                yield from self._base_assembler.assemble(start_time, end_time, channels)
             case _:
                 raise ValueError(f"Unknown mode {self._mode}")

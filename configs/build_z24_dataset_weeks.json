@@ -1,7 +1,7 @@
 {
   "base_path": "/data/Z24/weeks-100ms",
-  "output_file": "/data/Z24/anomalous/week-all.dat",
-  "keep_statistics": true,
+  "output_file": "/data/Z24/weeks-100ms/weeks-all-normal/weeks-all-normal.dat",
+  "keep_statistics": false,
   "files": [
     {
       "relative_path": "week-01/assembled-week-01-1997-11-17T00:00:00-1997-11-23T23:59:59.dat",
@@ -54,12 +54,6 @@
     {
       "relative_path": "week-10/assembled-week-10-1998-08-01T00:00:00-1998-08-06T23:59:59.dat",
       "is_anomalous": false,
-      "offset": 0,
-      "ratio": 1
-    },
-    {
-      "relative_path": "week-11/assembled-week-11-1998-09-01T00:00:00-1998-09-06T23:59:59.dat",
-      "is_anomalous": true,
       "offset": 0,
       "ratio": 1
     }
