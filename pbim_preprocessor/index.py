@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-import numpy as np
 from dataclasses_json import dataclass_json
 
 

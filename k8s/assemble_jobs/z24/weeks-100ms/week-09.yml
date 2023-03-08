@@ -26,13 +26,15 @@ spec:
               value: "mean"
             - name: FORMAT
               value: "binary"
+            - name: CHANNELS
+              value: "relevant"
           resources:
             limits:
               cpu: "2"
               memory: "16Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
+              memory: "8Gi"
           command: ["bash", "./scripts/assemble_z24_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

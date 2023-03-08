@@ -13,14 +13,14 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/build_z24_dataset_with_anomalies_cluster.json"
+              value: "/app/configs/build_z24_dataset_weeks.json"
           resources:
             limits:
               cpu: "2"
-              memory: "8Gi"
+              memory: "16Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "12Gi"
           command: ["bash", "./scripts/merge.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

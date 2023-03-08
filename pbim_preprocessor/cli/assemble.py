@@ -221,7 +221,18 @@ def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
             if "all" in channels:
                 channels = CHANNELS["z24"]
             if "relevant" in channels:
-                channels = ["03", "05", "06", "07", "10", "12", "14", "16"]
+                channels = [
+                    "03",
+                    "05",
+                    "06",
+                    "07",
+                    "10",
+                    "12",
+                    "14",
+                    "16",
+                    "TBC1",
+                    "TBC2",
+                ]
     return channels
 
 
