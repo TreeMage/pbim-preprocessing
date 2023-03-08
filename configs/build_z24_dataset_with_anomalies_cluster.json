@@ -1,5 +1,5 @@
 {
-  "base_path": "/data/Z24/",
+  "base_path": "/data/Z24/weeks-100ms",
   "output_file": "/data/Z24/anomalous/week-01-week-11.dat",
   "keep_statistics": true,
   "files": [
