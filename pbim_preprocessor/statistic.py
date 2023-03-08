@@ -21,7 +21,7 @@ class StatisticsCollector:
 
     def add(self, key: str, value: float):
         if np.isnan(value):
-            raise ValueError(f"Encountered invalid value '{value}' for key {key}.")
+            print(f"[WARNING] Encountered invalid value '{value}' for key {key}.")
         if key not in self._stats:
             self._stats[key] = []
         self._stats[key].append(value)
