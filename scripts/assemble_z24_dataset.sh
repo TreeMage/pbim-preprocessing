@@ -5,4 +5,4 @@ python bin/main.py assemble z24 $BASE_PATH $OUTPUT_PATH \
  --output-format $FORMAT \
  --start-time $START_TIME \
  --end-time $END_TIME \
- --channels $CHANNELS
+ --channel $CHANNELS
