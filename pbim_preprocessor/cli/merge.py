@@ -52,8 +52,10 @@ def _load_index(path: Path) -> List[CutIndexEntry]:
         return [CutIndexEntry.from_dict(entry) for entry in json.load(f)]
 
 
-def _parse_values(data: bytes) -> List[float]:
-    return [struct.unpack("<f", data[i : i + 4])[0] for i in range(0, len(data), 4)]
+def _parse_values(data: bytes, time_byte_size: int, channels: List[str]) -> List[float]:
+    time_format = "q" if time_byte_size == 8 else "i"
+    format_string = f"<{time_format}{'f' * (len(channels) - 1)}"
+    return [*struct.unpack(format_string, data)]
 
 
 CHUNK_SIZE = 1024 * 1024
@@ -89,8 +91,9 @@ def _write_file(
         )
         measurements_to_write = int(total_num_measurements * ratio)
 
+        left_over = b""
         while True:
-            chunk = f.read(CHUNK_SIZE)
+            chunk = left_over + f.read(CHUNK_SIZE)
             if chunk:
                 LOGGER.info(f"Processing chunk {i + 1}/{steps} of {input_file_path}")
                 measurements_in_chunk = len(chunk) // metadata.measurement_size_in_bytes
@@ -102,11 +105,18 @@ def _write_file(
                     measurements_in_chunk = measurements_to_write - num_measurements
                 output_file_handle.write(chunk)
                 num_measurements += measurements_in_chunk
+                left_over = chunk[
+                    measurements_in_chunk * metadata.measurement_size_in_bytes :
+                ]
                 if statistics_collector is not None:
                     for step in range(measurements_in_chunk):
                         start = step * metadata.measurement_size_in_bytes
                         end = (step + 1) * metadata.measurement_size_in_bytes
-                        values = _parse_values(chunk[start:end])
+                        values = _parse_values(
+                            chunk[start:end],
+                            metadata.time_byte_size,
+                            metadata.channel_order,
+                        )
                         for channel, value in zip(metadata.channel_order, values):
                             statistics_collector.add(channel, value)
                 if num_measurements >= measurements_to_write:
