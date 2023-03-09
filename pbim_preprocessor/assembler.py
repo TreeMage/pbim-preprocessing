@@ -1,4 +1,5 @@
 import datetime
+import math
 import struct
 from pathlib import Path
 from statistics import mean
@@ -539,15 +540,21 @@ class Z24Assembler:
             sampled_values = []
             while offset < len(values.measurements):
                 sample = _find_until(values.measurements, end_time, offset)
+                target_time = datetime.datetime.fromtimestamp(
+                    end_time / 1000 - self._resolution / 2
+                )
                 value = self._sampling_strategy.sample(
                     sample,
-                    datetime.datetime.fromtimestamp(
-                        end_time / 1000 - self._resolution / 2
-                    ),
+                    target_time,
                 )
+                if value is None:
+                    LOGGER.warn(
+                        f"Failed to sample value for channel {channel} at time {target_time}."
+                    )
+                    continue
+                end_time += self._resolution * 1000
                 sampled_values.append(value)
                 offset += len(sample)
-                end_time += self._resolution * 1000
             sampled[channel] = sampled_values
         return sampled
 

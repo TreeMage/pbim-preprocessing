@@ -3,6 +3,7 @@ import math
 import struct
 from pathlib import Path
 from typing import Optional, List, BinaryIO
+import numpy as np
 
 import click
 
