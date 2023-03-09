@@ -1,6 +1,7 @@
 import datetime
-import math
+import statistics
 import struct
+from dataclasses import dataclass
 from pathlib import Path
 from statistics import mean
 from typing import (
@@ -24,6 +25,13 @@ from pbim_preprocessor.parser import (
 from pbim_preprocessor.processor import MEASUREMENT_SIZE_IN_BYTES
 from pbim_preprocessor.sampling import SamplingStrategy
 from pbim_preprocessor.utils import GeneratorWithReturnValue, LOGGER
+
+
+@dataclass
+class MergeChannelsConfig:
+    channels: List[str]
+    name: str
+    remove_original: bool = True
 
 
 class PBimAssembler:
@@ -482,12 +490,17 @@ class GrandStandAssembler:
 
 class Z24Assembler:
     def __init__(
-        self, path: Path, sampling_strategy: SamplingStrategy, resolution: float
+        self,
+        path: Path,
+        sampling_strategy: SamplingStrategy,
+        resolution: float,
+        merge_channels_config: List[MergeChannelsConfig] | None = None,
     ):
         self._path = path
         self._parser = Z24UndamagedParser()
         self._sampling_strategy = sampling_strategy
         self._resolution = resolution
+        self._merge_channels_config = merge_channels_config or []
 
     @staticmethod
     def _make_environmental_data(
@@ -559,7 +572,10 @@ class Z24Assembler:
         return sampled
 
     def _make_measurement_dict(
-        self, data: ParsedZ24File, channels: List[str] | None
+        self,
+        data: ParsedZ24File,
+        channels: List[str] | None,
+        merge_channels: List[MergeChannelsConfig] | None = None,
     ) -> Generator[Dict[str, float], Any, None]:
         start_time = self._find_start_time(data)
         environmental_data = self._make_environmental_data(data, channels)
@@ -580,54 +596,38 @@ class Z24Assembler:
             }
             # Start time + middle of current sample in milliseconds
             time = start_time + 1.5 * i * self._resolution * 1000
-            yield {"time": time, **environmental_data, **sample_acceleration_data}
+            yield self._merge_channels(
+                {"time": time, **environmental_data, **sample_acceleration_data}
+            )
 
     def assemble(
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
         channels: List[str] | None = None,
+        merge_channels: List[MergeChannelsConfig] | None = None,
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
         for data in self._parser.parse(self._path, start_time, end_time):
-            yield from self._make_measurement_dict(data, channels)
+            yield from self._make_measurement_dict(data, channels, merge_channels)
             yield EOF()
 
-
-class Z24DamagedAssembler:
-    def __init__(self, zip_directory: Path):
-        self._zip_directory = zip_directory
-        self._parser = Z24DamagedParser()
-
-    def assemble(
-        self, scenario: int, mode: Literal["avt", "fvt"]
-    ) -> Generator[Dict[str, float], Any, None]:
-        data = self._parser.parse(self._zip_directory, scenario, mode)
-        lengths = list(
-            set([len(x.measurements) for x in data.acceleration_data.values()])
-        )
-        if len(lengths) != 1:
-            shortest = min(lengths)
-            LOGGER.warn(
-                f"Unequal lengths for acceleration data: {lengths}. Cutting to {shortest}."
-            )
-            data = {channel: value[:shortest] for channel, value in data.items()}
-        for i in range(lengths[0]):
-            step_data = {
-                channel: value.measurements[i].measurement
-                for channel, value in data.acceleration_data.items()
-            }
-            step_data["time"] = i
-            yield step_data
+    def _merge_channels(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        for merge_config in self._merge_channels_config:
+            if not all([x in data for x in merge_config.channels]):
+                raise ValueError(f"Missing channels for merge: {merge_config.channels}")
+            values = [data[x] for x in merge_config.channels]
+            data[merge_config.name] = statistics.mean(values)
+            if merge_config.remove_original:
+                for channel in merge_config.channels:
+                    del data[channel]
+        return data
 
 
 class AssemblerWrapper:
     def __init__(
         self,
         mode: str,
-        base_assembler: PBimAssembler
-        | GrandStandAssembler
-        | Z24Assembler
-        | Z24DamagedAssembler,
+        base_assembler: PBimAssembler | GrandStandAssembler | Z24Assembler,
     ):
         self._mode = mode
         self._base_assembler = base_assembler

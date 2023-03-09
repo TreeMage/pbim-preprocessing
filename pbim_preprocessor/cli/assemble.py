@@ -12,7 +12,7 @@ from pbim_preprocessor.assembler import (
     GrandStandAssembler,
     AssemblerWrapper,
     Z24Assembler,
-    Z24DamagedAssembler,
+    MergeChannelsConfig,
 )
 from pbim_preprocessor.index import _write_index
 from pbim_preprocessor.model import EOF
@@ -95,6 +95,12 @@ CHANNELS = {
         "14",
         "16",
     ],
+}
+
+MERGE_CONFIGS = {
+    "z24": [MergeChannelsConfig(["TBC1", "TBC2"], "TBC")],
+    "pbim": [],
+    "grandstand": [],
 }
 
 
@@ -238,14 +244,33 @@ def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
 
 def _make_assembler(
     mode: str, path: Path, strategy: str, resolution: float
-) -> PBimAssembler | GrandStandAssembler | Z24Assembler | Z24DamagedAssembler:
+) -> PBimAssembler | GrandStandAssembler | Z24Assembler:
     match mode:
         case "pbim":
             return PBimAssembler(path, STRATEGIES[strategy], resolution)
         case "grandstand":
             return GrandStandAssembler(path)
         case "z24":
-            return Z24Assembler(path, STRATEGIES[strategy], resolution)
+            return Z24Assembler(
+                path, STRATEGIES[strategy], resolution, MERGE_CONFIGS["z24"]
+            )
+
+
+def _compute_actual_channels(
+    channels: List[str], merge_configs: List[MergeChannelsConfig]
+):
+    actual_channels = channels.copy()
+    for merge_config in merge_configs:
+        if all(channel in actual_channels for channel in merge_config.channels):
+            if merge_config.remove_original:
+                for channel in merge_config.channels:
+                    actual_channels.remove(channel)
+            actual_channels.append(merge_config.name)
+        else:
+            raise ValueError(
+                f"Supposed to merge channels {merge_config.channels} but at least one of them is missing."
+            )
+    return actual_channels
 
 
 @click.command()
@@ -278,14 +303,16 @@ def assemble(
     LOGGER.set_debug(debug)
     _validate_args(mode, start_time, end_time, resolution, scenario)
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    channels = _prepare_channels(mode, list(channel))
+    channels_in = _prepare_channels(mode, list(channel))
+    channels_out = _compute_actual_channels(channels_in, MERGE_CONFIGS[mode])
+
     assembler = AssemblerWrapper(
         mode,
         _make_assembler(mode, path, strategy, resolution),
     )
 
     statistics_collector = StatisticsCollector()
-    with _make_writer(output_format, output_path, channels) as writer:
+    with _make_writer(output_format, output_path, channels_out) as writer:
         length = 0
         index = []
         for step in assembler.assemble(
@@ -296,7 +323,7 @@ def assemble(
             if end_time
             else None,
             scenario=scenario,
-            channels=channels,
+            channels=channels_in,
         ):
             if isinstance(step, dict):
                 time = int(step["time"])
@@ -310,7 +337,7 @@ def assemble(
         output_path,
         _make_metadata(
             mode,
-            channels,
+            channels_out,
             start_time,
             end_time,
             resolution,
