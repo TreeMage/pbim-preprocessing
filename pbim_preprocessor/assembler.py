@@ -513,7 +513,7 @@ class Z24Assembler:
         post = data.post_measurement_environmental_data
         return {
             channel: (
-                _mean(pre[channel].measurements) - _mean(post[channel].measurements)
+                _mean(pre[channel].measurements) + _mean(post[channel].measurements)
             )
             / 2
             for channel in pre.keys()
@@ -575,7 +575,6 @@ class Z24Assembler:
         self,
         data: ParsedZ24File,
         channels: List[str] | None,
-        merge_channels: List[MergeChannelsConfig] | None = None,
     ) -> Generator[Dict[str, float], Any, None]:
         start_time = self._find_start_time(data)
         environmental_data = self._make_environmental_data(data, channels)
@@ -605,10 +604,9 @@ class Z24Assembler:
         start_time: datetime.datetime,
         end_time: datetime.datetime,
         channels: List[str] | None = None,
-        merge_channels: List[MergeChannelsConfig] | None = None,
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
         for data in self._parser.parse(self._path, start_time, end_time):
-            yield from self._make_measurement_dict(data, channels, merge_channels)
+            yield from self._make_measurement_dict(data, channels)
             yield EOF()
 
     def _merge_channels(self, data: Dict[str, Any]) -> Dict[str, Any]:

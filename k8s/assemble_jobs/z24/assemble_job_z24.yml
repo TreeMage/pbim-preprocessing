@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: z24-assemble-dataset-3
+  name: z24-assemble-dataset
 spec:
   backoffLimit: 0
   template:
@@ -13,19 +13,21 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: BASE_PATH
-              value: "/data/Z24ems3.zip"
+              value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/undamaged-3-0.1s.dat"
+              value: "/out/reference-measurement-day-no-sampling/reference-measurement-day-no-sampling.dat"
             - name: RESOLUTION
-              value: "0.1"
+              value: "0"
             - name: START_TIME
-              value: "1997-11-10T00:00:00"
+              value: "1998-08-04T00:00:00"
             - name: END_TIME
-              value: "1998-08-08T23:59:59"
+              value: "1998-08-04T23:59:59"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT
               value: "binary"
+            - name: CHANNELS
+              value: "relevant"
           resources:
             limits:
               cpu: "2"
