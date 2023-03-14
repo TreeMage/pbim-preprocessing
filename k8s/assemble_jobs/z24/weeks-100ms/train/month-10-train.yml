@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: z24-assemble-week-07-100ms
+  name: z24-assemble-month-10-train-100ms
 spec:
   backoffLimit: 0
   template:
@@ -15,11 +15,11 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/week-07/assembled-week-07-1998-05-01T00:00:00-1998-05-06T23:59:59.dat"
+              value: "/out/month-10-train/assembled-month-10-train-1998-08-01T00:00:00-1998-08-06T23:59:59.dat"
             - name: START_TIME
-              value: "1998-05-01T00:00:00"
+              value: "1998-08-01T00:00:00"
             - name: END_TIME
-              value: "1998-05-06T23:59:59"
+              value: "1998-08-06T23:59:59"
             - name: RESOLUTION
               value: "0.1"
             - name: STRATEGY

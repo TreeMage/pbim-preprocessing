@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: z24-assemble-week-08-25ms
+  name: z24-assemble-month-07-test-100ms
 spec:
   backoffLimit: 0
   template:
@@ -15,24 +15,26 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/week-08/assembled-week-08-1998-06-01T00:00:00-1998-06-06T23:59:59.dat"
+              value: "/out/month-07-test/assembled-month-07-test-1998-05-07T00:00:00-1998-05-13T23:59:59.dat"
             - name: START_TIME
-              value: "1998-06-01T00:00:00"
+              value: "1998-05-07T00:00:00"
             - name: END_TIME
-              value: "1998-06-06T23:59:59"
+              value: "1998-05-13T23:59:59"
             - name: RESOLUTION
-              value: "0.025"
+              value: "0.1"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT
               value: "binary"
+            - name: CHANNELS
+              value: "relevant"
           resources:
             limits:
               cpu: "2"
               memory: "16Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
+              memory: "8Gi"
           command: ["bash", "./scripts/assemble_z24_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
@@ -59,7 +61,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: /home/stud/kohlmann/MA/assembled/Z24/weeks-25ms/
+            path: /home/stud/kohlmann/MA/assembled/Z24/weeks-100ms/
             secretRef:
               name: ceph-secret
         - name: tmp
