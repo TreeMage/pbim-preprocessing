@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Dict
 
 from pbim_preprocessor.model import ParsedPBimChannel, Measurement
-from pbim_preprocessor.parser import PBimParser
+from pbim_preprocessor.parser.pbim import PBimParser
 from pbim_preprocessor.utils import LOGGER
 
 FILE_NAME_PATTERN = re.compile(r"^Job1_(\d{4})_(\d{2})_(\d{2})_.*$")
