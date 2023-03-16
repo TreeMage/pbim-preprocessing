@@ -661,6 +661,15 @@ class Z24PDTAssembler:
             step_data["time"] = i / self.SAMPLING_RATE
             yield step_data
 
+    @staticmethod
+    def _make_path_in_zip_file(
+        scenario: int, scenario_type: Literal["avt", "fvt"]
+    ) -> str:
+        if scenario == 17 and scenario_type == "fvt":
+            # For some reason, the 17th scenario is in a all upper-case folder.
+            return "17/FVT/"
+        return f"{scenario:02d}/{scenario_type}/"
+
     def assemble(
         self,
         scenario: int,
@@ -668,10 +677,12 @@ class Z24PDTAssembler:
         channels: List[str] | None = None,
     ) -> Generator[Dict[str, float], Any, None]:
         with zipfile.ZipFile(self._make_file_path(scenario)) as zip_file:
-            setup_base_path = f"{scenario:02d}/{scenario_type}/"
             data = []
             for setup in range(1, self.NUM_SETUPS + 1):
-                setup_path = setup_base_path + f"{scenario:02d}setup{setup:02d}.mat"
+                setup_path = (
+                    self._make_path_in_zip_file(scenario, scenario_type)
+                    + f"{scenario:02d}setup{setup:02d}.mat"
+                )
                 with zip_file.open(setup_path) as setup_file:
                     data.append(self._load_scenario_data(setup_file))
             yield from self._combine(data, channels)
