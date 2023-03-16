@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: z24-assemble-{{scenario}}-{{scenario_type}}
+  name: z24-assemble-13-avt
 spec:
   backoffLimit: 0
   template:
@@ -15,11 +15,11 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/{{scenario_type}}/{{scenario}}/assembled.dat"
+              value: "/out/avt/13/assembled.dat"
             - name : SCENARIO
-              value: "{{scenario}}"
+              value: "13"
             - name: SCENARIO_TYPE
-              value: "{{scenario_type}}"
+              value: "avt"
             - name: FORMAT
               value: "binary"
             - name: CHANNELS

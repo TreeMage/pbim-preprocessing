@@ -31,11 +31,16 @@ def path_field():
 @dataclass
 class AssemblyConfig:
     identifier: str
-    resolution: int
-    strategy: str
-    week: str
-    start_time: datetime.datetime = date_field()
-    end_time: datetime.datetime = date_field()
+    meta: field(default_factory=dict)
+
+    def __getattr__(self, item):
+        if item in self.meta:
+            return self.meta[item]
+        else:
+            return super().__getattr__(item)
+
+    def to_flat_dict(self):
+        return {"identifier": self.identifier, **self.meta}
 
 
 @dataclass_json
@@ -62,4 +67,4 @@ def generate(config_path: Path):
     config.output_path.mkdir(parents=True, exist_ok=True)
     for assembly_config in config.assembly_configs:
         output_path = config.output_path / f"{assembly_config.identifier}.yml"
-        output_path.write_text(template.render(assembly_config.to_dict()))
+        output_path.write_text(template.render(assembly_config.to_flat_dict()))

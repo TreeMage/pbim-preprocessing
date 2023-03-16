@@ -1,6 +1,7 @@
 import datetime
 import statistics
 import struct
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from statistics import mean
@@ -15,6 +16,10 @@ from typing import (
     TextIO,
     Literal,
 )
+
+import numpy as np
+import scipy
+from typing.io import IO
 
 from pbim_preprocessor.model import Measurement, EOF, ParsedZ24File
 from pbim_preprocessor.parser import (
@@ -94,7 +99,7 @@ class PBimAssembler:
                 break
             target = window_start + (window_end - window_start) / 2
             LOGGER.info(
-                f"Processing step {i+1} of {steps}. Current time: {target.strftime('%Y-%m-%d %H:%M:%S')}."
+                f"Processing step {i + 1} of {steps}. Current time: {target.strftime('%Y-%m-%d %H:%M:%S')}."
             )
             LOGGER.debug(f"Window: {window_start} - {window_end} with target {target}.")
             data = {"time": target.timestamp() * 1000}
@@ -488,7 +493,7 @@ class GrandStandAssembler:
         return self._path / f"{scenario}.txt"
 
 
-class Z24Assembler:
+class Z24EMSAssembler:
     def __init__(
         self,
         path: Path,
@@ -621,11 +626,65 @@ class Z24Assembler:
         return data
 
 
+class Z24PDTAssembler:
+    FILE_NAMES = ["pdt_01-08.zip", "pdt_09_17.zip"]
+    NUM_SETUPS = 9
+    SAMPLING_RATE = 100  # Hz
+
+    def __init__(self, path: Path):
+        self._path = path
+        pass
+
+    def _make_file_path(self, scenario: int) -> Path:
+        assert scenario in range(1, 18)
+        return self._path / self.FILE_NAMES[scenario // 9]
+
+    @staticmethod
+    def _load_scenario_data(f: IO[bytes]) -> Tuple[np.ndarray, List[str]]:
+        mat = scipy.io.loadmat(f)
+        data = mat["data"]
+        labels = [label.strip() for label in mat["labelshulp"].tolist()]
+        return data, labels
+
+    def _combine(
+        self, data: List[Tuple[np.ndarray, List[str]]], channels: List[str] | None
+    ) -> Generator[Dict[str, float], Any, None]:
+        step_data = {}
+        length = min([x.shape[0] for (x, _) in data])
+        for i in range(length):
+            LOGGER.info(f"Processing step {i+1}/{length}.")
+            for (measurements, labels) in data:
+                for j, label in enumerate(labels):
+                    if channels is not None and label not in channels:
+                        continue
+                    step_data[label] = measurements[i, j]
+            step_data["time"] = i / self.SAMPLING_RATE
+            yield step_data
+
+    def assemble(
+        self,
+        scenario: int,
+        scenario_type: Literal["avt", "fvt"],
+        channels: List[str] | None = None,
+    ) -> Generator[Dict[str, float], Any, None]:
+        with zipfile.ZipFile(self._make_file_path(scenario)) as zip_file:
+            setup_base_path = f"{scenario:02d}/{scenario_type}/"
+            data = []
+            for setup in range(1, self.NUM_SETUPS + 1):
+                setup_path = setup_base_path + f"{scenario:02d}setup{setup:02d}.mat"
+                with zip_file.open(setup_path) as setup_file:
+                    data.append(self._load_scenario_data(setup_file))
+            yield from self._combine(data, channels)
+
+
 class AssemblerWrapper:
     def __init__(
         self,
         mode: str,
-        base_assembler: PBimAssembler | GrandStandAssembler | Z24Assembler,
+        base_assembler: PBimAssembler
+        | GrandStandAssembler
+        | Z24EMSAssembler
+        | Z24PDTAssembler,
     ):
         self._mode = mode
         self._base_assembler = base_assembler
@@ -636,13 +695,18 @@ class AssemblerWrapper:
         end_time: Optional[datetime.datetime],
         scenario: Optional[str],
         channels: Optional[List[str]],
+        scenario_type: Optional[Literal["avt", "fvt"]],
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
         match self._mode:
             case "pbim":
                 yield from self._base_assembler.assemble(start_time, end_time, channels)
             case "grandstand":
                 yield from self._base_assembler.assemble(scenario, channels)
-            case "z24":
+            case "z24-ems":
                 yield from self._base_assembler.assemble(start_time, end_time, channels)
+            case "z24-pdt":
+                yield from self._base_assembler.assemble(
+                    int(scenario), scenario_type, channels
+                )
             case _:
                 raise ValueError(f"Unknown mode {self._mode}")

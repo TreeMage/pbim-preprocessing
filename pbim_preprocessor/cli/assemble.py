@@ -2,7 +2,7 @@ import datetime
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 
 import click
 from dataclasses_json import dataclass_json
@@ -11,97 +11,18 @@ from pbim_preprocessor.assembler import (
     PBimAssembler,
     GrandStandAssembler,
     AssemblerWrapper,
-    Z24Assembler,
+    Z24EMSAssembler,
     MergeChannelsConfig,
+    Z24PDTAssembler,
 )
+from pbim_preprocessor.cli.constants import STRATEGIES, FORMATS, CHANNELS, MERGE_CONFIGS
 from pbim_preprocessor.index import _write_index
 from pbim_preprocessor.model import EOF
-from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS
-from pbim_preprocessor.sampling import (
-    MeanSamplingStrategy,
-    LinearInterpolationSamplingStrategy,
-)
 from pbim_preprocessor.statistic import StatisticsCollector, ChannelStatistics
 from pbim_preprocessor.utils import LOGGER
 from pbim_preprocessor.writer import CsvWriter, BinaryWriter
 
 TIME_BYTE_SIZE = 8
-
-STRATEGIES = {
-    "mean": MeanSamplingStrategy(),
-    "interpolate": LinearInterpolationSamplingStrategy(),
-}
-FORMATS = {
-    "csv": CsvWriter,
-    "binary": BinaryWriter,
-}
-
-CHANNELS = {
-    "pbim": POST_PROCESSABLE_CHANNELS,
-    "grandstand": [f"Joint {i}" for i in range(1, 31)],
-    "z24": [
-        "WS",
-        "WD",
-        "AT",
-        "R",
-        "H",
-        "TE",
-        "ADU",
-        "ADK",
-        "TSPU1",
-        "TSPU2",
-        "TSPU3",
-        "TSAU1",
-        "TSAU2",
-        "TSAU3",
-        "TSPK1",
-        "TSPK2",
-        "TSPK3",
-        "TSAK1",
-        "TSAK2",
-        "TSAK3",
-        "TBC1",
-        "TBC2",
-        "TSWS1",
-        "TSWN1",
-        "TWS1",
-        "TWC1",
-        "TWN1",
-        "TP1",
-        "TDT1",
-        "TDS1",
-        "TS1",
-        "TSWS2",
-        "TSWN2",
-        "TWS2",
-        "TWC2",
-        "TWN2",
-        "TP2",
-        "TDT2",
-        "TDS2",
-        "TS2",
-        "TWS3",
-        "TWN3",
-        "TWC3",
-        "TP3",
-        "TDT3",
-        "TS3",
-        "03",
-        "05",
-        "06",
-        "07",
-        "10",
-        "12",
-        "14",
-        "16",
-    ],
-}
-
-MERGE_CONFIGS = {
-    "z24": [MergeChannelsConfig(["TBC1", "TBC2"], "TBC")],
-    "pbim": [],
-    "grandstand": [],
-}
 
 
 @dataclass_json
@@ -171,7 +92,18 @@ def _make_metadata(
                 statistics=statistics,
                 time_byte_size=time_byte_size,
             )
-        case "z24":
+        case "z24-ems":
+            return DatasetMetadata(
+                channel_order=["Time"] + channels,
+                start_time=start_time.timestamp() if start_time else None,
+                end_time=end_time.timestamp() if end_time else None,
+                measurement_size_in_bytes=len(channels) * 4 + time_byte_size,
+                resolution=resolution,
+                length=length,
+                statistics=statistics,
+                time_byte_size=time_byte_size,
+            )
+        case "z24-pdt":
             return DatasetMetadata(
                 channel_order=["Time"] + channels,
                 start_time=start_time.timestamp() if start_time else None,
@@ -190,27 +122,35 @@ def _validate_args(
     end_time: Optional[datetime.datetime],
     resolution: Optional[float],
     scenario: Optional[str],
+    scenario_type: Optional[str],
 ):
-    def _raise(parameter: str):
-        raise click.BadParameter(f"Parameter {parameter} is required in mode {mode}.")
+    def _raise(param: Optional[Any], parameter_name: str):
+        if param is None:
+            raise click.BadParameter(
+                f"Parameter {parameter_name} is required in mode {mode}."
+            )
 
     match mode:
         case "pbim":
-            if start_time is None:
-                _raise("start_time")
-            if end_time is None:
-                _raise("end_time")
-            if resolution is None:
-                _raise("resolution")
+            _raise(start_time, "start_time")
+            _raise(end_time, "end_time")
+            _raise(resolution, "resolution")
         case "grandstand":
-            if scenario is None:
-                _raise("scenario")
-        case "z24":
-            if resolution is None:
-                _raise("resolution")
+            _raise(scenario, "scenario")
+        case "z24-ems":
+            _raise(resolution, "resolution")
+        case "z24-pdt":
+            _raise(scenario, "scenario")
+            _raise(scenario_type, "scenario_type")
+            if scenario_type not in ["avt", "fvt"]:
+                raise click.BadParameter(
+                    f"Parameter scenario_type must be one of 'avt' or 'fvt'."
+                )
 
 
-def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
+def _prepare_channels(
+    mode: str, channels: List[str], scenario_type: Optional[str]
+) -> List[str]:
     if not channels:
         return CHANNELS[mode]
     match mode:
@@ -223,9 +163,9 @@ def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
         case "grandstand":
             if "relevant" in channels or "all" in channels:
                 channels = CHANNELS["grandstand"]
-        case "z24":
+        case "z24-ems":
             if "all" in channels:
-                channels = CHANNELS["z24"]
+                channels = CHANNELS["z24-ems"]
             if "relevant" in channels:
                 channels = [
                     "03",
@@ -239,21 +179,26 @@ def _prepare_channels(mode: str, channels: List[str]) -> List[str]:
                     "TBC1",
                     "TBC2",
                 ]
+        case "z24-pdt":
+            if "all" in channels:
+                channels = CHANNELS[f"z24-pdt-{scenario_type}"]
     return channels
 
 
 def _make_assembler(
     mode: str, path: Path, strategy: str, resolution: float
-) -> PBimAssembler | GrandStandAssembler | Z24Assembler:
+) -> PBimAssembler | GrandStandAssembler | Z24EMSAssembler | Z24PDTAssembler:
     match mode:
         case "pbim":
             return PBimAssembler(path, STRATEGIES[strategy], resolution)
         case "grandstand":
             return GrandStandAssembler(path)
-        case "z24":
-            return Z24Assembler(
-                path, STRATEGIES[strategy], resolution, MERGE_CONFIGS["z24"]
+        case "z24-ems":
+            return Z24EMSAssembler(
+                path, STRATEGIES[strategy], resolution, MERGE_CONFIGS["z24-ems"]
             )
+        case "z24-pdt":
+            return Z24PDTAssembler(path)
 
 
 def _compute_actual_channels(
@@ -274,7 +219,7 @@ def _compute_actual_channels(
 
 
 @click.command()
-@click.argument("mode", type=click.Choice(["pbim", "grandstand", "z24"]))
+@click.argument("mode", type=click.Choice(["pbim", "grandstand", "z24-ems", "z24-pdt"]))
 @click.option("--scenario", type=click.STRING)
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.argument(
@@ -287,6 +232,7 @@ def _compute_actual_channels(
 @click.option("--output-format", default="csv", type=click.Choice(list(FORMATS.keys())))
 @click.option("--channel", multiple=True)
 @click.option("--debug", is_flag=True, default=False)
+@click.option("--scenario-type", default=None, type=click.Choice(["avt", "fvt"]))
 def assemble(
     mode: str,
     scenario: Optional[str],
@@ -298,12 +244,13 @@ def assemble(
     strategy: Optional[str],
     output_format: str,
     channel: List[str],
+    scenario_type: Optional[str],
     debug: bool,
 ):
     LOGGER.set_debug(debug)
-    _validate_args(mode, start_time, end_time, resolution, scenario)
+    _validate_args(mode, start_time, end_time, resolution, scenario, scenario_type)
     output_path.parent.mkdir(exist_ok=True, parents=True)
-    channels_in = _prepare_channels(mode, list(channel))
+    channels_in = _prepare_channels(mode, list(channel), scenario_type)
     channels_out = _compute_actual_channels(channels_in, MERGE_CONFIGS[mode])
 
     assembler = AssemblerWrapper(
@@ -324,6 +271,7 @@ def assemble(
             else None,
             scenario=scenario,
             channels=channels_in,
+            scenario_type=scenario_type,
         ):
             if isinstance(step, dict):
                 time = int(step["time"])

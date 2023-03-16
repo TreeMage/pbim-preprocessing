@@ -15,26 +15,22 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/reference-measurement-day-no-sampling/reference-measurement-day-no-sampling.dat"
-            - name: RESOLUTION
-              value: "0"
-            - name: START_TIME
-              value: "1998-08-04T00:00:00"
-            - name: END_TIME
-              value: "1998-08-04T23:59:59"
-            - name: STRATEGY
-              value: "mean"
+              value: "/out/progressive-damage-tests/progressive-damage-tests.dat"
             - name: FORMAT
               value: "binary"
             - name: CHANNELS
               value: "relevant"
+            - name: SCENARIO
+              value: "1"
+            - name: SCENARIO_TYPE
+              value: "avt"
           resources:
             limits:
               cpu: "2"
-              memory: "12Gi"
+              memory: "8Gi"
             requests:
               cpu: "1"
-              memory: "8Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/assemble_z24_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
