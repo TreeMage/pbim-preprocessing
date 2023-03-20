@@ -4,10 +4,12 @@ from pathlib import Path
 from typing import Optional, List, Generator, Dict, Any, Tuple, BinaryIO
 
 from pbim_preprocessor.model import Measurement
-from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS
-from pbim_preprocessor.processor import MEASUREMENT_SIZE_IN_BYTES
+from pbim_preprocessor.parser.pbim import POST_PROCESSABLE_CHANNELS
 from pbim_preprocessor.sampling import SamplingStrategy
 from pbim_preprocessor.utils import LOGGER, GeneratorWithReturnValue
+
+
+MEASUREMENT_SIZE_IN_BYTES = 12
 
 
 class PBimAssembler:

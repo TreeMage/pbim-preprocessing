@@ -11,7 +11,7 @@ from typing.io import IO
 
 from pbim_preprocessor.assembler.util import MergeChannelsConfig
 from pbim_preprocessor.model import ParsedZ24File, Measurement, EOF
-from pbim_preprocessor.parser import Z24UndamagedParser
+from pbim_preprocessor.parser.z24 import Z24UndamagedParser
 from pbim_preprocessor.sampling import SamplingStrategy
 from pbim_preprocessor.utils import LOGGER
 

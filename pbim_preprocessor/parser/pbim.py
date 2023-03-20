@@ -1,3 +1,4 @@
+import csv
 import dataclasses
 import datetime
 import re
@@ -85,7 +86,7 @@ POST_PROCESSABLE_CHANNELS = list(CHANNEL_TIME_MAP.keys())
 TIME_CHANNELS = [channel.value for channel in TimeChannel]
 
 
-class PBimParser:
+class PBimRealDataParser:
     def __init__(self):
         self._metadata_parser = PBimMetadataParser()
         self._data_parser = PBimDataParser()
@@ -341,3 +342,32 @@ class PBimMetadataParser:
                 )
             case _:
                 return
+
+
+class PBimArtificialDataParser:
+    def __init__(self, delimiter: str = ";"):
+        self._delimiter = delimiter
+
+    def _parse_line(self, line: str) -> List[str]:
+        return [entry.strip() for entry in line.strip().split(self._delimiter)[:-1]]
+
+    def parse(
+        self, input_file: Path, channels: List[str] | None = None
+    ) -> Dict[str, List[Measurement]]:
+        with open(input_file, "r") as f:
+            header = self._parse_line(f.readline())
+            actual_channels = [
+                channel for channel in header if channels is None or channel in channels
+            ]
+            parsed_data = {channel: [] for channel in actual_channels}
+            for line in f.readlines():
+                data = [
+                    float(value.replace(",", ".")) for value in self._parse_line(line)
+                ]
+                time = int(data[0])
+                for channel, value in zip(header, data):
+                    if channel in actual_channels:
+                        parsed_data[channel].append(
+                            Measurement(measurement=value, time=time)
+                        )
+            return parsed_data

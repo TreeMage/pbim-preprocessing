@@ -7,14 +7,11 @@ from typing import List, Dict, Optional, Any
 import click
 from dataclasses_json import dataclass_json
 
-from pbim_preprocessor.assembler import (
-    PBimAssembler,
-    GrandStandAssembler,
-    AssemblerWrapper,
-    Z24EMSAssembler,
-    MergeChannelsConfig,
-    Z24PDTAssembler,
-)
+from pbim_preprocessor.assembler.grandstand import GrandStandAssembler
+from pbim_preprocessor.assembler.pbim import PBimAssembler
+from pbim_preprocessor.assembler.util import MergeChannelsConfig
+from pbim_preprocessor.assembler.wrapper import AssemblerWrapper
+from pbim_preprocessor.assembler.z24 import Z24EMSAssembler, Z24PDTAssembler
 from pbim_preprocessor.cli.constants import STRATEGIES, FORMATS, CHANNELS, MERGE_CONFIGS
 from pbim_preprocessor.index import _write_index
 from pbim_preprocessor.model import EOF
@@ -156,7 +153,7 @@ def _prepare_channels(
     match mode:
         case "pbim":
             if "relevant" in channels:
-                ignore_channels = ["MS17", "MS18", "MS19", "MS20", "MS21", "MS22"]
+                ignore_channels = []
                 channels = [c for c in CHANNELS["pbim"] if c not in ignore_channels]
             if "all" in channels:
                 channels = CHANNELS["pbim"]

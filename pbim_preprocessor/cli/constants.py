@@ -1,5 +1,9 @@
-from pbim_preprocessor.assembler import MergeChannelsConfig
-from pbim_preprocessor.parser import POST_PROCESSABLE_CHANNELS
+from pbim_preprocessor.assembler.util import MergeChannelsConfig
+from pbim_preprocessor.parser.pbim import (
+    POST_PROCESSABLE_CHANNELS,
+    PBimArtificialDataParser,
+)
+from pbim_preprocessor.processor.pbim import PBimArtificialDataProcessor
 from pbim_preprocessor.sampling import (
     MeanSamplingStrategy,
     LinearInterpolationSamplingStrategy,
@@ -15,7 +19,7 @@ FORMATS = {
     "binary": BinaryWriter,
 }
 CHANNELS = {
-    "pbim": POST_PROCESSABLE_CHANNELS,
+    "pbim": PBimArtificialDataProcessor.CHANNELS,
     "grandstand": [f"Joint {i}" for i in range(1, 31)],
     "z24-ems": [
         "WS",

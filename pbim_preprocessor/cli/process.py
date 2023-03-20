@@ -11,7 +11,7 @@ from typing import List
 import click
 
 from pbim_preprocessor.cli import CHANNELS_TO_PROCESS
-from pbim_preprocessor.processor import PBIMProcessor
+from pbim_preprocessor.processor.pbim import PBimRealDataProcessor
 from pbim_preprocessor.utils import LOGGER
 
 
@@ -44,7 +44,7 @@ def _process(
     zip_file_path: Path, output_base_path: Path, tmp_path: Path, names: List[str]
 ):
     try:
-        processor = PBIMProcessor(
+        processor = PBimRealDataProcessor(
             zip_file_path, output_base_path, tmp_path, names, CHANNELS_TO_PROCESS
         )
         processor.process()

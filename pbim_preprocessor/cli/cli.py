@@ -6,6 +6,7 @@ from pbim_preprocessor.cli.merge import merge
 from pbim_preprocessor.cli.parse import parse
 from pbim_preprocessor.cli.plot import plot
 from pbim_preprocessor.cli.process import process
+from pbim_preprocessor.cli.process_artificial import process_artificial
 
 
 @click.group()
@@ -19,3 +20,4 @@ cli.add_command(process)
 cli.add_command(assemble)
 cli.add_command(generate)
 cli.add_command(merge)
+cli.add_command(process_artificial)

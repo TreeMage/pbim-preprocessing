@@ -4,7 +4,7 @@ from pathlib import Path
 import click
 
 from pbim_preprocessor.cli import CHANNELS_TO_PROCESS
-from pbim_preprocessor.parser import PBimParser
+from pbim_preprocessor.parser.pbim import PBimRealDataParser
 
 
 @click.command()
@@ -19,7 +19,7 @@ def parse(path: Path, output_path: Path, name: str):
     specified by OUTPUT_PATH.
     """
     output_path.mkdir(exist_ok=True, parents=True)
-    parser = PBimParser()
+    parser = PBimRealDataParser()
     data = parser.parse(path, name, CHANNELS_TO_PROCESS)
     for name, parsed_channel in data.items():
         with open(output_path / f"{name}.json", "w") as f:

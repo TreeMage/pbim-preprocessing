@@ -12,21 +12,21 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: ZIP_FILE_PATH
-              value: "/data/HiDrive-IBF_BW402e_Messdaten_2017.zip"
+              value: "/data/Messquerschnitt_01.zip"
             - name: OUTPUT_PATH
-              value: "/out"
+              value: "/out/N"
             - name: TMP_PATH
               value: "/tmp"
-            - name: WORKERS
-              value: "18"
+            - name: SCENARIO
+              value: "N"
           resources:
             limits:
-              cpu: "20"
-              memory: "256Gi"
+              cpu: "2"
+              memory: "8Gi"
             requests:
-              cpu: "18"
-              memory: "216Gi"
-          command: ["bash", "./scripts/preprocess.sh"]
+              cpu: "1"
+              memory: "4Gi"
+          command: ["bash", "./scripts/preprocess_pbim_artificial.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
@@ -41,7 +41,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim/"
+            path: "/home/stud/kohlmann/MA/data/PBIM"
             secretRef:
               name: ceph-secret
             readOnly: true
@@ -50,6 +50,6 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/"
+            path: "/scratch/p-bim-preprocesed/artificial-intermediate"
             secretRef:
               name: ceph-secret
