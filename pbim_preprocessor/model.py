@@ -63,3 +63,8 @@ class ParsedZ24File:
 
 class EOF:
     pass
+
+
+@dataclass
+class ParsedLuxFile:
+    channels: List[str]

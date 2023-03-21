@@ -214,7 +214,7 @@ class PBimArtificialDataProcessor(Processor):
                 self._save_data(data, file_handles)
                 for j, file_name in enumerate(group[1:]):
                     LOGGER.info(
-                        f"Processing file '{file_name}' ({j+1}/{len(group)})",
+                        f"Processing file '{file_name}' ({j+2}/{len(group)})",
                         self._identifier,
                     )
                     data = self._process_file(zip_file, file_name)

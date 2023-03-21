@@ -4,6 +4,7 @@ from typing import Optional, List, Literal, Generator, Dict, Any
 from pbim_preprocessor.assembler.grandstand import GrandStandAssembler
 from pbim_preprocessor.assembler.pbim import PBimAssembler
 from pbim_preprocessor.assembler.z24 import Z24EMSAssembler, Z24PDTAssembler
+from pbim_preprocessor.assembler.lux import LuxAssembler
 from pbim_preprocessor.model import EOF
 
 
@@ -14,7 +15,8 @@ class AssemblerWrapper:
         base_assembler: PBimAssembler
         | GrandStandAssembler
         | Z24EMSAssembler
-        | Z24PDTAssembler,
+        | Z24PDTAssembler
+        | LuxAssembler,
     ):
         self._mode = mode
         self._base_assembler = base_assembler
@@ -38,5 +40,7 @@ class AssemblerWrapper:
                 yield from self._base_assembler.assemble(
                     int(scenario), scenario_type, channels
                 )
+            case "lux":
+                yield from self._base_assembler.assemble(start_time, end_time, channels)
             case _:
                 raise ValueError(f"Unknown mode {self._mode}")

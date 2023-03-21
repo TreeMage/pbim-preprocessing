@@ -8,6 +8,7 @@ import click
 from dataclasses_json import dataclass_json
 
 from pbim_preprocessor.assembler.grandstand import GrandStandAssembler
+from pbim_preprocessor.assembler.lux import LuxAssembler
 from pbim_preprocessor.assembler.pbim import PBimAssembler
 from pbim_preprocessor.assembler.util import MergeChannelsConfig
 from pbim_preprocessor.assembler.wrapper import AssemblerWrapper
@@ -111,6 +112,17 @@ def _make_metadata(
                 statistics=statistics,
                 time_byte_size=time_byte_size,
             )
+        case "lux":
+            return DatasetMetadata(
+                channel_order=["Time"] + channels,
+                start_time=start_time.timestamp() if start_time else None,
+                end_time=end_time.timestamp() if end_time else None,
+                measurement_size_in_bytes=len(channels) * 4 + time_byte_size,
+                resolution=resolution,
+                length=length,
+                statistics=statistics,
+                time_byte_size=time_byte_size,
+            )
 
 
 def _validate_args(
@@ -143,6 +155,10 @@ def _validate_args(
                 raise click.BadParameter(
                     f"Parameter scenario_type must be one of 'avt' or 'fvt'."
                 )
+        case "lux":
+            _raise(start_time, "start_time")
+            _raise(end_time, "end_time")
+            _raise(resolution, "resolution")
 
 
 def _prepare_channels(
@@ -179,12 +195,15 @@ def _prepare_channels(
         case "z24-pdt":
             if "all" in channels:
                 channels = CHANNELS[f"z24-pdt-{scenario_type}"]
+        case "lux":
+            if "all" in channels:
+                channels = CHANNELS["lux"]
     return channels
 
 
 def _make_assembler(
     mode: str, path: Path, strategy: str, resolution: float
-) -> PBimAssembler | GrandStandAssembler | Z24EMSAssembler | Z24PDTAssembler:
+) -> PBimAssembler | GrandStandAssembler | Z24EMSAssembler | Z24PDTAssembler | LuxAssembler:
     match mode:
         case "pbim":
             return PBimAssembler(path, STRATEGIES[strategy], resolution)
@@ -196,6 +215,8 @@ def _make_assembler(
             )
         case "z24-pdt":
             return Z24PDTAssembler(path)
+        case "lux":
+            return LuxAssembler(path, resolution, STRATEGIES[strategy])
 
 
 def _compute_actual_channels(
@@ -216,7 +237,9 @@ def _compute_actual_channels(
 
 
 @click.command()
-@click.argument("mode", type=click.Choice(["pbim", "grandstand", "z24-ems", "z24-pdt"]))
+@click.argument(
+    "mode", type=click.Choice(["pbim", "grandstand", "z24-ems", "z24-pdt", "lux"])
+)
 @click.option("--scenario", type=click.STRING)
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
 @click.argument(

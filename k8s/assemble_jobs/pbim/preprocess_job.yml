@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-preprocess
+  name: p-bim-preprocess-s3-q3
 spec:
   template:
     spec:
@@ -12,13 +12,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: ZIP_FILE_PATH
-              value: "/data/Messquerschnitt_01.zip"
+              value: "/data/Messquerschnitt_03.zip"
             - name: OUTPUT_PATH
-              value: "/out/N"
+              value: "/out/S3"
             - name: TMP_PATH
               value: "/tmp"
             - name: SCENARIO
-              value: "N"
+              value: "S3"
           resources:
             limits:
               cpu: "2"
