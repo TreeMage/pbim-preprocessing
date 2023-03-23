@@ -13,6 +13,8 @@ from pbim_preprocessor.merge import MergeConfig
 from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER
 
+import numpy as np
+
 
 def _find_start_path(data_directory: Path) -> Path:
     names = sorted(
@@ -58,7 +60,7 @@ def _parse_values(data: bytes, time_byte_size: int, channels: List[str]) -> List
     return [*struct.unpack(format_string, data)]
 
 
-CHUNK_SIZE = 1024 * 1024
+CHUNK_SIZE = 8 * 1024 * 1024
 
 
 def _estimate_steps(f: BinaryIO, chunk_size: int, ratio: float = 1.0) -> int:
@@ -93,7 +95,8 @@ def _write_file(
 
         left_over = b""
         while True:
-            chunk = left_over + f.read(CHUNK_SIZE)
+            new_data = f.read(CHUNK_SIZE)
+            chunk = left_over + new_data
             if chunk:
                 LOGGER.info(f"Processing chunk {i + 1}/{steps} of {input_file_path}")
                 measurements_in_chunk = len(chunk) // metadata.measurement_size_in_bytes
@@ -103,7 +106,9 @@ def _write_file(
                         * metadata.measurement_size_in_bytes
                     ]
                     measurements_in_chunk = measurements_to_write - num_measurements
-                output_file_handle.write(chunk)
+                output_file_handle.write(
+                    chunk[: measurements_in_chunk * metadata.measurement_size_in_bytes]
+                )
                 num_measurements += measurements_in_chunk
                 left_over = chunk[
                     measurements_in_chunk * metadata.measurement_size_in_bytes :
@@ -117,6 +122,7 @@ def _write_file(
                             metadata.time_byte_size,
                             metadata.channel_order,
                         )
+
                         for channel, value in zip(metadata.channel_order, values):
                             statistics_collector.add(channel, value)
                 if num_measurements >= measurements_to_write:

@@ -1,25 +1,25 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-preprocess-s0-q2
+  name: p-bim-preprocess-s1-q4
 spec:
   backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ghcr.io/treemage/studkohlmann-pbim-preprocessor:0.1
+        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
             - name: ZIP_FILE_PATH
-              value: "/data/Messquerschnitt_02.zip"
+              value: "/data/Messquerschnitt_04.zip"
             - name: OUTPUT_PATH
-              value: "/out/N"
+              value: "/out/S1"
             - name: TMP_PATH
               value: "/tmp"
             - name: SCENARIO
-              value: "N"
+              value: "S1"
           resources:
             limits:
               cpu: "2"
