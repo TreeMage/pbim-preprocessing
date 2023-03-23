@@ -1,0 +1,18 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/3-weeks/assembled.dat",
+  "files": [
+    {
+      "relative_path": "january-week-01/assembled.dat",
+      "is_anonymous": false
+    },
+    {
+       "relative_path": "april-week-01/assembled.dat",
+       "is_anonymous": false
+    },
+    {
+       "relative_path": "july-week-01/assembled.dat",
+       "is_anonymous": false
+    }
+  ]
+}

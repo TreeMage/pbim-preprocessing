@@ -1,27 +1,27 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: assemble-week-01-100ms
+  name: p-bim-assemble-2018-04
 spec:
   backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
+        - image: ghcr.io/treemage/studkohlmann-pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
+            - name: MODE
+              value: "pbim"
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/week-01/assembled-week-01-2018-01-01T00:00:00-2018-01-06T23:59:59.dat"
-            - name: MODE
-              value: "pbim"
+              value: "/out/april-week-01/assembled.dat"
             - name: START_TIME
-              value: "2018-01-01T00:00:00"
+              value: "2018-04-01T00:00:00"
             - name: END_TIME
-              value: "2018-01-06T23:59:59"
+              value: "2018-04-06T23:59:59"
             - name: RESOLUTION
               value: "0.1"
             - name: STRATEGY
@@ -33,10 +33,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "16Gi"
+              memory: "8Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
@@ -46,6 +46,7 @@ spec:
             - mountPath: /tmp
               name: tmp
       imagePullSecrets:
+        - name: github-registry
         - name: lsx-registry
       restartPolicy: "Never"
       volumes:
@@ -54,7 +55,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/scratch/p-bim-preprocesed/intermediate"
+            path: "/scratch/p-bim-preprocesed/artificial-intermediate/N"
             secretRef:
               name: ceph-secret
             readOnly: true
@@ -63,7 +64,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: /home/stud/kohlmann/MA/assembled/PBIM/weeks-100ms/
+            path: "/home/stud/kohlmann/MA/assembled/PBIM/"
             secretRef:
               name: ceph-secret
         - name: tmp

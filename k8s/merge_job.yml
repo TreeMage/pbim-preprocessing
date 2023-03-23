@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/build_z24_dataset_weeks.json"
+              value: "/app/configs/merge_pbim_dataset.json"
           resources:
             limits:
               cpu: "2"
