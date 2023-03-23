@@ -112,6 +112,7 @@ class PBimArtificialDataProcessor(Processor):
         "MQ_3_MS_O_MI_L_u",
         "MQ_3_Ms_U_Re_Int_u",
         "MQ_3_MS_U_Neig",
+        "MQ_4_MS_U_MI_L_o",
         "MQ_4_Ms_U_Li_Int_u",
         "MQ_4_MS_O_MI_L_u",
         "MQ_4_Ms_U_Re_Int_u",
