@@ -169,7 +169,15 @@ def _prepare_channels(
     match mode:
         case "pbim":
             if "relevant" in channels:
-                ignore_channels = []
+                ignore_channels = [
+                    "MQ_1_MS_U_Neig",
+                    "MQ_1_MS_U_Schieb",
+                    "MQ_2_MS_U_Neig",
+                    "MQ_3_MS_U_Neig",
+                    "MQ_4_MS_U_Neig",
+                    "MQ_5_MS_U_Neig",
+                    "MQ_5_MS_U_Schieb",
+                ]
                 channels = [c for c in CHANNELS["pbim"] if c not in ignore_channels]
             if "all" in channels:
                 channels = CHANNELS["pbim"]

@@ -1,6 +1,6 @@
 {
-  "base_path": "/data/PBIM/",
-  "output_file": "/data/PBIM/3-weeks/assembled.dat",
+  "base_path": "../data/assembled/PBIM/",
+  "output_file": "../data/assembled/PBIM/3-weeks/assembled.dat",
   "files": [
     {
       "relative_path": "january-week-01/assembled.dat",
