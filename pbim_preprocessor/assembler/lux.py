@@ -200,3 +200,6 @@ class LuxAssembler:
                     current_time + datetime.timedelta(seconds=time[-1]),
                     end_time,
                 )
+                if current_time is None:
+                    LOGGER.warn(f"Reached end time while searching for next folder. Stopping.")
+                    break
