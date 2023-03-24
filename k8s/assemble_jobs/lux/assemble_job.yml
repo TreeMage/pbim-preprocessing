@@ -28,6 +28,8 @@ spec:
               value: "binary"
             - name: CHANNEL
               value: "all"
+            - name: DEBUG
+              value: "True"
           resources:
             limits:
               cpu: "2"

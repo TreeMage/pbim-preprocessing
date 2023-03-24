@@ -82,7 +82,7 @@ class LuxAssembler:
         LOGGER.debug(f"No match in current folder, advancing to next folder.")
         return self._advance_time_until_folder_exists(
             zip_file,
-            datetime.datetime(year, month, day + 1, tzinfo=datetime.timezone.utc),
+            datetime.datetime(year, month, day, tzinfo=datetime.timezone.utc) + datetime.timedelta(days=1),
             end_time,
         )
 
