@@ -68,7 +68,7 @@ class LuxAssembler:
             key=lambda name: _folder_date(Path(name).name),
         )
         for sub_folder in sub_folders:
-            if _folder_date(sub_folder) > time:
+            if _folder_date(sub_folder) >= time:
                 return _folder_date(sub_folder)
         # Should be unreachable
         raise ValueError("Could not find folder for time")

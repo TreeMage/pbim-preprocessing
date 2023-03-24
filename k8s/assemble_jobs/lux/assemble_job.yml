@@ -12,7 +12,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: BASE_PATH
-              value: "/data/lux.zip"
+              value: "/data/lux-rezipped.zip"
             - name: OUTPUT_PATH
               value: "/out/undamaged/assembled.dat"
             - name: START_TIME
