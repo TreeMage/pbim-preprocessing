@@ -60,16 +60,25 @@ class LuxAssembler:
         if time > end_time:
             return None
         year, month, day = time.year, time.month, time.day
+        LOGGER.debug(f"Searching folder for time {year}-{month:02d}-{day:02d}")
         folder = self._find_folder_for_time(
             zip_file, datetime.datetime(year, month, day)
         )
+        LOGGER.debug(f"Found folder '{folder}'. Searching sub folders...")
         sub_folders = sorted(
             self._list_zip_folder_sub_folders(zip_file, folder),
             key=lambda name: _folder_date(Path(name).name),
         )
-        for sub_folder in sub_folders:
-            if _folder_date(sub_folder) >= time:
-                return _folder_date(sub_folder)
+        LOGGER.debug(f"Found sub folders: {sub_folders}")
+        for i, sub_folder in enumerate(sub_folders):
+            folder_date = _folder_date(sub_folder)
+            LOGGER.debug(
+                f"Checking sub folder '{sub_folder}' with date {folder_date} for target time {time}"
+            )
+            if folder_date >= time:
+                LOGGER.debug(f"Match.")
+                return folder_date
+            LOGGER.debug("No match.")
         # Should be unreachable
         raise ValueError("Could not find folder for time")
 
@@ -130,6 +139,7 @@ class LuxAssembler:
         end_time: datetime.datetime,
         channels: List[str],
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
+        LOGGER.set_debug(True)
         parse_temperature = "Temperature" in channels
         sanitized_channels = [
             channel for channel in channels if channel != "Temperature"
