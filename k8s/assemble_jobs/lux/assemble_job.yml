@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: lux-assemble
 spec:
+  backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med
