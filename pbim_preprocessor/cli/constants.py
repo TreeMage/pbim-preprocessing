@@ -593,7 +593,7 @@ CHANNELS = {
         "39374",
         "30183",
         "29702",
-        "21921",
+        #"21921",  This is missing from some measurements in the dataset
         "Temperature",
     ],
 }
