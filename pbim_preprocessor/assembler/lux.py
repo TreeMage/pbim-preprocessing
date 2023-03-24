@@ -81,7 +81,9 @@ class LuxAssembler:
             LOGGER.debug("No match.")
         LOGGER.debug(f"No match in current folder, advancing to next folder.")
         return self._advance_time_until_folder_exists(
-            zip_file, datetime.datetime(year, month, day + 1), end_time
+            zip_file,
+            datetime.datetime(year, month, day + 1, tzinfo=datetime.timezone.utc),
+            end_time,
         )
 
     def _parse_data(
@@ -201,5 +203,7 @@ class LuxAssembler:
                     end_time,
                 )
                 if current_time is None:
-                    LOGGER.warn(f"Reached end time while searching for next folder. Stopping.")
+                    LOGGER.warn(
+                        f"Reached end time while searching for next folder. Stopping."
+                    )
                     break
