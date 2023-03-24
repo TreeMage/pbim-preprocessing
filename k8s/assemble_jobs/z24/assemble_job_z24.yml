@@ -24,6 +24,8 @@ spec:
               value: "1"
             - name: SCENARIO_TYPE
               value: "avt"
+            - name: DEBUG
+              value: "True"
           resources:
             limits:
               cpu: "2"

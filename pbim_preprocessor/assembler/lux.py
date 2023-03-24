@@ -79,8 +79,10 @@ class LuxAssembler:
                 LOGGER.debug(f"Match.")
                 return folder_date
             LOGGER.debug("No match.")
-        # Should be unreachable
-        raise ValueError("Could not find folder for time")
+        LOGGER.debug(f"No match in current folder, advancing to next folder.")
+        return self._advance_time_until_folder_exists(
+            zip_file, datetime.datetime(year, month, day + 1), end_time
+        )
 
     def _parse_data(
         self, zip_file: zipfile.ZipFile, folder: str
@@ -139,7 +141,6 @@ class LuxAssembler:
         end_time: datetime.datetime,
         channels: List[str],
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
-        LOGGER.set_debug(True)
         parse_temperature = "Temperature" in channels
         sanitized_channels = [
             channel for channel in channels if channel != "Temperature"
