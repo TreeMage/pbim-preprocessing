@@ -275,7 +275,7 @@ def assemble(
     channel: List[str],
     scenario_type: Optional[str],
     debug: bool,
-    is_anomalous: bool
+    is_anomalous: bool,
 ):
     LOGGER.set_debug(debug)
     _validate_args(mode, start_time, end_time, resolution, scenario, scenario_type)

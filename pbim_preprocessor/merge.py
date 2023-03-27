@@ -32,6 +32,7 @@ class FileConfig:
 class MergeConfig:
     base_path: Path = _path_field()
     output_file: Path = _path_field()
+    use_statistics_from: Optional[Path] = None
     start: Optional[datetime.datetime] = None
     end: Optional[datetime.datetime] = None
     files: Optional[List[FileConfig]] = None

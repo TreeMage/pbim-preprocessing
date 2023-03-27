@@ -3,7 +3,6 @@ import math
 import struct
 from pathlib import Path
 from typing import Optional, List, BinaryIO
-import numpy as np
 
 import click
 
@@ -13,7 +12,10 @@ from pbim_preprocessor.merge import MergeConfig
 from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER
 
-import numpy as np
+
+def _validate_config(config: MergeConfig):
+    if config.use_statistics_from is not None and config.keep_statistics:
+        raise ValueError("Cannot use statistics from file and keep statistics")
 
 
 def _find_start_path(data_directory: Path) -> Path:
@@ -138,9 +140,19 @@ def _merge_predefined_files(
     config: MergeConfig,
     output_file_handle: BinaryIO,
 ) -> List[int]:
+    _validate_config(config)
     num_measurements = []
-    statistics_collector = StatisticsCollector() if not config.keep_statistics else None
-    metadata = _load_metadata(config.base_path / config.files[0].relative_path)
+    statistics_collector = (
+        StatisticsCollector()
+        if not config.keep_statistics and config.use_statistics_from is None
+        else None
+    )
+    if config.use_statistics_from is not None:
+        config.use_statistics_from = Path(config.use_statistics_from)
+        metadata_path = config.use_statistics_from
+    else:
+        metadata_path = config.base_path / config.files[0].relative_path
+    metadata = _load_metadata(metadata_path)
     indices = [
         _load_index(config.base_path / file.relative_path) for file in config.files
     ]
@@ -178,7 +190,7 @@ def _write_metadata(
     statistics_collector: Optional[StatisticsCollector],
 ):
     metadata.length = num_measurements
-    if not config.keep_statistics:
+    if statistics_collector is not None:
         metadata.statistics = statistics_collector.get_all_channel_statistics()
     with open(
         config.output_file.parent / f"{config.output_file.stem}.metadata.json", "w"

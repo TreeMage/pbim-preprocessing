@@ -1,6 +1,7 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/S3/anomalous/assembled.dat",
+  "use_statistics_from": "/data/PBIM/3-weeks/assembled.dat",
   "files": [
     {
       "relative_path": "N/march-week-01/assembled.dat",

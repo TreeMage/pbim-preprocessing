@@ -82,7 +82,8 @@ class LuxAssembler:
         LOGGER.debug(f"No match in current folder, advancing to next folder.")
         return self._advance_time_until_folder_exists(
             zip_file,
-            datetime.datetime(year, month, day, tzinfo=datetime.timezone.utc) + datetime.timedelta(days=1),
+            datetime.datetime(year, month, day, tzinfo=datetime.timezone.utc)
+            + datetime.timedelta(days=1),
             end_time,
         )
 
@@ -172,14 +173,21 @@ class LuxAssembler:
                 LOGGER.info(f"Sampling data for time {current_time}.")
                 if self._resolution > 0:
                     sampled_data = [
-                        self._sample_channels(data[parsed_channels.index(channel)], time)
+                        self._sample_channels(
+                            data[parsed_channels.index(channel)], time
+                        )
                         for channel in sanitized_channels
                     ]
                 else:
                     sampled_data = [
-                        data[parsed_channels.index(channel)] for channel in sanitized_channels
+                        data[parsed_channels.index(channel)]
+                        for channel in sanitized_channels
                     ]
-                sampled_time = np.arange(time[0], time[-1], self._resolution) if self._resolution > 0 else time
+                sampled_time = (
+                    np.arange(time[0], time[-1], self._resolution)
+                    if self._resolution > 0
+                    else time
+                )
                 for step in range(len(sampled_data[0])):
                     LOGGER.info(
                         f"Yielding data for time {current_time} at step {step+1}/{len(sampled_data[0])}."

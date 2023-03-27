@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/merge_pbim_dataset.json"
+              value: "/app/configs/pbim/build_pbim_anomalous_s1.json"
           resources:
             limits:
               cpu: "2"
