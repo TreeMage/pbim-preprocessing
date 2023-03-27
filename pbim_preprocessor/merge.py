@@ -24,6 +24,7 @@ class FileConfig:
     relative_path: Path = _path_field()
     offset: float = 0.0
     ratio: float = 1.0
+    include_in_statistics: bool = True
 
 
 @dataclass_json

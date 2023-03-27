@@ -19,9 +19,9 @@ spec:
             - name: OUTPUT_PATH
               value: "/out/january-week-01/assembled.dat"
             - name: START_TIME
-              value: "2018-01-01T00:00:00"
+              value: "2018-01-04T00:00:00"
             - name: END_TIME
-              value: "2018-01-06T23:59:59"
+              value: "2018-01-07T23:59:59"
             - name: RESOLUTION
               value: "0.1"
             - name: STRATEGY
@@ -64,7 +64,7 @@ spec:
             monitors:
               - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
             user: studkohlmann
-            path: "/home/stud/kohlmann/MA/assembled/PBIM/"
+            path: "/home/stud/kohlmann/MA/assembled/PBIM/N"
             secretRef:
               name: ceph-secret
         - name: tmp

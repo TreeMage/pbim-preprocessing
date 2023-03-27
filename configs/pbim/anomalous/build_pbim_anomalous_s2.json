@@ -1,0 +1,26 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/S2/anomalous/assembled.dat",
+  "files": [
+    {
+      "relative_path": "N/march-week-01/assembled.dat",
+      "is_anomalous": false,
+      "include_in_statistics": true
+    },
+    {
+       "relative_path": "N/june-week-01/assembled.dat",
+       "is_anomalous": false,
+       "include_in_statistics": true
+    },
+    {
+       "relative_path": "S2/july-week-02/assembled.dat",
+       "is_anomalous": true,
+       "include_in_statistics": false
+    },
+    {
+       "relative_path": "S2/august-week-01/assembled.dat",
+       "is_anomalous": true,
+       "include_in_statistics": false
+    }
+  ]
+}

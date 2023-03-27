@@ -78,6 +78,7 @@ def _write_file(
     statistics_collector: Optional[StatisticsCollector] = None,
     offset: float = 0.0,
     ratio: float = 1.0,
+    include_in_statistics: bool = True,
 ) -> int:
     assert offset + ratio <= 1.0
     num_measurements = 0
@@ -113,7 +114,7 @@ def _write_file(
                 left_over = chunk[
                     measurements_in_chunk * metadata.measurement_size_in_bytes :
                 ]
-                if statistics_collector is not None:
+                if statistics_collector is not None and include_in_statistics:
                     for step in range(measurements_in_chunk):
                         start = step * metadata.measurement_size_in_bytes
                         end = (step + 1) * metadata.measurement_size_in_bytes
@@ -152,6 +153,7 @@ def _merge_predefined_files(
                 statistics_collector,
                 file.offset,
                 file.ratio,
+                file.include_in_statistics,
             )
         ]
     _write_metadata(config, metadata, sum(num_measurements), statistics_collector)

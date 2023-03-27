@@ -261,6 +261,7 @@ def _compute_actual_channels(
 @click.option("--channel", multiple=True)
 @click.option("--debug", is_flag=True, default=False)
 @click.option("--scenario-type", default=None, type=click.Choice(["avt", "fvt"]))
+@click.option("--is-anomalous", default=False)
 def assemble(
     mode: str,
     scenario: Optional[str],
@@ -274,6 +275,7 @@ def assemble(
     channel: List[str],
     scenario_type: Optional[str],
     debug: bool,
+    is_anomalous: bool
 ):
     LOGGER.set_debug(debug)
     _validate_args(mode, start_time, end_time, resolution, scenario, scenario_type)
@@ -324,6 +326,6 @@ def assemble(
     )
     _write_index(
         [length] if not index else index,
-        False,
+        is_anomalous,
         output_path.parent / f"{output_path.stem}.index.json",
     )

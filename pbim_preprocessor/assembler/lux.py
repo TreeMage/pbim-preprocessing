@@ -170,11 +170,16 @@ class LuxAssembler:
                 )
                 time = data[parsed_channels.index("time")]
                 LOGGER.info(f"Sampling data for time {current_time}.")
-                sampled_data = [
-                    self._sample_channels(data[parsed_channels.index(channel)], time)
-                    for channel in sanitized_channels
-                ]
-                sampled_time = np.arange(time[0], time[-1], self._resolution)
+                if self._resolution > 0:
+                    sampled_data = [
+                        self._sample_channels(data[parsed_channels.index(channel)], time)
+                        for channel in sanitized_channels
+                    ]
+                else:
+                    sampled_data = [
+                        data[parsed_channels.index(channel)] for channel in sanitized_channels
+                    ]
+                sampled_time = np.arange(time[0], time[-1], self._resolution) if self._resolution > 0 else time
                 for step in range(len(sampled_data[0])):
                     LOGGER.info(
                         f"Yielding data for time {current_time} at step {step+1}/{len(sampled_data[0])}."
