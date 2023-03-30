@@ -14,13 +14,22 @@ class CutIndexEntry:
     anomalous: bool
 
 
+def _write_index_file(path: Path, entries: List[CutIndexEntry]):
+    with open(path.parent / f"{path.stem}.index.json", "w") as f:
+        json.dump(
+            [entry.to_dict() for entry in entries],
+            f,
+            indent=4,
+        )
+
+
 def _write_index(
     measurements: List[int],
     anomalous: List[bool] | bool,
     output_path: Path,
-    exsiting_indices: List[List[CutIndexEntry]] | None = None,
+    existing_indices: List[List[CutIndexEntry]] | None = None,
 ):
-    if exsiting_indices is None:
+    if existing_indices is None:
         indices = [0] + measurements
         entries = [
             CutIndexEntry(
@@ -32,15 +41,10 @@ def _write_index(
         ]
     else:
         entries = []
-        for offset, indices in zip([0] + measurements, exsiting_indices):
+        for offset, indices in zip([0] + measurements, existing_indices):
             for entry in indices:
                 entry.start_measurement_index += offset
                 entry.end_measurement_index += offset
                 entries.append(entry)
 
-    with open(output_path, "w") as f:
-        json.dump(
-            [entry.to_dict() for entry in entries],
-            f,
-            indent=4,
-        )
+    _write_index_file(output_path, entries)

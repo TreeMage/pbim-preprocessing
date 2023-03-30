@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-merge
+  name: p-bim-merge-s3
 spec:
   backoffLimit: 0
   template:
@@ -13,14 +13,14 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/pbim/build_pbim_anomalous_s1.json"
+              value: "/app/configs/pbim/anomalous/build_pbim_anomalous_s3.json"
           resources:
             limits:
               cpu: "2"
               memory: "16Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/merge.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

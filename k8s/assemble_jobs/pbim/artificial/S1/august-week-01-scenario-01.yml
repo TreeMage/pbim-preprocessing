@@ -17,7 +17,7 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/august-week-02/assembled.dat"
+              value: "/out/august-week-01/assembled.dat"
             - name: START_TIME
               value: "2018-08-02T00:00:00"
             - name: END_TIME

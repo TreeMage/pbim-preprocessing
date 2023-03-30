@@ -1,5 +1,9 @@
+import json
 from datetime import datetime
+from pathlib import Path
 from typing import Optional, TypeVar, Generator, Any
+
+from pbim_preprocessor.metadata import DatasetMetadata
 
 
 class Logger:
@@ -42,3 +46,9 @@ class GeneratorWithReturnValue:
 
     def __iter__(self):
         self.value = yield from self.gen
+
+
+def _load_metadata(path: Path) -> DatasetMetadata:
+    meta_data_file = path.parent / f"{path.stem}.metadata.json"
+    with open(meta_data_file, "r") as f:
+        return DatasetMetadata.from_dict(json.load(f))

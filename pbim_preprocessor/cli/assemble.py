@@ -1,11 +1,8 @@
 import datetime
-import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 
 import click
-from dataclasses_json import dataclass_json
 
 from pbim_preprocessor.assembler.grandstand import GrandStandAssembler
 from pbim_preprocessor.assembler.lux import LuxAssembler
@@ -15,35 +12,13 @@ from pbim_preprocessor.assembler.wrapper import AssemblerWrapper
 from pbim_preprocessor.assembler.z24 import Z24EMSAssembler, Z24PDTAssembler
 from pbim_preprocessor.cli.constants import STRATEGIES, FORMATS, CHANNELS, MERGE_CONFIGS
 from pbim_preprocessor.index import _write_index
+from pbim_preprocessor.metadata import DatasetMetadata, _write_metadata_file
 from pbim_preprocessor.model import EOF
 from pbim_preprocessor.statistic import StatisticsCollector, ChannelStatistics
 from pbim_preprocessor.utils import LOGGER
 from pbim_preprocessor.writer import CsvWriter, BinaryWriter
 
 TIME_BYTE_SIZE = 8
-
-
-@dataclass_json
-@dataclass
-class DatasetMetadata:
-    channel_order: List[str]
-    start_time: Optional[int]
-    end_time: Optional[int]
-    measurement_size_in_bytes: int
-    resolution: Optional[int]
-    length: int
-    statistics: Dict[str, ChannelStatistics]
-    time_byte_size: int
-
-
-def _write_metadata_file(path: Path, metadata: DatasetMetadata):
-    metadata_path = path.parent / f"{path.stem}.metadata.json"
-    with open(metadata_path, "w") as f:
-        json.dump(
-            metadata.to_dict(),
-            f,
-            indent=4,
-        )
 
 
 def _make_writer(write_type: str, path: Path, headers: List[str], **kwargs):
@@ -324,8 +299,4 @@ def assemble(
             TIME_BYTE_SIZE,
         ),
     )
-    _write_index(
-        [length] if not index else index,
-        is_anomalous,
-        output_path.parent / f"{output_path.stem}.index.json",
-    )
+    _write_index([length] if not index else index, is_anomalous, output_path)

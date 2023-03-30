@@ -6,11 +6,11 @@ from typing import Optional, List, BinaryIO
 
 import click
 
-from pbim_preprocessor.cli.assemble import DatasetMetadata
+from pbim_preprocessor.metadata import DatasetMetadata, _write_metadata_file
 from pbim_preprocessor.index import _write_index, CutIndexEntry
 from pbim_preprocessor.merge import MergeConfig
 from pbim_preprocessor.statistic import StatisticsCollector
-from pbim_preprocessor.utils import LOGGER
+from pbim_preprocessor.utils import LOGGER, _load_metadata
 
 
 def _validate_config(config: MergeConfig):
@@ -42,12 +42,6 @@ def _find_next_path(data_directory: Path, current: Path) -> Optional[Path]:
         return _find_next_path(data_directory, next_path)
     else:
         return None
-
-
-def _load_metadata(path: Path) -> DatasetMetadata:
-    meta_data_file = path.parent / f"{path.stem}.metadata.json"
-    with open(meta_data_file, "r") as f:
-        return DatasetMetadata.from_dict(json.load(f))
 
 
 def _load_index(path: Path) -> List[CutIndexEntry]:
@@ -173,8 +167,8 @@ def _merge_predefined_files(
     _write_index(
         num_measurements,
         anomalous,
-        config.output_file.parent / f"{config.output_file.stem}.index.json",
-        exsiting_indices=indices,
+        config.output_file,
+        existing_indices=indices,
     )
     return num_measurements
 
@@ -192,10 +186,9 @@ def _write_metadata(
     metadata.length = num_measurements
     if statistics_collector is not None:
         metadata.statistics = statistics_collector.get_all_channel_statistics()
-    with open(
-        config.output_file.parent / f"{config.output_file.stem}.metadata.json", "w"
-    ) as f:
-        json.dump(metadata.to_dict(), f, indent=4)
+    _write_metadata_file(
+        config.output_file.parent / f"{config.output_file.stem}.metadata.json", metadata
+    )
 
 
 def _validate_config(config: MergeConfig) -> bool:

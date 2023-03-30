@@ -1,16 +1,9 @@
-import json
 import struct
 from pathlib import Path
 
 import click
 
-from pbim_preprocessor.cli.assemble import DatasetMetadata
-
-
-def _load_metadata(path: Path) -> DatasetMetadata:
-    meta_data_file = path.parent / (path.stem + ".json")
-    with open(meta_data_file, "r") as f:
-        return DatasetMetadata.from_dict(json.load(f))
+from pbim_preprocessor.utils import _load_metadata
 
 
 @click.command()

@@ -8,7 +8,6 @@ from pbim_preprocessor.parser.pbim import POST_PROCESSABLE_CHANNELS
 from pbim_preprocessor.sampling import SamplingStrategy
 from pbim_preprocessor.utils import LOGGER, GeneratorWithReturnValue
 
-
 MEASUREMENT_SIZE_IN_BYTES = 12
 
 
