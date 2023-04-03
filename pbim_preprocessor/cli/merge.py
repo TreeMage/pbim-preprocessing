@@ -13,11 +13,6 @@ from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER, _load_metadata
 
 
-def _validate_config(config: MergeConfig):
-    if config.use_statistics_from is not None and config.keep_statistics:
-        raise ValueError("Cannot use statistics from file and keep statistics")
-
-
 def _find_start_path(data_directory: Path) -> Path:
     names = sorted(
         [p.name for p in data_directory.iterdir() if p.is_dir()], key=lambda x: int(x)
@@ -186,9 +181,7 @@ def _write_metadata(
     metadata.length = num_measurements
     if statistics_collector is not None:
         metadata.statistics = statistics_collector.get_all_channel_statistics()
-    _write_metadata_file(
-        config.output_file.parent / f"{config.output_file.stem}.metadata.json", metadata
-    )
+    _write_metadata_file(config.output_file, metadata)
 
 
 def _validate_config(config: MergeConfig) -> bool:
@@ -198,6 +191,9 @@ def _validate_config(config: MergeConfig) -> bool:
         raise ValueError("Cannot specify both files and date range")
     if not files_specified and not date_specified:
         raise ValueError("Must specify either files or date range")
+    if config.use_statistics_from is not None and config.keep_statistics:
+        raise ValueError("Cannot use statistics from file and keep statistics")
+
     return files_specified
 
 

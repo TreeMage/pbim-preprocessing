@@ -7,6 +7,7 @@ from pbim_preprocessor.cli.generate import generate
 from pbim_preprocessor.cli.merge import merge
 from pbim_preprocessor.cli.parse import parse
 from pbim_preprocessor.cli.plot import plot
+from pbim_preprocessor.cli.postprocess import postprocess
 from pbim_preprocessor.cli.process import process
 from pbim_preprocessor.cli.process_artificial import process_artificial
 from pbim_preprocessor.utils import LOGGER
@@ -26,3 +27,4 @@ cli.add_command(assemble)
 cli.add_command(generate)
 cli.add_command(merge)
 cli.add_command(process_artificial)
+cli.add_command(postprocess)

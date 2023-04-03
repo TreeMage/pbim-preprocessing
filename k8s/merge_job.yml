@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-merge-s3
+  name: p-bim-merge-supervised-s1
 spec:
   backoffLimit: 0
   template:
@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/pbim/anomalous/build_pbim_anomalous_s3.json"
+              value: "/app/configs/pbim/supervised/train_s1.json"
           resources:
             limits:
               cpu: "2"

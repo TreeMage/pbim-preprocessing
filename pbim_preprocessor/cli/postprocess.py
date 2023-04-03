@@ -7,6 +7,7 @@ from pbim_preprocessor.post_processor.pbim import (
     UniformSamplingStrategy,
     HourlySamplingStrategy,
     PBimSampler,
+    MinutelySamplingStrategy,
 )
 
 StrategyTypes = Literal["uniform", "hourly", "minutely"]
@@ -31,13 +32,20 @@ def _validate_extra_args(strategy: StrategyTypes, extra_args: Dict[str, Any]):
 def _make_strategy(strategy: StrategyTypes, extra_args: Dict[str, Any]):
     match strategy:
         case "uniform":
-            return UniformSamplingStrategy(num_samples=extra_args["num-samples"])
+            return UniformSamplingStrategy(
+                num_samples=extra_args["num-samples"],
+                window_size=extra_args["window-size"],
+            )
         case "hourly":
             return HourlySamplingStrategy(
-                samples_per_hour=extra_args["samples-per-hour"]
+                samples_per_hour=extra_args["samples-per-hour"],
+                sample_length_in_seconds=extra_args["sample-length"],
             )
         case "minutely":
-            raise NotImplementedError("Minutely sampling strategy not implemented yet.")
+            return MinutelySamplingStrategy(
+                samples_per_minute=extra_args["samples-per-minute"],
+                sample_length_in_seconds=extra_args["sample-length"],
+            )
 
 
 def _group_extra_args(extra_args: List[Any]) -> Dict[str, Any]:

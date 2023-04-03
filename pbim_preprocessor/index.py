@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
+import numpy as np
 from dataclasses_json import dataclass_json
 
 
@@ -41,7 +42,9 @@ def _write_index(
         ]
     else:
         entries = []
-        for offset, indices in zip([0] + measurements, existing_indices):
+        for offset, indices in zip(
+            np.cumsum([0] + measurements).tolist(), existing_indices
+        ):
             for entry in indices:
                 entry.start_measurement_index += offset
                 entry.end_measurement_index += offset
