@@ -62,7 +62,7 @@ def _group_extra_args(extra_args: List[Any]) -> Dict[str, Any]:
     "input-file", type=click.Path(exists=True, path_type=Path, dir_okay=False)
 )
 @click.argument(
-    "output-file", type=click.Path(exists=True, path_type=Path, dir_okay=False)
+    "output-file", type=click.Path(exists=False, path_type=Path, dir_okay=False)
 )
 @click.argument("strategy", type=click.Choice(["uniform", "hourly", "minutely"]))
 @click.option("--window-size", type=int, default=128)
@@ -76,6 +76,7 @@ def postprocess(
     window_size: int,
     remove_zero_windows: bool,
 ):
+    output_file.parent.mkdir(parents=True, exist_ok=True)
     extra_args = _group_extra_args(ctx.args)
     _validate_extra_args(strategy, extra_args)
     strategy = _make_strategy(strategy, extra_args)
