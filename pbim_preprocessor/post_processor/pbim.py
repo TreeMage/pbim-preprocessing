@@ -9,36 +9,133 @@ import numpy as np
 import tqdm
 
 from pbim_preprocessor.cli.merge import _load_index
-from pbim_preprocessor.index import CutIndexEntry, _write_index, _write_index_file
+from pbim_preprocessor.index import CutIndexEntry, _write_index_file
 from pbim_preprocessor.metadata import DatasetMetadata, _write_metadata_file
-from pbim_preprocessor.utils import _load_metadata
+from pbim_preprocessor.utils import _load_metadata, LOGGER
+
+
+def _find_group_index(index: int, start_and_end_indices: List[Tuple[int, int]]):
+    for i, (start, end) in enumerate(start_and_end_indices):
+        if start <= index < end:
+            return i
+
+    end_start_pairs = [(0, start_and_end_indices[0][0])]
+    for i in range(len(start_and_end_indices) - 1):
+        first_start, first_end = start_and_end_indices[i]
+        second_start, second_end = start_and_end_indices[i + 1]
+        end_start_pairs.append((first_end, second_start))
+
+    for i, (end, start) in enumerate(end_start_pairs):
+        if end <= index < start:
+            return i
+
+    return None
+
+
+def _sample_next_interval(
+    time: np.ndarray,
+    sample_length_in_seconds: float,
+    start_and_end_indices: List[Tuple[int, int]],
+    start_index: int,
+):
+    current_length = 0
+
+    if not (group_index := _find_group_index(start_index, start_and_end_indices)):
+        return None
+
+    sample_indices = []
+    current_start, current_end = start_and_end_indices[group_index]
+    if start_index < current_start:
+        start_index = current_start
+    current_index = start_index
+    while current_length < sample_length_in_seconds:
+        sample_indices.append(current_index)
+        current_length = (time[current_index] - time[start_index]) / 1000
+        current_index += 1
+        if current_index >= current_end:
+            group_index += 1
+            if group_index >= len(start_and_end_indices):
+                break
+            current_start, current_end = start_and_end_indices[group_index]
+            current_index = current_start
+
+    return sample_indices, current_index
 
 
 class DatasetSamplingStrategy(abc.ABC):
     @abc.abstractmethod
-    def compute_sample_indices(self, time: np.ndarray) -> List[int]:
+    def compute_sample_indices(
+        self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
+    ) -> List[int]:
         pass
 
 
-class UniformSamplingStrategy(DatasetSamplingStrategy):
-    def __init__(self, num_samples: int):
-        self._num_samples = num_samples
+class NoSamplingStrategy(DatasetSamplingStrategy):
+    def compute_sample_indices(
+        self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
+    ) -> List[int]:
+        final_indices = []
+        for start, end in start_and_end_indices:
+            final_indices.extend(list(range(start, end)))
+        return final_indices
 
-    def compute_sample_indices(self, time: np.ndarray) -> List[int]:
-        return np.linspace(0, len(time) - 1, self._num_samples, dtype=np.int).tolist()
+
+class UniformSamplingStrategy(DatasetSamplingStrategy):
+    def __init__(self, num_samples: int, window_size: int):
+        self._num_samples = num_samples
+        self._window_size = window_size
+
+    def compute_sample_indices(
+        self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
+    ) -> List[int]:
+        available_samples = sum(end - start for start, end in start_and_end_indices)
+        if available_samples < self._num_samples:
+            raise ValueError(
+                f"Cannot sample {self._num_samples} from {available_samples} samples."
+            )
+        steps = available_samples // self._num_samples
+        final_indices = []
+        for start, end in start_and_end_indices:
+            for step in range(start, end, steps):
+                final_indices.extend([step + i for i in range(self._window_size)])
+        return final_indices
 
 
 class RandomSamplingStrategy(DatasetSamplingStrategy):
-    def __init__(self, num_samples: int):
+    def __init__(self, num_samples: int, window_size: int):
         self._num_samples = num_samples
+        self._window_size = window_size
 
-    def compute_sample_indices(self, time: np.ndarray) -> List[int]:
-        return np.random.choice(len(time), self._num_samples, replace=False).tolist()
+    def compute_sample_indices(
+        self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
+    ) -> List[int]:
+        available_samples = sum(end - start for start, end in start_and_end_indices)
+        if available_samples < self._num_samples:
+            raise ValueError(
+                f"Cannot sample {self._num_samples} from {available_samples} samples."
+            )
+        window_indices = []
+        for start, end in start_and_end_indices:
+            window_indices.extend(list(range(start, end)))
+        sampled_indices = np.random.choice(
+            window_indices, self._num_samples, replace=False
+        ).tolist()
+        final_indices = []
+        for index in sampled_indices:
+            final_indices.extend([index + i for i in range(self._window_size)])
+        return final_indices
 
 
-class MinutesPerHourSamplingStrategy(DatasetSamplingStrategy):
-    def __init__(self, number_of_minutes_per_hour: int):
-        self._number_of_minutes_per_hour = number_of_minutes_per_hour
+class IntervalSamplingStrategy(DatasetSamplingStrategy):
+    def __init__(
+        self,
+        interval_length_in_seconds: int,
+        samples_per_interval: int,
+        sample_length_in_seconds: int,
+    ):
+        self._interval_length_in_seconds = interval_length_in_seconds
+        self._samples_per_interval = samples_per_interval
+        self._sample_length_in_seconds = sample_length_in_seconds
 
     @staticmethod
     def _make_datetime(timestamp: float) -> datetime.datetime:
@@ -48,27 +145,54 @@ class MinutesPerHourSamplingStrategy(DatasetSamplingStrategy):
     def _make_timestamp(dt: datetime.datetime) -> float:
         return calendar.timegm(dt.timetuple()) * 1000
 
-    def compute_sample_indices(self, time: np.ndarray) -> List[int]:
+    def compute_sample_indices(
+        self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
+    ) -> List[int]:
         final_indices = []
         start_date = self._make_datetime(time[0])
         end_date = self._make_datetime(time[-1])
-
         current_date = start_date
         while current_date < end_date:
-            next_date = current_date + datetime.timedelta(hours=1)
-            indices = np.where(
-                (time >= self._make_timestamp(current_date))
-                & (time < self._make_timestamp(next_date))
-            )[0]
-            spacing = len(indices) // self._number_of_minutes_per_hour
-            for i in range(self._number_of_minutes_per_hour):
-                offset = i * spacing
-                end = offset + 60 * 75
-                if end > len(indices):
-                    end = len(indices)
-                final_indices.extend(indices[offset:end])
-            current_date = next_date
+            for i in range(self._samples_per_interval):
+                interval_start = current_date + datetime.timedelta(
+                    seconds=i
+                    * self._interval_length_in_seconds
+                    / self._samples_per_interval
+                )
+                if interval_start > end_date:
+                    break
+                if len(final_indices) > 0 and interval_start < self._make_datetime(
+                    time[final_indices[-1]]
+                ):
+                    LOGGER.warn(
+                        f"Skipping interval start {interval_start} because it is before the last sample."
+                    )
+                    continue
+                start_index = np.searchsorted(
+                    time, self._make_timestamp(interval_start)
+                ).item()
+                interval = _sample_next_interval(
+                    time,
+                    self._sample_length_in_seconds,
+                    start_and_end_indices,
+                    start_index,
+                )
+                if not interval:
+                    break
+                sample_indices, end_index = interval
+                final_indices.extend(sample_indices)
+            current_date += datetime.timedelta(seconds=self._interval_length_in_seconds)
         return final_indices
+
+
+class HourlySamplingStrategy(IntervalSamplingStrategy):
+    def __init__(self, samples_per_hour: int, sample_length_in_seconds: int):
+        super().__init__(3600, samples_per_hour, sample_length_in_seconds)
+
+
+class MinutelySamplingStrategy(IntervalSamplingStrategy):
+    def __init__(self, samples_per_minute: int, sample_length_in_seconds: int):
+        super().__init__(60, samples_per_minute, sample_length_in_seconds)
 
 
 class PBimSampler:
@@ -92,6 +216,20 @@ class PBimSampler:
         f.seek(start_index * metadata.measurement_size_in_bytes)
         num_measurements = end_index - start_index if end_index is not None else 1
         return f.read(num_measurements * metadata.measurement_size_in_bytes)
+
+    @staticmethod
+    def _parse_samples(bytes: bytes, metadata: DatasetMetadata) -> np.ndarray:
+        time_byte_format = "<q" if metadata.time_byte_size == 8 else "<i"
+        format_string = time_byte_format + "f" * (len(metadata.channel_order) - 1)
+        return np.array(
+            [
+                struct.unpack(
+                    format_string,
+                    bytes[i : i + metadata.measurement_size_in_bytes],
+                )
+                for i in range(0, len(bytes), metadata.measurement_size_in_bytes)
+            ]
+        )
 
     def _load_window(self, f: BinaryIO, index: int, metadata: DatasetMetadata):
         assert index <= metadata.length - self._window_size + 1
@@ -144,7 +282,10 @@ class PBimSampler:
             ):
                 current_end_index += 1
             computed_indices.append(
-                (current_start_index, int(min(current_end_index + 1, len(indices))))
+                (
+                    int(indices[current_start_index]),
+                    int(indices[min(current_end_index, len(indices) - 1)] + 1),
+                )
             )
             current_start_index = current_end_index + 1
         return computed_indices
@@ -161,7 +302,6 @@ class PBimSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
-        # number_of_windows = 100000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
@@ -171,13 +311,16 @@ class PBimSampler:
                     continue
                 indices.append(i)
             time = self._load_time(f, metadata)
-        time = time[indices]
-        sample_indices = self._sampling_strategy.compute_sample_indices(time)
+        contiguous_start_end_indices = self._compute_start_and_end_indices(indices)
+        sample_indices = self._sampling_strategy.compute_sample_indices(
+            time, contiguous_start_end_indices
+        )
         index_entries = []
         with open(output_path, "wb") as output_file_handle:
             with open(input_path, "rb") as input_file_handle:
                 for start, end in tqdm.tqdm(
-                    self._compute_start_and_end_indices(sample_indices)
+                    self._compute_start_and_end_indices(sample_indices),
+                    desc="Writing continuous sample chunks",
                 ):
                     index_entries.append(
                         CutIndexEntry(
@@ -186,7 +329,6 @@ class PBimSampler:
                             anomalous=self._is_anomalous(start, index),
                         )
                     )
-
                     samples = self._load_raw_samples(
                         input_file_handle, metadata, start, end
                     )
@@ -196,8 +338,27 @@ class PBimSampler:
         _write_index_file(output_path, index_entries)
 
 
+def _pad_indices(
+    non_zero_indices: List[int], sampled_indices: List[int], original_length: int
+) -> List[int]:
+    t = np.ones(original_length)
+    t[non_zero_indices] = 0
+    padding = []
+    current_offset = 0
+    for i in range(original_length):
+        if t[i] == 1:
+            current_offset += 1
+        elif t[i] == 0:
+            padding.append(current_offset)
+    return [
+        sampled_indices[i] + padding[sampled_indices[i]]
+        for i in range(len(sampled_indices))
+    ]
+
+
 if __name__ == "__main__":
-    sampler = PBimSampler(128, True, MinutesPerHourSamplingStrategy(2))
+    strategy = HourlySamplingStrategy(2, 60)
+    sampler = PBimSampler(128, True, strategy)
     input_path = Path("../data/assembled/PBIM/N/april-week-01/assembled.dat")
     output_path = Path("/tmp/filtered/output.dat")
     sampler.process(input_path, output_path)

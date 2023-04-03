@@ -1,0 +1,23 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/supervised/train/assembled.dat",
+  "keep_statistics": false,
+  "files": [
+    {
+      "relative_path": "N/march-week-01/assembled.dat",
+      "is_anomalous": false
+    },
+    {
+       "relative_path": "N/june-week-01/assembled.dat",
+       "is_anomalous": false
+    },
+    {
+       "relative_path": "S1/july-week-02/assembled.dat",
+       "is_anomalous": true
+    },
+    {
+       "relative_path": "S1/august-week-01/assembled.dat",
+       "is_anomalous": true
+    }
+  ]
+}

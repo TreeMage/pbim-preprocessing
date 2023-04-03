@@ -8,7 +8,7 @@ spec:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
+        - image: ghcr.io/treemage/studkohlmann-pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
@@ -23,7 +23,7 @@ spec:
             - name: END_TIME
               value: "2018-04-08T23:59:59"
             - name: RESOLUTION
-              value: "0.1"
+              value: "0.04"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT

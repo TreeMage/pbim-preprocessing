@@ -32,6 +32,74 @@ class PBimAssembler:
         end_time: datetime.datetime,
         channels: Optional[List[str]] = None,
     ) -> Generator[Dict[str, float], Any, None]:
+        if self._resolution > 0:
+            yield from self._assemble_with_sampling(start_time, end_time, channels)
+        else:
+            yield from self._assemble_without_sampling(start_time, end_time, channels)
+
+    def _assemble_without_sampling(
+        self,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        channels: Optional[List[str]] = None,
+    ) -> Generator[Dict[str, float], Any, None]:
+        if not channels:
+            channels = POST_PROCESSABLE_CHANNELS
+        LOGGER.info(
+            f"Assembling data from {start_time} to {end_time} with a resolution of {self._resolution}s."
+        )
+        LOGGER.info(f"Using {len(channels)} channels.")
+        handles = {}
+        for channel in channels:
+            handle, time, stop = self._prepare_file_handle(start_time, channel)
+            if stop:
+                LOGGER.error(
+                    f"Could not prepare file handle for start time {start_time}."
+                )
+                return None
+            if time > start_time:
+                start_time = time
+            handles[channel] = handle
+        approximate_steps = {
+            channel: self._approximate_step(handles[channel]) for channel in channels
+        }
+        LOGGER.info(f"Earliest time with data is {start_time}.")
+        current_time = start_time
+        while current_time < end_time:
+            LOGGER.info(f"Processing time {current_time}.")
+            measurements = {}
+            for channel, handle in handles.items():
+                measurement = self._process_channel_no_sampling(channel, handle)
+                if not measurement:
+                    handle, _, _ = self._prepare_file_handle(
+                        current_time + approximate_steps[channel],
+                        channel,
+                        previous_file_exhausted=True,
+                    )
+                    handles[channel] = handle
+                    measurement = self._process_channel_no_sampling(
+                        channel, handles[channel]
+                    )
+                measurements[channel] = measurement
+            current_time = self._make_datetime(measurements[channels[0]].time)
+            data = {
+                channel: measurement.measurement
+                for channel, measurement in measurements.items()
+            }
+            yield {"time": measurements[channels[0]].time / 1000, **data}
+
+    def _process_channel_no_sampling(self, channel: str, handle: BinaryIO):
+        if not handle.read(1):
+            return None
+        handle.seek(-1, 1)
+        return self._read_measurement(handle)
+
+    def _assemble_with_sampling(
+        self,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        channels: Optional[List[str]] = None,
+    ) -> Generator[Dict[str, float], Any, None]:
         if not channels:
             channels = POST_PROCESSABLE_CHANNELS
         LOGGER.info(

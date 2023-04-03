@@ -1,14 +1,14 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-2018-07-mean
+  name: p-bim-assemble-2018-07-nosampling
 spec:
   backoffLimit: 0
   template:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
+        - image: ghcr.io/treemage/studkohlmann-pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
@@ -17,13 +17,13 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/mean/july-week-01/assembled.dat"
+              value: "/out/nosampling/july-week-01/assembled.dat"
             - name: START_TIME
               value: "2018-07-05T00:00:00"
             - name: END_TIME
               value: "2018-07-08T23:59:59"
             - name: RESOLUTION
-              value: "0.013333333333333334"
+              value: "0.0"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT
@@ -33,10 +33,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "8Gi"
+              memory: "16Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "8Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
