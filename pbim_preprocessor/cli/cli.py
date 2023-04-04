@@ -15,7 +15,9 @@ from pbim_preprocessor.utils import LOGGER
 
 @click.group()
 def cli():
-    LOGGER.set_debug(os.getenv("DEBUG", "false").lower() in ("true", "1", "t", "y", "yes"))
+    LOGGER.set_debug(
+        os.getenv("DEBUG", "false").lower() in ("true", "1", "t", "y", "yes")
+    )
     LOGGER.debug("Debug mode enabled")
 
 

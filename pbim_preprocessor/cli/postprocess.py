@@ -78,7 +78,9 @@ def _group_extra_args(extra_args: List[Any]) -> Dict[str, Any]:
 @click.argument(
     "output-file", type=click.Path(exists=False, path_type=Path, dir_okay=False)
 )
-@click.argument("strategy", type=click.Choice(["uniform", "hourly", "minutely"]))
+@click.argument(
+    "strategy", type=click.Choice(["uniform", "hourly", "minutely", "weighted-random"])
+)
 @click.option("--window-size", type=int, default=128)
 @click.option("--remove-zero-windows", type=bool, default=True, is_flag=True)
 @click.pass_context
