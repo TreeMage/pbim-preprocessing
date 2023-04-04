@@ -12,12 +12,11 @@ from pbim_preprocessor.cli.process import process
 from pbim_preprocessor.cli.process_artificial import process_artificial
 from pbim_preprocessor.utils import LOGGER
 
-LOGGER.set_debug(os.getenv("DEBUG", "false").lower() in ("true", "1", "t", "y", "yes"))
-
 
 @click.group()
 def cli():
-    pass
+    LOGGER.set_debug(os.getenv("DEBUG", "false").lower() in ("true", "1", "t", "y", "yes"))
+    LOGGER.debug("Debug mode enabled")
 
 
 cli.add_command(parse)
