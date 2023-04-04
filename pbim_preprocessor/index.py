@@ -42,12 +42,15 @@ def _write_index(
         ]
     else:
         entries = []
-        for offset, indices in zip(
-            np.cumsum([0] + measurements).tolist(), existing_indices
+        for i, (offset, indices) in enumerate(
+            zip(np.cumsum([0] + measurements).tolist(), existing_indices)
         ):
             for entry in indices:
                 entry.start_measurement_index += offset
                 entry.end_measurement_index += offset
+                entry.anomalous = (
+                    anomalous[i] if isinstance(anomalous, list) else anomalous
+                )
                 entries.append(entry)
 
     _write_index_file(output_path, entries)

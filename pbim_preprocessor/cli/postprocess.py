@@ -8,6 +8,7 @@ from pbim_preprocessor.post_processor.pbim import (
     HourlySamplingStrategy,
     PBimSampler,
     MinutelySamplingStrategy,
+    WeightedRandomSamplingStrategy,
 )
 
 StrategyTypes = Literal["uniform", "hourly", "minutely"]
@@ -45,6 +46,11 @@ def _make_strategy(strategy: StrategyTypes, extra_args: Dict[str, Any]):
             return MinutelySamplingStrategy(
                 samples_per_minute=int(extra_args["samples-per-minute"]),
                 sample_length_in_seconds=int(extra_args["sample-length"]),
+            )
+        case "weighted-random":
+            return WeightedRandomSamplingStrategy(
+                num_samples=int(extra_args["num-samples"]),
+                window_size=int(extra_args["window-size"]),
             )
 
 

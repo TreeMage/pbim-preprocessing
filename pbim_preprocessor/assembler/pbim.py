@@ -86,7 +86,7 @@ class PBimAssembler:
                 channel: measurement.measurement
                 for channel, measurement in measurements.items()
             }
-            yield {"time": measurements[channels[0]].time / 1000, **data}
+            yield {"time": measurements[channels[0]].time, **data}
 
     def _process_channel_no_sampling(self, channel: str, handle: BinaryIO):
         if not handle.read(1):

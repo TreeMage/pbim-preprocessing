@@ -126,17 +126,21 @@ class RandomSamplingStrategy(DatasetSamplingStrategy):
         return final_indices
 
 
-class WeightedSamplingStrategy(DatasetSamplingStrategy):
+class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
     def __init__(self, num_samples: int, window_size: int):
         self._num_samples = num_samples
         self._window_size = window_size
 
-    def _compute_weight(self, timestamp: int) -> float:
+    @staticmethod
+    def _compute_weight(timestamp: int) -> float:
         time = datetime.datetime.utcfromtimestamp(timestamp / 1000)
         if 6 <= time.hour <= 9:
             return 1
         if 16 <= time.hour <= 19:
             return 1
+        if 20 <= time.hour <= 5:
+            return 0.25
+        return 0.5
 
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
@@ -149,7 +153,9 @@ class WeightedSamplingStrategy(DatasetSamplingStrategy):
         window_indices = []
         for start, end in start_and_end_indices:
             window_indices.extend(list(range(start, end)))
-        weights = np.array([time[i] - time[i - 1] for i in window_indices])
+        weights = np.array(
+            [self._compute_weight(time[index]) for index in window_indices]
+        )
         weights = weights / np.sum(weights)
         sampled_indices = np.random.choice(
             window_indices, self._num_samples, replace=False, p=weights
@@ -336,6 +342,7 @@ class PBimSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
+        number_of_windows = 100000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
@@ -388,11 +395,3 @@ def _pad_indices(
         sampled_indices[i] + padding[sampled_indices[i]]
         for i in range(len(sampled_indices))
     ]
-
-
-if __name__ == "__main__":
-    strategy = HourlySamplingStrategy(2, 60)
-    sampler = PBimSampler(128, True, strategy)
-    input_path = Path("../data/assembled/PBIM/N/april-week-01/assembled.dat")
-    output_path = Path("/tmp/filtered/output.dat")
-    sampler.process(input_path, output_path)
