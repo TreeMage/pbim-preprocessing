@@ -234,7 +234,6 @@ def _compute_actual_channels(
 @click.option("--strategy", default="mean", type=click.Choice(list(STRATEGIES.keys())))
 @click.option("--output-format", default="csv", type=click.Choice(list(FORMATS.keys())))
 @click.option("--channel", multiple=True)
-@click.option("--debug", is_flag=True, default=False)
 @click.option("--scenario-type", default=None, type=click.Choice(["avt", "fvt"]))
 @click.option("--is-anomalous", default=False)
 def assemble(
@@ -249,10 +248,8 @@ def assemble(
     output_format: str,
     channel: List[str],
     scenario_type: Optional[str],
-    debug: bool,
     is_anomalous: bool,
 ):
-    LOGGER.set_debug(debug)
     _validate_args(mode, start_time, end_time, resolution, scenario, scenario_type)
     output_path.parent.mkdir(exist_ok=True, parents=True)
     channels_in = _prepare_channels(mode, list(channel), scenario_type)
