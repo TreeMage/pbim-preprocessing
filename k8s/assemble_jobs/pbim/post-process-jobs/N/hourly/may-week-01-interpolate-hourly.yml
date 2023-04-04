@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "hourly"
             - name: STRATEGY_ARGS
-              value: "--samples-per-hour 2 --sample-length 120"
+              value: "--samples-per-hour 4 --sample-length 30"
           resources:
             limits:
               cpu: "2"

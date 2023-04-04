@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "weighted-random"
             - name: STRATEGY_ARGS
-              value: "--num-samples 2000000 --window-size 128"
+              value: "--num-samples 4000000 --window-size 128"
           resources:
             limits:
               cpu: "2"

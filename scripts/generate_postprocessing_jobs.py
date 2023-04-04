@@ -41,14 +41,14 @@ if __name__ == "__main__":
         ],
     }
 
-    NUM_SAMPLES = 2000000
+    NUM_SAMPLES = 4000000
     WINDOW_SIZE = 128
-    SCENARIO = "N"
+    SCENARIO = "S1"
 
     STRATEGY_ARGS = {
         "uniform": f"--num-samples {NUM_SAMPLES} --window-size {WINDOW_SIZE}",
         "weighted-random": f"--num-samples {NUM_SAMPLES} --window-size {WINDOW_SIZE}",
-        "hourly": f"--samples-per-hour 2 --sample-length 120",
+        "hourly": f"--samples-per-hour 4 --sample-length 30",
     }
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
