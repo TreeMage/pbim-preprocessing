@@ -126,6 +126,40 @@ class RandomSamplingStrategy(DatasetSamplingStrategy):
         return final_indices
 
 
+class WeightedSamplingStrategy(DatasetSamplingStrategy):
+    def __init__(self, num_samples: int, window_size: int):
+        self._num_samples = num_samples
+        self._window_size = window_size
+
+    def _compute_weight(self, timestamp: int) -> float:
+        time = datetime.datetime.utcfromtimestamp(timestamp / 1000)
+        if 6 <= time.hour <= 9:
+            return 1
+        if 16 <= time.hour <= 19:
+            return 1
+
+    def compute_sample_indices(
+        self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
+    ) -> List[int]:
+        available_samples = sum(end - start for start, end in start_and_end_indices)
+        if available_samples < self._num_samples:
+            raise ValueError(
+                f"Cannot sample {self._num_samples} from {available_samples} samples."
+            )
+        window_indices = []
+        for start, end in start_and_end_indices:
+            window_indices.extend(list(range(start, end)))
+        weights = np.array([time[i] - time[i - 1] for i in window_indices])
+        weights = weights / np.sum(weights)
+        sampled_indices = np.random.choice(
+            window_indices, self._num_samples, replace=False, p=weights
+        ).tolist()
+        final_indices = []
+        for index in sampled_indices:
+            final_indices.extend([index + i for i in range(self._window_size)])
+        return final_indices
+
+
 class IntervalSamplingStrategy(DatasetSamplingStrategy):
     def __init__(
         self,
