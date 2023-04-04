@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-2018-07-s1
+  name: p-bim-assemble-2018-07-s1-interpolate
 spec:
   backoffLimit: 0
   template:
@@ -17,15 +17,15 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/july-week-02/assembled.dat"
+              value: "/out/interpolate/july-week-02/assembled.dat"
             - name: START_TIME
               value: "2018-07-12T00:00:00"
             - name: END_TIME
               value: "2018-07-15T23:59:59"
             - name: RESOLUTION
-              value: "0.1"
+              value: "0.04"
             - name: STRATEGY
-              value: "mean"
+              value: "interpolate"
             - name: FORMAT
               value: "binary"
             - name: CHANNEL
@@ -33,10 +33,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "8Gi"
+              memory: "16Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "8Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

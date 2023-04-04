@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: lux-assemble
+  name: lux-assemble-mean
 spec:
   backoffLimit: 0
   template:
@@ -15,13 +15,13 @@ spec:
             - name: BASE_PATH
               value: "/data/lux-rezipped.zip"
             - name: OUTPUT_PATH
-              value: "/out/undamaged-no-sampling/assembled.dat"
+              value: "/out/undamaged-mean/assembled.dat"
             - name: START_TIME
               value: "2014-01-23T00:00:00"
             - name: END_TIME
               value: "2014-02-01T12:00:00"
             - name: RESOLUTION
-              value: "0"
+              value: "0.04"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT
