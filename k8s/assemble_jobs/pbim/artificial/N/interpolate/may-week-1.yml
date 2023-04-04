@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-assemble-2018-05-may
+  name: p-bim-assemble-2018-05-may-interpolate
 spec:
   backoffLimit: 0
   template:

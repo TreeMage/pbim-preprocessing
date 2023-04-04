@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-post-process-mean-hourly
+  name: p-bim-post-process-march-week-01-mean-hourly
 spec:
   backoffLimit: 0
   template:
@@ -13,9 +13,9 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: ""
+              value: "/data/PBIM/N/mean/march-week-01/assembled.dat"
             - name: OUTPUT_FILE
-              value: ""
+              value: "/data/PBIM/N/post-processed/mean-hourly/march-week-01/assembled.dat"
             - name: STRATEGY
               value: "hourly"
             - name: STRATEGY_ARGS
@@ -23,10 +23,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "16Gi"
+              memory: "12Gi"
             requests:
               cpu: "1"
-              memory: "8Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/postprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

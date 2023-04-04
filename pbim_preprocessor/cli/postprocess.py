@@ -11,7 +11,7 @@ from pbim_preprocessor.post_processor.pbim import (
     WeightedRandomSamplingStrategy,
 )
 
-StrategyTypes = Literal["uniform", "hourly", "minutely"]
+StrategyTypes = Literal["uniform", "hourly", "minutely", "weighted-random"]
 
 
 def _validate_extra_args(strategy: StrategyTypes, extra_args: Dict[str, Any]):
@@ -26,16 +26,24 @@ def _validate_extra_args(strategy: StrategyTypes, extra_args: Dict[str, Any]):
             _raise_if_not_present("num-samples")
         case "hourly":
             _raise_if_not_present("samples-per-hour")
+            _raise_if_not_present("sample-length")
         case "minutely":
             _raise_if_not_present("samples-per-minute")
+            _raise_if_not_present("sample-length")
+        case "weighted-random":
+            _raise_if_not_present("num-samples")
+        case _:
+            raise click.BadParameter(f"Unknown strategy: {strategy}")
 
 
-def _make_strategy(strategy: StrategyTypes, extra_args: Dict[str, Any]):
+def _make_strategy(
+    strategy: StrategyTypes, window_size: int, extra_args: Dict[str, Any]
+):
     match strategy:
         case "uniform":
             return UniformSamplingStrategy(
                 num_samples=int(extra_args["num-samples"]),
-                window_size=int(extra_args["window-size"]),
+                window_size=window_size,
             )
         case "hourly":
             return HourlySamplingStrategy(
@@ -50,7 +58,7 @@ def _make_strategy(strategy: StrategyTypes, extra_args: Dict[str, Any]):
         case "weighted-random":
             return WeightedRandomSamplingStrategy(
                 num_samples=int(extra_args["num-samples"]),
-                window_size=int(extra_args["window-size"]),
+                window_size=window_size,
             )
 
 
@@ -85,6 +93,6 @@ def postprocess(
     output_file.parent.mkdir(parents=True, exist_ok=True)
     extra_args = _group_extra_args(ctx.args)
     _validate_extra_args(strategy, extra_args)
-    strategy = _make_strategy(strategy, extra_args)
+    strategy = _make_strategy(strategy, window_size, extra_args)
     sampler = PBimSampler(window_size, remove_zero_windows, strategy)
     sampler.process(input_file, output_file)

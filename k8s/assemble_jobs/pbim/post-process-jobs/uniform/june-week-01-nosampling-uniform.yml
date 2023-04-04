@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-post-process-nosampling-uniform
+  name: p-bim-post-process-june-week-01-nosampling-uniform
 spec:
   backoffLimit: 0
   template:
@@ -13,20 +13,20 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: ""
+              value: "/data/PBIM/N/nosampling/june-week-01/assembled.dat"
             - name: OUTPUT_FILE
-              value: ""
+              value: "/data/PBIM/N/post-processed/nosampling-uniform/june-week-01/assembled.dat"
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 2000000.0 --window-size 128"
+              value: "--num-samples 2000000 --window-size 128"
           resources:
             limits:
               cpu: "2"
-              memory: "16Gi"
+              memory: "12Gi"
             requests:
               cpu: "1"
-              memory: "8Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/postprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

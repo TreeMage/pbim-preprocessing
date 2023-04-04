@@ -24,7 +24,7 @@ if __name__ == "__main__":
         "june-week-01",
         "march-week-01",
     ]
-    NUM_SAMPLES = 2e6
+    NUM_SAMPLES = 2000000
     WINDOW_SIZE = 128
 
     STRATEGY_ARGS = {
@@ -48,8 +48,8 @@ if __name__ == "__main__":
                 render_template_and_save(
                     template,
                     output_path,
-                    INPUT_PATH=input_path_parameter,
-                    OUTPUT_PATH=output_path_parameter,
+                    INPUT_FILE=input_path_parameter,
+                    OUTPUT_FILE=output_path_parameter,
                     STRATEGY=strategy,
                     STRATEGY_ARGS=STRATEGY_ARGS[strategy],
                     AGGREGATION=aggregation,
