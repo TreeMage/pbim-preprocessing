@@ -358,8 +358,9 @@ class PBimSampler:
         index_entries = []
         with open(output_path, "wb") as output_file_handle:
             with open(input_path, "rb") as input_file_handle:
+                contiguous_start_end_sample_indices = self._compute_start_and_end_indices(sample_indices)
                 for start, end in tqdm.tqdm(
-                    self._compute_start_and_end_indices(sample_indices),
+                    contiguous_start_end_sample_indices,
                     desc="Writing continuous sample chunks",
                 ):
                     index_entries.append(
@@ -373,24 +374,6 @@ class PBimSampler:
                         input_file_handle, metadata, start, end
                     )
                     output_file_handle.write(samples)
-        metadata.length = len(sample_indices)
+        metadata.length = sum([end - start for start, end in contiguous_start_end_sample_indices])
         _write_metadata_file(output_path, metadata)
         _write_index_file(output_path, index_entries)
-
-
-def _pad_indices(
-    non_zero_indices: List[int], sampled_indices: List[int], original_length: int
-) -> List[int]:
-    t = np.ones(original_length)
-    t[non_zero_indices] = 0
-    padding = []
-    current_offset = 0
-    for i in range(original_length):
-        if t[i] == 1:
-            current_offset += 1
-        elif t[i] == 0:
-            padding.append(current_offset)
-    return [
-        sampled_indices[i] + padding[sampled_indices[i]]
-        for i in range(len(sampled_indices))
-    ]

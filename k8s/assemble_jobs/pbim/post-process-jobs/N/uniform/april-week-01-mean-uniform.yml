@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-post-process-{{FILENAME}}-{{AGGREGATION}}-{{STRATEGY}}
+  name: p-bim-post-process-april-week-01-mean-uniform
 spec:
   backoffLimit: 0
   template:
@@ -13,13 +13,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: "{{INPUT_FILE}}"
+              value: "/data/PBIM/N/mean/april-week-01/assembled.dat"
             - name: OUTPUT_FILE
-              value: "{{OUTPUT_FILE}}"
+              value: "/data/PBIM/N/post-processed/mean-uniform/april-week-01/assembled.dat"
             - name: STRATEGY
-              value: "{{STRATEGY}}"
+              value: "uniform"
             - name: STRATEGY_ARGS
-              value: "{{STRATEGY_ARGS}}"
+              value: "--num-samples 2000000 --window-size 128"
           resources:
             limits:
               cpu: "2"
