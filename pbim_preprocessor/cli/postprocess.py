@@ -33,18 +33,18 @@ def _make_strategy(strategy: StrategyTypes, extra_args: Dict[str, Any]):
     match strategy:
         case "uniform":
             return UniformSamplingStrategy(
-                num_samples=extra_args["num-samples"],
-                window_size=extra_args["window-size"],
+                num_samples=int(extra_args["num-samples"]),
+                window_size=int(extra_args["window-size"]),
             )
         case "hourly":
             return HourlySamplingStrategy(
-                samples_per_hour=extra_args["samples-per-hour"],
-                sample_length_in_seconds=extra_args["sample-length"],
+                samples_per_hour=int(extra_args["samples-per-hour"]),
+                sample_length_in_seconds=int(extra_args["sample-length"]),
             )
         case "minutely":
             return MinutelySamplingStrategy(
-                samples_per_minute=extra_args["samples-per-minute"],
-                sample_length_in_seconds=extra_args["sample-length"],
+                samples_per_minute=int(extra_args["samples-per-minute"]),
+                sample_length_in_seconds=int(extra_args["sample-length"]),
             )
 
 
