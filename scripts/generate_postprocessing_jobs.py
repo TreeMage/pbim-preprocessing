@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     NUM_SAMPLES = 2000000
     WINDOW_SIZE = 128
-    SCENARIO = "N"
+    SCENARIO = "S1"
 
     STRATEGY_ARGS = {
         "uniform": f"--num-samples {NUM_SAMPLES} --window-size {WINDOW_SIZE}",
@@ -72,4 +72,5 @@ if __name__ == "__main__":
                     STRATEGY_ARGS=STRATEGY_ARGS[strategy],
                     AGGREGATION=aggregation,
                     FILENAME=filename,
+                    SEED=42,
                 )

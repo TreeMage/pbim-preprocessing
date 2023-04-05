@@ -20,6 +20,8 @@ spec:
               value: "weighted-random"
             - name: STRATEGY_ARGS
               value: "--num-samples 2000000 --window-size 128"
+            - name: SEED
+              value: "42"
           resources:
             limits:
               cpu: "2"

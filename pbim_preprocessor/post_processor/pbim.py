@@ -170,7 +170,7 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
             )
         window_indices = []
         for start, end in start_and_end_indices:
-            window_indices.extend(list(range(start, end)))
+            window_indices.extend(list(range(start, end - self._window_size)))
         weights = np.array(
             [self._compute_weight(time[index]) for index in window_indices]
         )
@@ -179,8 +179,16 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
             window_indices, self._num_samples, replace=False, p=weights
         ).tolist()
         final_indices = []
-        for index in sampled_indices:
-            final_indices.extend([index + i for i in range(self._window_size)])
+        last_index = -math.inf
+        for index in sorted(sampled_indices):
+            if index < last_index + self._window_size:
+                adjusted_index = last_index + self._window_size
+                remaining_length = index - last_index
+            else:
+                adjusted_index = index
+                remaining_length = self._window_size
+            last_index = index
+            final_indices.extend([adjusted_index + i for i in range(remaining_length)])
         return final_indices
 
 
@@ -360,7 +368,6 @@ class PBimSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
-        number_of_windows = 100000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):

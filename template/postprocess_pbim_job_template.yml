@@ -20,6 +20,8 @@ spec:
               value: "{{STRATEGY}}"
             - name: STRATEGY_ARGS
               value: "{{STRATEGY_ARGS}}"
+            - name: SEED
+              value: "{{SEED}}"
           resources:
             limits:
               cpu: "2"

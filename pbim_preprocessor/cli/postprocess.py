@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import List, Any, Dict, Literal
+from typing import List, Any, Dict, Literal, Optional
 
 import click
+import numpy as np
 
 from pbim_preprocessor.post_processor.pbim import (
     UniformSamplingStrategy,
@@ -83,6 +84,7 @@ def _group_extra_args(extra_args: List[Any]) -> Dict[str, Any]:
 )
 @click.option("--window-size", type=int, default=128)
 @click.option("--remove-zero-windows", type=bool, default=True, is_flag=True)
+@click.option("--seed", type=int, default=None)
 @click.pass_context
 def postprocess(
     ctx,
@@ -91,7 +93,9 @@ def postprocess(
     strategy: StrategyTypes,
     window_size: int,
     remove_zero_windows: bool,
+    seed: Optional[int]
 ):
+    np.random.seed(seed)
     output_file.parent.mkdir(parents=True, exist_ok=True)
     extra_args = _group_extra_args(ctx.args)
     _validate_extra_args(strategy, extra_args)
