@@ -185,11 +185,11 @@ def _prepare_channels(
 
 
 def _make_assembler(
-    mode: str, path: Path, strategy: str, resolution: float
+    mode: str, path: Path, strategy: str, resolution: float, temperature_data_path: Optional[Path] = None,
 ) -> PBimAssembler | GrandStandAssembler | Z24EMSAssembler | Z24PDTAssembler | LuxAssembler:
     match mode:
         case "pbim":
-            return PBimAssembler(path, STRATEGIES[strategy], resolution)
+            return PBimAssembler(path, STRATEGIES[strategy], resolution, temperature_data_path)
         case "grandstand":
             return GrandStandAssembler(path)
         case "z24-ems":
@@ -202,8 +202,19 @@ def _make_assembler(
             return LuxAssembler(path, resolution, STRATEGIES[strategy])
 
 
+def _compute_additional_channels(mode: str, temperature_data_available: bool) -> List[str]:
+    match mode:
+        case "pbim":
+            if temperature_data_available:
+                return ["Temperature"]
+            else:
+                return []
+
+        case _:
+            return []
+
 def _compute_actual_channels(
-    channels: List[str], merge_configs: List[MergeChannelsConfig]
+    channels: List[str], merge_configs: List[MergeChannelsConfig], add_channels: List[str]
 ):
     actual_channels = channels.copy()
     for merge_config in merge_configs:
@@ -216,7 +227,7 @@ def _compute_actual_channels(
             raise ValueError(
                 f"Supposed to merge channels {merge_config.channels} but at least one of them is missing."
             )
-    return actual_channels
+    return actual_channels + add_channels
 
 
 @click.command()
@@ -236,6 +247,7 @@ def _compute_actual_channels(
 @click.option("--channel", multiple=True)
 @click.option("--scenario-type", default=None, type=click.Choice(["avt", "fvt"]))
 @click.option("--is-anomalous", default=False)
+@click.option("--temperature-data-path", default=None, type=click.Path(exists=True, path_type=Path))
 def assemble(
     mode: str,
     scenario: Optional[str],
@@ -249,15 +261,17 @@ def assemble(
     channel: List[str],
     scenario_type: Optional[str],
     is_anomalous: bool,
+    temperature_data_path: Optional[Path] = None,
 ):
     _validate_args(mode, start_time, end_time, resolution, scenario, scenario_type)
     output_path.parent.mkdir(exist_ok=True, parents=True)
     channels_in = _prepare_channels(mode, list(channel), scenario_type)
-    channels_out = _compute_actual_channels(channels_in, MERGE_CONFIGS[mode])
+    additional_channels = _compute_additional_channels(mode, temperature_data_path is not None)
+    channels_out = _compute_actual_channels(channels_in, MERGE_CONFIGS[mode], additional_channels)
 
     assembler = AssemblerWrapper(
         mode,
-        _make_assembler(mode, path, strategy, resolution),
+        _make_assembler(mode, path, strategy, resolution, temperature_data_path),
     )
 
     statistics_collector = StatisticsCollector()

@@ -3,6 +3,9 @@ import struct
 from pathlib import Path
 from typing import Optional, List, Generator, Dict, Any, Tuple, BinaryIO
 
+import numpy as np
+import pandas as pd
+
 from pbim_preprocessor.model import Measurement
 from pbim_preprocessor.parser.pbim import POST_PROCESSABLE_CHANNELS
 from pbim_preprocessor.sampling import SamplingStrategy
@@ -13,18 +16,19 @@ MEASUREMENT_SIZE_IN_BYTES = 12
 
 class PBimAssembler:
     def __init__(
-        self, path: Path, sampling_strategy: SamplingStrategy, resolution: float
+        self, data_path: Path, sampling_strategy: SamplingStrategy, resolution: float, temperature_data_path: Optional[Path]
     ):
         """
-        :param path: Path to the data directory.
+        :param data_path: Path to the data directory.
         :param sampling_strategy: The strategy to use for sampling the data
         :param resolution: The resolution to use for the sampling window in seconds.
         For instance, choosing a resolution of 60 will create a time-series that contains
         a value for every minute.
         """
-        self._path = path
+        self._path = data_path
         self._sampling_strategy = sampling_strategy
         self._resolution = resolution
+        self._temperature_data_path = temperature_data_path
 
     def assemble(
         self,
@@ -32,10 +36,22 @@ class PBimAssembler:
         end_time: datetime.datetime,
         channels: Optional[List[str]] = None,
     ) -> Generator[Dict[str, float], Any, None]:
-        if self._resolution > 0:
-            yield from self._assemble_with_sampling(start_time, end_time, channels)
-        else:
-            yield from self._assemble_without_sampling(start_time, end_time, channels)
+        temperatures = self._load_temperature_data(start_time, end_time) if self._temperature_data_path else None
+        assemble_method = self._assemble_with_sampling if self._resolution > 0 else self._assemble_without_sampling
+        for sample in assemble_method(start_time, end_time, channels):
+            if temperatures is not None:
+                target_index = np.argmin(np.abs(temperatures[:, 0] - sample["time"] / 1000))
+                sample["Temperature"] = temperatures[target_index, 1]
+            yield sample
+
+    def _load_temperature_data(self, start_time: datetime.datetime, end_time: datetime.datetime):
+        temp_data = pd.read_excel(self._temperature_data_path, sheet_name="TemperaturBerechnung_VerwDaten", parse_dates=True)
+        temp_data = temp_data.iloc[:, :2]
+        temp_data.columns = ["Time", "TN"]
+        temp_data["Time"] = temp_data["Time"].apply(lambda x: x.timestamp())
+        temp_data = temp_data[(temp_data["Time"]>= start_time.timestamp()) & (temp_data["Time"] <= end_time.timestamp())]
+        return temp_data.to_numpy()
+
 
     def _assemble_without_sampling(
         self,
