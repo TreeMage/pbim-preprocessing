@@ -16,7 +16,11 @@ MEASUREMENT_SIZE_IN_BYTES = 12
 
 class PBimAssembler:
     def __init__(
-        self, data_path: Path, sampling_strategy: SamplingStrategy, resolution: float, temperature_data_path: Optional[Path]
+        self,
+        data_path: Path,
+        sampling_strategy: SamplingStrategy,
+        resolution: float,
+        temperature_data_path: Optional[Path],
     ):
         """
         :param data_path: Path to the data directory.
@@ -36,22 +40,40 @@ class PBimAssembler:
         end_time: datetime.datetime,
         channels: Optional[List[str]] = None,
     ) -> Generator[Dict[str, float], Any, None]:
-        temperatures = self._load_temperature_data(start_time, end_time) if self._temperature_data_path else None
-        assemble_method = self._assemble_with_sampling if self._resolution > 0 else self._assemble_without_sampling
+        temperatures = (
+            self._load_temperature_data(start_time, end_time)
+            if self._temperature_data_path
+            else None
+        )
+        assemble_method = (
+            self._assemble_with_sampling
+            if self._resolution > 0
+            else self._assemble_without_sampling
+        )
         for sample in assemble_method(start_time, end_time, channels):
             if temperatures is not None:
-                target_index = np.argmin(np.abs(temperatures[:, 0] - sample["time"] / 1000))
+                target_index = np.argmin(
+                    np.abs(temperatures[:, 0] - sample["time"] / 1000)
+                )
                 sample["Temperature"] = temperatures[target_index, 1]
             yield sample
 
-    def _load_temperature_data(self, start_time: datetime.datetime, end_time: datetime.datetime):
-        temp_data = pd.read_excel(self._temperature_data_path, sheet_name="TemperaturBerechnung_VerwDaten", parse_dates=True)
+    def _load_temperature_data(
+        self, start_time: datetime.datetime, end_time: datetime.datetime
+    ):
+        temp_data = pd.read_excel(
+            self._temperature_data_path,
+            sheet_name="TemperaturBerechnung_VerwDaten",
+            parse_dates=True,
+        )
         temp_data = temp_data.iloc[:, :2]
         temp_data.columns = ["Time", "TN"]
         temp_data["Time"] = temp_data["Time"].apply(lambda x: x.timestamp())
-        temp_data = temp_data[(temp_data["Time"]>= start_time.timestamp()) & (temp_data["Time"] <= end_time.timestamp())]
+        temp_data = temp_data[
+            (temp_data["Time"] >= start_time.timestamp())
+            & (temp_data["Time"] <= end_time.timestamp())
+        ]
         return temp_data.to_numpy()
-
 
     def _assemble_without_sampling(
         self,

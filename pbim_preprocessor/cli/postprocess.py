@@ -93,7 +93,7 @@ def postprocess(
     strategy: StrategyTypes,
     window_size: int,
     remove_zero_windows: bool,
-    seed: Optional[int]
+    seed: Optional[int],
 ):
     np.random.seed(seed)
     output_file.parent.mkdir(parents=True, exist_ok=True)
