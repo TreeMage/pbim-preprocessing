@@ -19,14 +19,14 @@ spec:
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 4000000 --window-size 128"
+              value: "--num-samples 2000000 --window-size 128"
           resources:
             limits:
               cpu: "2"
-              memory: "16Gi"
+              memory: "20Gi"
             requests:
               cpu: "1"
-              memory: "8Gi"
+              memory: "12Gi"
           command: ["bash", "./scripts/postprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

@@ -1,0 +1,19 @@
+{
+  "base_path": "/data/PBIM/N/post-processed/nosampling-hourly/",
+  "output_file": "/data/PBIM/N/merged/reference/nosampling-hourly/assembled.dat",
+  "keep_statistics": false,
+  "files": [
+    {
+      "relative_path": "january-week-01/assembled.dat",
+      "is_anomalous": false
+    },
+    {
+       "relative_path": "april-week-01/assembled.dat",
+       "is_anomalous": false
+    },
+    {
+       "relative_path": "july-week-01/assembled.dat",
+       "is_anomalous": false
+    }
+  ]
+}

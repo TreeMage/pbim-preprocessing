@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/pbim/supervised/train_s1.json"
+              value: "/app/configs/lux/supervised/train_ds4.json"
           resources:
             limits:
               cpu: "2"

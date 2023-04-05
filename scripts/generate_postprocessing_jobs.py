@@ -41,9 +41,9 @@ if __name__ == "__main__":
         ],
     }
 
-    NUM_SAMPLES = 4000000
+    NUM_SAMPLES = 2000000
     WINDOW_SIZE = 128
-    SCENARIO = "S1"
+    SCENARIO = "N"
 
     STRATEGY_ARGS = {
         "uniform": f"--num-samples {NUM_SAMPLES} --window-size {WINDOW_SIZE}",

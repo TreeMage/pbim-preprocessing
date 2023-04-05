@@ -1,6 +1,7 @@
 import abc
 import calendar
 import datetime
+import math
 import struct
 from pathlib import Path
 from typing import List, BinaryIO, Optional, Tuple
@@ -93,11 +94,20 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
             raise ValueError(
                 f"Cannot sample {self._num_samples} from {available_samples} samples."
             )
-        steps = available_samples // self._num_samples
         final_indices = []
-        for start, end in start_and_end_indices:
-            for step in range(start, end, steps):
-                final_indices.extend([step + i for i in range(self._window_size)])
+        samples_per_group = [
+            (end - start) * self._num_samples / available_samples
+            for start, end in start_and_end_indices
+        ]
+        for (start, end), desired_samples in zip(
+            start_and_end_indices, samples_per_group
+        ):
+            final_indices.extend(
+                [
+                    start + i
+                    for i in range(max(self._window_size, round(desired_samples)))
+                ]
+            )
         return final_indices
 
 
@@ -116,13 +126,21 @@ class RandomSamplingStrategy(DatasetSamplingStrategy):
             )
         window_indices = []
         for start, end in start_and_end_indices:
-            window_indices.extend(list(range(start, end)))
+            window_indices.extend(list(range(start, end - self._window_size)))
         sampled_indices = np.random.choice(
             window_indices, self._num_samples, replace=False
         ).tolist()
         final_indices = []
-        for index in sampled_indices:
-            final_indices.extend([index + i for i in range(self._window_size)])
+        last_index = -math.inf
+        for index in sorted(sampled_indices):
+            if index < last_index + self._window_size:
+                adjusted_index = last_index + self._window_size
+                remaining_length = index - last_index
+            else:
+                adjusted_index = index
+                remaining_length = self._window_size
+            last_index = index
+            final_indices.extend([adjusted_index + i for i in range(remaining_length)])
         return final_indices
 
 
@@ -342,6 +360,7 @@ class PBimSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
+        number_of_windows = 100000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
@@ -358,7 +377,9 @@ class PBimSampler:
         index_entries = []
         with open(output_path, "wb") as output_file_handle:
             with open(input_path, "rb") as input_file_handle:
-                contiguous_start_end_sample_indices = self._compute_start_and_end_indices(sample_indices)
+                contiguous_start_end_sample_indices = (
+                    self._compute_start_and_end_indices(sample_indices)
+                )
                 for start, end in tqdm.tqdm(
                     contiguous_start_end_sample_indices,
                     desc="Writing continuous sample chunks",
@@ -374,6 +395,8 @@ class PBimSampler:
                         input_file_handle, metadata, start, end
                     )
                     output_file_handle.write(samples)
-        metadata.length = sum([end - start for start, end in contiguous_start_end_sample_indices])
+        metadata.length = sum(
+            [end - start for start, end in contiguous_start_end_sample_indices]
+        )
         _write_metadata_file(output_path, metadata)
         _write_index_file(output_path, index_entries)
