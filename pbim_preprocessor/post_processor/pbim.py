@@ -390,17 +390,19 @@ class PBimSampler:
                 contiguous_start_end_sample_indices = (
                     self._compute_start_and_end_indices(sample_indices)
                 )
+                num_measurements = 0
                 for start, end in tqdm.tqdm(
                     contiguous_start_end_sample_indices,
                     desc="Writing continuous sample chunks",
                 ):
                     index_entries.append(
                         CutIndexEntry(
-                            start_measurement_index=start,
-                            end_measurement_index=end,
+                            start_measurement_index=num_measurements,
+                            end_measurement_index=num_measurements + end - start,
                             anomalous=self._is_anomalous(start, index),
                         )
                     )
+                    num_measurements += end - start
                     samples = self._load_raw_samples(
                         input_file_handle, metadata, start, end
                     )
