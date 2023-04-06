@@ -368,7 +368,6 @@ class PBimSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
-        number_of_windows = 100000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
