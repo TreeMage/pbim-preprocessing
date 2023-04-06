@@ -39,8 +39,8 @@ spec:
               memory: "4Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
-            - mountPath: /data # directory IN the container
-              name: data # matches volume-name from below
+            - mountPath: /data
+              name: data
             - mountPath: /out
               name: out
             - mountPath: /tmp

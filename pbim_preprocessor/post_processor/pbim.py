@@ -41,7 +41,7 @@ def _sample_next_interval(
 ):
     current_length = 0
 
-    if not (group_index := _find_group_index(start_index, start_and_end_indices)):
+    if (group_index := _find_group_index(start_index, start_and_end_indices)) is None:
         return None
 
     sample_indices = []
@@ -368,6 +368,7 @@ class PBimSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
+        number_of_windows = 100000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
