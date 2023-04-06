@@ -176,7 +176,10 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
         )
         weights = weights / np.sum(weights)
         sampled_indices = np.random.choice(
-            window_indices, self._num_samples, replace=False, p=weights
+            window_indices,
+            self._num_samples // self._window_size,
+            replace=False,
+            p=weights,
         ).tolist()
         final_indices = []
         last_index = -math.inf

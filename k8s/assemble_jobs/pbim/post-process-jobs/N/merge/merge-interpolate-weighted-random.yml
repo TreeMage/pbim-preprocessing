@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-post-process-january-week-01-mean-hourly
+  name: p-bim-merge-interpolate-weighted-random
 spec:
   backoffLimit: 0
   template:
@@ -12,24 +12,16 @@ spec:
           name: preprocess
           imagePullPolicy: "Always"
           env:
-            - name: INPUT_FILE
-              value: "/data/PBIM/N/mean/january-week-01/assembled.dat"
-            - name: OUTPUT_FILE
-              value: "/data/PBIM/N/post-processed/mean-hourly/january-week-01/assembled.dat"
-            - name: STRATEGY
-              value: "hourly"
-            - name: STRATEGY_ARGS
-              value: "--samples-per-hour 7 --sample-length 120"
-            - name: SEED
-              value: "42"
+            - name: CONFIG_PATH
+              value: "/app/configs/pbim/reference/interpolate-weighted-random.json"
           resources:
             limits:
               cpu: "2"
-              memory: "20Gi"
+              memory: "16Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
-          command: ["bash", "./scripts/postprocess.sh"]
+              memory: "4Gi"
+          command: ["bash", "./scripts/merge.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
               name: data # matches volume-name from below
