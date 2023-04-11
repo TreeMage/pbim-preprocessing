@@ -30,10 +30,10 @@ FILE_NAMES = {
 }
 
 
-def get_files(scenario: str):
+def get_files(scenario: str, strategy: str, aggregation: str):
     def block(s: str, name: str, anomalous: bool):
         return {
-            "relative_path": f"{s}/{name}/assembled.dat",
+            "relative_path": f"{s}/post-processed/{aggregation}-{strategy}/{name}/assembled.dat",
             "is_anomalous": anomalous,
             "include_in_statistics": False,
         }
@@ -79,7 +79,7 @@ if __name__ == "__main__":
                     STRATEGY=strategy,
                     AGGREGATION=aggregation,
                     SCENARIO=scenario,
-                    FILES=json.dumps(get_files(scenario), indent=4),
+                    FILES=json.dumps(get_files(scenario, strategy, aggregation), indent=4),
                 )
                 render_template_and_save(
                     job_template,
