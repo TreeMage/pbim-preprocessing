@@ -2,5 +2,5 @@
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/{{SCENARIO}}/anomalous/reference/{{AGGREGATION}}-{{STRATEGY}}/assembled.dat",
   "use_statistics_from": "/data/PBIM/N/merged/reference/{{AGGREGATION}}-{{STRATEGY}}/assembled.dat",
-  "files": {{FILES}},
+  "files": {{FILES}}
 }
