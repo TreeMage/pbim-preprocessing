@@ -5,22 +5,22 @@
   "files": [
     {
         "relative_path": "N/february-week-01/assembled.dat",
-        "anomalous": false,
+        "is_anomalous": false,
         "include_in_statistics": false
     },
     {
         "relative_path": "N/june-week-01/assembled.dat",
-        "anomalous": false,
+        "is_anomalous": false,
         "include_in_statistics": false
     },
     {
         "relative_path": "S3/july-week-02/assembled.dat",
-        "anomalous": true,
+        "is_anomalous": true,
         "include_in_statistics": false
     },
     {
         "relative_path": "S3/august-week-01/assembled.dat",
-        "anomalous": true,
+        "is_anomalous": true,
         "include_in_statistics": false
     }
 ]

@@ -34,7 +34,7 @@ def get_files(scenario: str):
     def block(s: str, name: str, anomalous: bool):
         return {
             "relative_path": f"{s}/{name}/assembled.dat",
-            "anomalous": anomalous,
+            "is_anomalous": anomalous,
             "include_in_statistics": False,
         }
 
