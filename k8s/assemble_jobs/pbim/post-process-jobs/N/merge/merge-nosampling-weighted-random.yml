@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-merge-nosampling-weighted-random
+  name: merge-n-nosampling-weighted-random
 spec:
   backoffLimit: 0
   template:
@@ -13,14 +13,14 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/pbim/reference/nosampling-weighted-random.json"
+              value: "/app/configs/pbim/anomalous/N/merge-nosampling-weighted-random.json"
           resources:
             limits:
               cpu: "2"
-              memory: "112Gi"
+              memory: "24Gi"
             requests:
               cpu: "1"
-              memory: "96Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/merge.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

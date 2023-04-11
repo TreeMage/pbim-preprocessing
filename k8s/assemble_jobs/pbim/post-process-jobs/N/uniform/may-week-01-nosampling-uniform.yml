@@ -13,13 +13,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: "/data/PBIM/N/nosampling/may-week-01/assembled.dat"
+              value: "/data/PBIM/N/assembled/nosampling/may-week-01/assembled.dat"
             - name: OUTPUT_FILE
               value: "/data/PBIM/N/post-processed/nosampling-uniform/may-week-01/assembled.dat"
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 200127 --window-size 128"
+              value: "--num-samples 100127 --window-size 128"
             - name: SEED
               value: "42"
           resources:

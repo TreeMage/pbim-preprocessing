@@ -1,0 +1,27 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/S1/anomalous/reference/mean-uniform/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/reference/mean-uniform/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/february-week-01/assembled.dat",
+        "anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/june-week-01/assembled.dat",
+        "anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "S1/july-week-02/assembled.dat",
+        "anomalous": true,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "S1/august-week-01/assembled.dat",
+        "anomalous": true,
+        "include_in_statistics": false
+    }
+],
+}

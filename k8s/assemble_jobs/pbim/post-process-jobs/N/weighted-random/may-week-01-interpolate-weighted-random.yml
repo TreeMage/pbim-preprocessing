@@ -13,13 +13,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: "/data/PBIM/N/interpolate/may-week-01/assembled.dat"
+              value: "/data/PBIM/N/assembled/interpolate/may-week-01/assembled.dat"
             - name: OUTPUT_FILE
               value: "/data/PBIM/N/post-processed/interpolate-weighted-random/may-week-01/assembled.dat"
             - name: STRATEGY
               value: "weighted-random"
             - name: STRATEGY_ARGS
-              value: "--num-samples 25600000 --window-size 128"
+              value: "--num-samples 1280000 --window-size 128"
             - name: SEED
               value: "42"
           resources:

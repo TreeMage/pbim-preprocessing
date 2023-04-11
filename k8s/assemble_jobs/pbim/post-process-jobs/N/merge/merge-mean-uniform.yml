@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-merge-mean-uniform
+  name: merge-n-mean-uniform
 spec:
   backoffLimit: 0
   template:
@@ -13,11 +13,11 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/pbim/reference/mean-uniform.json"
+              value: "/app/configs/pbim/anomalous/N/merge-mean-uniform.json"
           resources:
             limits:
               cpu: "2"
-              memory: "16Gi"
+              memory: "24Gi"
             requests:
               cpu: "1"
               memory: "4Gi"

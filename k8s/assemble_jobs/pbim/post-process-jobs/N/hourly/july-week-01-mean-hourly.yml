@@ -13,13 +13,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: "/data/PBIM/N/mean/july-week-01/assembled.dat"
+              value: "/data/PBIM/N/assembled/mean/july-week-01/assembled.dat"
             - name: OUTPUT_FILE
               value: "/data/PBIM/N/post-processed/mean-hourly/july-week-01/assembled.dat"
             - name: STRATEGY
               value: "hourly"
             - name: STRATEGY_ARGS
-              value: "--samples-per-hour 4 --sample-length 26"
+              value: "--samples-per-hour 4 --sample-length 15"
             - name: SEED
               value: "42"
           resources:

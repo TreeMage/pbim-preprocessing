@@ -3,6 +3,9 @@
 from pathlib import Path
 import jinja2
 
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.1
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.2
+
 FILE_NAMES = {
     # Normal
     "N": [
@@ -54,13 +57,20 @@ def get_hourly_strategy_extra_args(
     return f"--samples-per-hour {SAMPLES_PER_HOUR} --sample-length {sample_length}"
 
 
-def get_num_samples(target_windows: int, window_size: int, strategy: str) -> int:
+def get_num_samples(
+    target_windows: int, window_size: int, strategy: str, aggregation: str
+) -> int:
     # windows = samples - window-size + 1 <=> samples = windows + window-size - 1
     match strategy:
         case "uniform":
             return target_windows + window_size - 1
         case "weighted-random":
-            return target_windows * window_size
+            scaling_factor = (
+                EMPIRICAL_SCALING_FACTOR_NOSAMPLING
+                if aggregation == "nosampling"
+                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE
+            )
+            return int(target_windows * window_size * scaling_factor)
         case "hourly":
             raise NotImplementedError("Use get_hourly_strategy_extra_args instead")
 
@@ -70,10 +80,14 @@ def get_extra_args(
 ) -> str:
     match strategy:
         case "uniform":
-            num_samples = get_num_samples(num_windows, window_size, strategy)
+            num_samples = get_num_samples(
+                num_windows, window_size, strategy, aggregation
+            )
             return f"--num-samples {num_samples} --window-size {window_size}"
         case "weighted-random":
-            num_samples = get_num_samples(num_windows, window_size, strategy)
+            num_samples = get_num_samples(
+                num_windows, window_size, strategy, aggregation
+            )
             return f"--num-samples {num_samples} --window-size {window_size}"
         case "hourly":
             return get_hourly_strategy_extra_args(
@@ -82,17 +96,15 @@ def get_extra_args(
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS = 200000
+    NUM_WINDOWS = 100000
     WINDOW_SIZE = 128
-    SCENARIO = "N"
+    SCENARIO = "S3"
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
     for strategy in ["uniform", "weighted-random", "hourly"]:
         for aggregation in ["nosampling", "mean", "interpolate"]:
             for filename in FILE_NAMES[SCENARIO]:
-                input_path_parameter = (
-                    f"/data/PBIM/{SCENARIO}/{aggregation}/{filename}/assembled.dat"
-                )
+                input_path_parameter = f"/data/PBIM/{SCENARIO}/assembled/{aggregation}/{filename}/assembled.dat"
                 output_path_parameter = f"/data/PBIM/{SCENARIO}/post-processed/{aggregation}-{strategy}/{filename}/assembled.dat"
                 output_path = Path(
                     f"k8s/assemble_jobs/pbim/post-process-jobs/{SCENARIO}/{strategy}/{filename}-{aggregation}-{strategy}.yml"

@@ -5,11 +5,13 @@ import click
 import numpy as np
 
 from pbim_preprocessor.post_processor.pbim import (
-    UniformSamplingStrategy,
-    HourlySamplingStrategy,
     PBimSampler,
-    MinutelySamplingStrategy,
+)
+from pbim_preprocessor.post_processor.sampling import (
+    UniformSamplingStrategy,
     WeightedRandomSamplingStrategy,
+    HourlySamplingStrategy,
+    MinutelySamplingStrategy,
 )
 
 StrategyTypes = Literal["uniform", "hourly", "minutely", "weighted-random"]
