@@ -287,16 +287,16 @@ class PBimSampler:
         return f.read(num_measurements * metadata.measurement_size_in_bytes)
 
     @staticmethod
-    def _parse_samples(bytes: bytes, metadata: DatasetMetadata) -> np.ndarray:
+    def _parse_samples(data: bytes, metadata: DatasetMetadata) -> np.ndarray:
         time_byte_format = "<q" if metadata.time_byte_size == 8 else "<i"
         format_string = time_byte_format + "f" * (len(metadata.channel_order) - 1)
         return np.array(
             [
                 struct.unpack(
                     format_string,
-                    bytes[i : i + metadata.measurement_size_in_bytes],
+                    data[i : i + metadata.measurement_size_in_bytes],
                 )
-                for i in range(0, len(bytes), metadata.measurement_size_in_bytes)
+                for i in range(0, len(data), metadata.measurement_size_in_bytes)
             ]
         )
 

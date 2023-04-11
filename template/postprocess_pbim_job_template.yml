@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-post-process-{{FILENAME}}-{{AGGREGATION}}-{{STRATEGY}}
+  name: pp-{{SCENARIO}}-{{FILENAME}}-{{AGGREGATION}}-{{STRATEGY}}
 spec:
   backoffLimit: 0
   template:
@@ -25,10 +25,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "20Gi"
+              memory: "24Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/postprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

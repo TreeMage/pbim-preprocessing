@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-post-process-june-week-01-mean-weighted-random
+  name: pp-n-june-week-01-mean-weighted-random
 spec:
   backoffLimit: 0
   template:
@@ -19,16 +19,16 @@ spec:
             - name: STRATEGY
               value: "weighted-random"
             - name: STRATEGY_ARGS
-              value: "--num-samples 2000000 --window-size 128"
+              value: "--num-samples 25600000 --window-size 128"
             - name: SEED
               value: "42"
           resources:
             limits:
               cpu: "2"
-              memory: "20Gi"
+              memory: "24Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/postprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

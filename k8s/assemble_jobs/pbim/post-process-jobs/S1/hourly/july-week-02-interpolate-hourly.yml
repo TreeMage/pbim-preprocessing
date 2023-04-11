@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-post-process-july-week-02-interpolate-hourly
+  name: pp-s1-july-week-02-interpolate-hourly
 spec:
   backoffLimit: 0
   template:
@@ -19,16 +19,16 @@ spec:
             - name: STRATEGY
               value: "hourly"
             - name: STRATEGY_ARGS
-              value: "--samples-per-hour 7 --sample-length 120"
+              value: "--samples-per-hour 4 --sample-length 26"
             - name: SEED
               value: "42"
           resources:
             limits:
               cpu: "2"
-              memory: "20Gi"
+              memory: "24Gi"
             requests:
               cpu: "1"
-              memory: "12Gi"
+              memory: "4Gi"
           command: ["bash", "./scripts/postprocess.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
