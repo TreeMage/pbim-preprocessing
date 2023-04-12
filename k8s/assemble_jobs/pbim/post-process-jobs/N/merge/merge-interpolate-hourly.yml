@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/pbim/anomalous/N/merge-interpolate-hourly.json"
+              value: "/app/configs/pbim/N/merge-interpolate-hourly.json"
           resources:
             limits:
               cpu: "2"

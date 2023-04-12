@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/pbim/anomalous/N/merge-mean-weighted-random.json"
+              value: "/app/configs/pbim/N/merge-mean-weighted-random.json"
           resources:
             limits:
               cpu: "2"
