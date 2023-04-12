@@ -35,7 +35,7 @@ def get_files(scenario: str, strategy: str, aggregation: str):
         return {
             "relative_path": f"{s}/post-processed/{aggregation}-{strategy}/{name}/assembled.dat",
             "is_anomalous": anomalous,
-            "include_in_statistics": False,
+            "include_in_statistics": scenario == "N",
         }
 
     match scenario:
@@ -74,6 +74,14 @@ def get_output_path_config(scenario: str, strategy: str, aggregation: str):
             )
 
 
+def get_dataset_output_path(scenario: str, strategy: str, aggregation: str):
+    match scenario:
+        case "N":
+            return f"/data/PBIM/{scenario}/merged/reference/{aggregation}-{strategy}/assembled.dat"
+        case _:
+            return f"/data/PBIM/{scenario}/merged/anomalous/reference/{aggregation}-{strategy}/assembled.dat"
+
+
 if __name__ == "__main__":
     job_template = load_template(Path("template/merge_pbim_job_template.yml"))
     merge_config_template = load_template(
@@ -95,6 +103,9 @@ if __name__ == "__main__":
                     merge_config_template,
                     output_path_config,
                     STRATEGY=strategy,
+                    OUTPUT_FILE=get_dataset_output_path(
+                        scenario, strategy, aggregation
+                    ),
                     AGGREGATION=aggregation,
                     SCENARIO=scenario,
                     FILES=json.dumps(

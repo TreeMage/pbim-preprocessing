@@ -1,6 +1,6 @@
 {
   "base_path": "/data/PBIM/",
-  "output_file": "/data/PBIM/S1/anomalous/reference/mean-weighted-random/assembled.dat",
+  "output_file": "/data/PBIM/S1/merged/anomalous/reference/mean-weighted-random/assembled.dat",
   "use_statistics_from": "/data/PBIM/N/merged/reference/mean-weighted-random/assembled.dat",
   "files": [
     {
