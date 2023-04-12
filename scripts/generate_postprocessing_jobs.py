@@ -4,7 +4,7 @@ from pathlib import Path
 import jinja2
 
 EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.1
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.2
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.15
 
 FILE_NAMES = {
     # Normal
@@ -98,7 +98,7 @@ def get_extra_args(
 if __name__ == "__main__":
     NUM_WINDOWS = 100000
     WINDOW_SIZE = 128
-    SCENARIO = "S3"
+    SCENARIO = "N"
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
     for strategy in ["uniform", "weighted-random", "hourly"]:
