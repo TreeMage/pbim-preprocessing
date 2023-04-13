@@ -29,7 +29,13 @@ def _write_index(
     anomalous: List[bool] | bool,
     output_path: Path,
     existing_indices: List[List[CutIndexEntry]] | None = None,
+    offsets: List[int] | None = None,
+    ratios: List[int] | None = None,
 ):
+    if offsets is None:
+        offsets = [0] * len(measurements)
+    if ratios is None:
+        ratios = [1] * len(measurements)
     if existing_indices is None:
         indices = [0] + measurements
         entries = [
@@ -42,15 +48,19 @@ def _write_index(
         ]
     else:
         entries = []
-        for i, (offset, indices) in enumerate(
-            zip(np.cumsum([0] + measurements).tolist(), existing_indices)
-        ):
-            for entry in indices:
-                entry.start_measurement_index += offset
-                entry.end_measurement_index += offset
+        i = 0
+        current_offset = 0
+        while i < len(measurements):
+            num_measurements = measurements[i]
+            index = existing_indices[i]
+            for entry in index:
+                entry.start_measurement_index += current_offset
+                entry.end_measurement_index = current_offset + num_measurements
                 entry.anomalous = (
                     anomalous[i] if isinstance(anomalous, list) else anomalous
                 )
                 entries.append(entry)
+            i += 1
+            current_offset += num_measurements
 
     _write_index_file(output_path, entries)

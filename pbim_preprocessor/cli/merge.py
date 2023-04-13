@@ -164,6 +164,7 @@ def _merge_predefined_files(
         anomalous,
         config.output_file,
         existing_indices=indices,
+        ratios=[file.ratio for file in config.files] if config.files else None,
     )
     return num_measurements
 
