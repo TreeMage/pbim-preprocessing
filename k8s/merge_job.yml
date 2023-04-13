@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-merge-supervised-s1
+  name: p-bim-merge-qgs
 spec:
   backoffLimit: 0
   template:
@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/lux/supervised/train_ds4.json"
+              value: "/app/configs/qgs/build_anomalous_all.json"
           resources:
             limits:
               cpu: "2"
