@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: lux-assemble-mean-ds1
+  name: lux-assemble-s1-mean-1000hz
 spec:
   backoffLimit: 0
   template:
@@ -15,28 +15,26 @@ spec:
             - name: BASE_PATH
               value: "/data/lux-rezipped.zip"
             - name: OUTPUT_PATH
-              value: "/out/ds1-mean/assembled.dat"
+              value: /out/S1/assembled/mean/1000Hz/assembled.dat
             - name: START_TIME
-              value: "2014-02-11T12:00:00"
+              value: "2014-01-31T12:00:00"
             - name: END_TIME
-              value: "2014-02-20T00:00:00"
+              value: "2014-02-04T11:59:59"
             - name: RESOLUTION
-              value: "0.04"
+              value: "0.001"
             - name: STRATEGY
               value: "mean"
             - name: FORMAT
               value: "binary"
             - name: CHANNEL
               value: "all"
-            - name: DEBUG
-              value: "True"
           resources:
             limits:
               cpu: "2"
               memory: "24Gi"
             requests:
               cpu: "1"
-              memory: "16Gi"
+              memory: "8Gi"
           command: ["bash", "./scripts/assemble_lux_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

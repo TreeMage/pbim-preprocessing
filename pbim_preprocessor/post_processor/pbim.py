@@ -12,7 +12,7 @@ from pbim_preprocessor.post_processor.sampling import DatasetSamplingStrategy
 from pbim_preprocessor.utils import _load_metadata
 
 
-class PBimSampler:
+class DatasetSampler:
     def __init__(
         self,
         window_size: int,
@@ -114,6 +114,15 @@ class PBimSampler:
                 return entry.anomalous
         raise ValueError(f"Index {index} is not in the cut index")
 
+
+    @staticmethod
+    def _find_index_entry_for_index(index: List[CutIndexEntry], i: int) -> CutIndexEntry:
+        for entry in index:
+            if entry.start_measurement_index <= i < entry.end_measurement_index:
+                return entry
+
+        raise ValueError(f"Failed to determine index entry for index {i}.")
+
     def process(self, input_path: Path, output_path: Path):
         output_path.parent.mkdir(parents=True, exist_ok=True)
         metadata = _load_metadata(input_path)
@@ -122,6 +131,9 @@ class PBimSampler:
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
+                index_entry = self._find_index_entry_for_index(index, i)
+                if i + self._window_size >= index_entry.end_measurement_index:
+                    continue
                 window = self._load_window(f, i, metadata)
                 window_without_time = window[1:, :]
                 if self._remove_zero_windows and np.all(window_without_time == 0):

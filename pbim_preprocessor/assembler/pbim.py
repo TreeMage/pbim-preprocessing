@@ -19,7 +19,7 @@ class PBimAssembler:
         self,
         data_path: Path,
         sampling_strategy: SamplingStrategy,
-        resolution: float,
+        resolution: float,  # in seconds
         temperature_data_path: Optional[Path],
     ):
         """

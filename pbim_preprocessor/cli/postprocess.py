@@ -5,7 +5,7 @@ import click
 import numpy as np
 
 from pbim_preprocessor.post_processor.pbim import (
-    PBimSampler,
+    DatasetSampler,
 )
 from pbim_preprocessor.post_processor.sampling import (
     UniformSamplingStrategy,
@@ -85,7 +85,7 @@ def _group_extra_args(extra_args: List[Any]) -> Dict[str, Any]:
     "strategy", type=click.Choice(["uniform", "hourly", "minutely", "weighted-random"])
 )
 @click.option("--window-size", type=int, default=128)
-@click.option("--remove-zero-windows", type=bool, default=True, is_flag=True)
+@click.option("--remove-zero-windows", type=bool, default=True)
 @click.option("--seed", type=int, default=None)
 @click.pass_context
 def postprocess(
@@ -102,5 +102,5 @@ def postprocess(
     extra_args = _group_extra_args(ctx.args)
     _validate_extra_args(strategy, extra_args)
     strategy = _make_strategy(strategy, window_size, extra_args)
-    sampler = PBimSampler(window_size, remove_zero_windows, strategy)
+    sampler = DatasetSampler(window_size, remove_zero_windows, strategy)
     sampler.process(input_file, output_file)
