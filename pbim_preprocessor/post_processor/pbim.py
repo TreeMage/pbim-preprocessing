@@ -12,6 +12,8 @@ from pbim_preprocessor.post_processor.sampling import DatasetSamplingStrategy
 from pbim_preprocessor.utils import _load_metadata
 
 
+EXCLUDE_CHANNELS = ["Time", "Temperature"]
+
 class DatasetSampler:
     def __init__(
         self,
@@ -114,7 +116,6 @@ class DatasetSampler:
                 return entry.anomalous
         raise ValueError(f"Index {index} is not in the cut index")
 
-
     @staticmethod
     def _find_index_entry_for_index(index: List[CutIndexEntry], i: int) -> CutIndexEntry:
         for entry in index:
@@ -128,6 +129,7 @@ class DatasetSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
+        number_of_windows = 1000000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
@@ -135,8 +137,9 @@ class DatasetSampler:
                 if i + self._window_size >= index_entry.end_measurement_index:
                     continue
                 window = self._load_window(f, i, metadata)
-                window_without_time = window[1:, :]
-                if self._remove_zero_windows and np.all(window_without_time == 0):
+                exclude_indices = [metadata.channel_order.index(channel) for channel in EXCLUDE_CHANNELS]
+                window = np.delete(window, exclude_indices, axis=0)
+                if self._remove_zero_windows and np.all(window == 0):
                     continue
                 indices.append(i)
             time = self._load_time(f, metadata)
@@ -166,6 +169,9 @@ class DatasetSampler:
                     samples = self._load_raw_samples(
                         input_file_handle, metadata, start, end
                     )
+                    parsed = self._parse_samples(samples, metadata)
+                    if np.all(parsed[:, 1:13] == 0):
+                        print(f"Skipping window {start} - {end} because it is all zeros.")
                     output_file_handle.write(samples)
         metadata.length = sum(
             [end - start for start, end in contiguous_start_end_sample_indices]

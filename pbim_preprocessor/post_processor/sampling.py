@@ -103,7 +103,7 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
         ):
             windows_per_group = max(round(desired_samples) - self._window_size + 1, 1)
             step = round((end - start - self._window_size) / windows_per_group)
-            sample_indices.extend([start + i * step for i in range(windows_per_group)])
+            sample_indices.extend([start + i * step for i in range(windows_per_group) if start + i * step + self._window_size < end])
         return _merge_windows(sample_indices, self._window_size)
 
 
