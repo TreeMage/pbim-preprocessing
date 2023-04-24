@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: p-bim-merge-qgs
+  name: p-bim-merge
 spec:
   backoffLimit: 0
   template:
@@ -13,7 +13,7 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: CONFIG_PATH
-              value: "/app/configs/qgs/build_anomalous_all.json"
+              value: "/app/configs/merge_pbim_dataset.json"
           resources:
             limits:
               cpu: "2"
@@ -27,6 +27,8 @@ spec:
               name: data # matches volume-name from below
             - mountPath: /tmp
               name: tmp
+            - mountPath: /app/configs
+              name: config
       imagePullSecrets:
         - name: lsx-registry
       restartPolicy: "Never"
@@ -41,3 +43,11 @@ spec:
               name: ceph-secret
         - name: tmp
           emptyDir: {}
+        - name: config
+          cephfs:
+            monitors:
+              - 132.187.14.16,132.187.14.17,132.187.14.19,132.187.14.20
+            user: studkohlmann
+            path: "/home/stud/kohlmann/MA/pbim-preprocessor/configs"
+            secretRef:
+              name: ceph-secret
