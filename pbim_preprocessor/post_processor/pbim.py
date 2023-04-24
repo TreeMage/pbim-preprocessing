@@ -169,9 +169,6 @@ class DatasetSampler:
                     samples = self._load_raw_samples(
                         input_file_handle, metadata, start, end
                     )
-                    parsed = self._parse_samples(samples, metadata)
-                    if np.all(parsed[:, 1:13] == 0):
-                        print(f"Skipping window {start} - {end} because it is all zeros.")
                     output_file_handle.write(samples)
         metadata.length = sum(
             [end - start for start, end in contiguous_start_end_sample_indices]
