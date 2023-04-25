@@ -65,7 +65,7 @@ def get_num_samples(
     # windows = samples - window-size + 1 <=> samples = windows + window-size - 1
     match strategy:
         case "uniform":
-            return target_windows + window_size - 1
+            return target_windows
         case "weighted-random":
             scaling_factor = (
                 EMPIRICAL_SCALING_FACTOR_NOSAMPLING
