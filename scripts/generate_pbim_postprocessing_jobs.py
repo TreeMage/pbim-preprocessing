@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-
+import math
 from pathlib import Path
 import jinja2
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.1
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.15
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.07
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.1
 
 FILE_NAMES = {
     # Normal
@@ -51,8 +51,10 @@ def get_hourly_strategy_extra_args(
     target_windows: int, window_size: int, dataset_length_in_hours, aggregation: str
 ) -> str:
     windows_per_sample = target_windows / (SAMPLES_PER_HOUR * dataset_length_in_hours)
-    samples_per_hourly_sample = round(windows_per_sample + window_size - 1)
-    sample_length = round(samples_per_hourly_sample / SAMPLE_RESOLUTION[aggregation])
+    samples_per_hourly_sample = math.ceil(windows_per_sample + window_size - 1)
+    sample_length = math.ceil(
+        samples_per_hourly_sample / SAMPLE_RESOLUTION[aggregation]
+    )
 
     return f"--samples-per-hour {SAMPLES_PER_HOUR} --sample-length {sample_length}"
 

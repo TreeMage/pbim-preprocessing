@@ -50,7 +50,9 @@ if __name__ == "__main__":
         for aggregation in ["nosampling", "mean", "interpolate"]:
             for frequency in [25, 250, 1000, 1500]:
                 if aggregation == "nosampling":
-                    input_path_parameter = f"/data/LUX/{scenario}/assembled/{aggregation}/assembled.dat"
+                    input_path_parameter = (
+                        f"/data/LUX/{scenario}/assembled/{aggregation}/assembled.dat"
+                    )
                     output_path_parameter = f"/data/PBIM/{scenario}/post-processed/{aggregation}/assembled.dat"
                     output_path = Path(
                         f"k8s/assemble_jobs/lux/post-process-jobs/{scenario}/{aggregation}.yml"

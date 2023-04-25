@@ -93,17 +93,31 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
             raise ValueError(
                 f"Cannot sample {self._num_samples} from {available_samples} samples."
             )
-        samples_per_group = [
-            (end - start) * self._num_samples / available_samples
+        windows_per_group = [
+            round((end - start) * self._num_samples / available_samples)
             for start, end in start_and_end_indices
         ]
         sample_indices = []
-        for (start, end), desired_samples in zip(
-            start_and_end_indices, samples_per_group
+        for (start, end), desired_windows in zip(
+            start_and_end_indices, windows_per_group
         ):
-            windows_per_group = max(round(desired_samples) - self._window_size + 1, 1)
-            step = round((end - start - self._window_size) / windows_per_group)
-            sample_indices.extend([start + i * step for i in range(windows_per_group) if start + i * step + self._window_size < end])
+            group_length = end - start
+            if group_length / (desired_windows * (self._window_size + 1)) >= 1:
+                # We can sample individual windows
+                step = (
+                    group_length - desired_windows * self._window_size
+                ) // desired_windows
+            else:
+                # Windows will overlap
+                step = 1
+
+            sample_indices.extend(
+                [
+                    start + i * step
+                    for i in range(desired_windows)
+                    if start + i * step + self._window_size < end
+                ]
+            )
         return _merge_windows(sample_indices, self._window_size)
 
 
@@ -203,10 +217,12 @@ class IntervalSamplingStrategy(DatasetSamplingStrategy):
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
     ) -> List[int]:
         final_indices = []
-        start_date = self._make_datetime(time[0])
-        end_date = self._make_datetime(time[-1])
+        start_date = self._make_datetime(time[start_and_end_indices[0][0]])
+        end_date = self._make_datetime(time[start_and_end_indices[-1][1] - 1])
         current_date = start_date
-        while current_date < end_date:
+        while current_date < end_date - datetime.timedelta(
+            seconds=self._interval_length_in_seconds
+        ):
             for i in range(self._samples_per_interval):
                 interval_start = current_date + datetime.timedelta(
                     seconds=i

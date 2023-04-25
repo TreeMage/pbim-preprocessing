@@ -14,6 +14,7 @@ from pbim_preprocessor.utils import _load_metadata
 
 EXCLUDE_CHANNELS = ["Time", "Temperature"]
 
+
 class DatasetSampler:
     def __init__(
         self,
@@ -92,21 +93,14 @@ class DatasetSampler:
     @staticmethod
     def _compute_start_and_end_indices(indices: List[int]) -> List[Tuple[int, int]]:
         computed_indices = []
-        current_start_index = 0
-        while current_start_index < len(indices):
-            current_end_index = current_start_index + 1
-            while (
-                current_end_index < len(indices) - 1
-                and indices[current_end_index] == indices[current_end_index + 1] - 1
-            ):
-                current_end_index += 1
-            computed_indices.append(
-                (
-                    int(indices[current_start_index]),
-                    int(indices[min(current_end_index, len(indices) - 1)] + 1),
-                )
-            )
-            current_start_index = current_end_index + 1
+        start = 0
+        for i in range(1, len(indices)):
+            if indices[i] != indices[i - 1] + 1:
+                if start < i - 1:
+                    computed_indices.append((indices[start], indices[i - 1] + 1))
+                start = i
+        if start < len(indices) - 1:
+            computed_indices.append((indices[start], indices[-1] + 1))
         return computed_indices
 
     @staticmethod
@@ -117,7 +111,9 @@ class DatasetSampler:
         raise ValueError(f"Index {index} is not in the cut index")
 
     @staticmethod
-    def _find_index_entry_for_index(index: List[CutIndexEntry], i: int) -> CutIndexEntry:
+    def _find_index_entry_for_index(
+        index: List[CutIndexEntry], i: int
+    ) -> CutIndexEntry:
         for entry in index:
             if entry.start_measurement_index <= i < entry.end_measurement_index:
                 return entry
@@ -129,6 +125,7 @@ class DatasetSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
+        number_of_windows = 95000
         indices = []
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
@@ -136,7 +133,10 @@ class DatasetSampler:
                 if i + self._window_size >= index_entry.end_measurement_index:
                     continue
                 window = self._load_window(f, i, metadata)
-                exclude_indices = [metadata.channel_order.index(channel) for channel in EXCLUDE_CHANNELS]
+                exclude_indices = [
+                    metadata.channel_order.index(channel)
+                    for channel in EXCLUDE_CHANNELS
+                ]
                 window = np.delete(window, exclude_indices, axis=0)
                 if self._remove_zero_windows and np.all(window == 0):
                     continue
