@@ -4,7 +4,7 @@ from pathlib import Path
 import jinja2
 
 EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.07
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.1
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.2
 
 FILE_NAMES = {
     # Normal
@@ -55,8 +55,8 @@ def get_hourly_strategy_extra_args(
     sample_length = math.ceil(
         samples_per_hourly_sample / SAMPLE_RESOLUTION[aggregation]
     )
-
-    return f"--samples-per-hour {SAMPLES_PER_HOUR} --sample-length {sample_length}"
+    correction = 0 if aggregation == "nosampling" else 2
+    return f"--samples-per-hour {SAMPLES_PER_HOUR + correction} --sample-length {sample_length}"
 
 
 def get_num_samples(
