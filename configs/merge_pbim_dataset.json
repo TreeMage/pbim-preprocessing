@@ -1,27 +1,19 @@
 {
-  "base_path": "/data/PBIM/",
-  "output_file": "/data/PBIM/test/assembled.dat",
-  "use_statistics_from": "/data/PBIM/N/merged/reference/nosampling-uniform/assembled.dat",
+  "base_path": "../data/assembled/PBIM/",
+  "output_file": "../data/assembled/PBIM/test/assembled.dat",
+  "keep_statistics": true,
   "files": [
     {
        "relative_path": "N/post-processed/nosampling-uniform/january-week-01/assembled.dat",
-       "is_anomalous": false,
-       "include_in_statistics": false
+       "is_anomalous": false
     },
-    {
+      {
        "relative_path": "N/post-processed/nosampling-uniform/april-week-01/assembled.dat",
-       "is_anomalous": false,
-       "include_in_statistics": false
+       "is_anomalous": false
     },
-    {
-       "relative_path": "S1/post-processed/nosampling-uniform/july-week-02/assembled.dat",
-       "is_anomalous": true,
-       "include_in_statistics": false
-    },
-    {
-       "relative_path": "S1/post-processed/nosampling-uniform/august-week-01/assembled.dat",
-       "is_anomalous": true,
-       "include_in_statistics": false
+      {
+       "relative_path": "N/post-processed/nosampling-uniform/july-week-01/assembled.dat",
+       "is_anomalous": false
     }
   ]
 }

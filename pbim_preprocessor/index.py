@@ -55,7 +55,7 @@ def _write_index(
             index = existing_indices[i]
             for entry in index:
                 entry.start_measurement_index += current_offset
-                entry.end_measurement_index = current_offset + num_measurements
+                entry.end_measurement_index += current_offset
                 entry.anomalous = (
                     anomalous[i] if isinstance(anomalous, list) else anomalous
                 )
