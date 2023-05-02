@@ -8,7 +8,17 @@
         "include_in_statistics": true
     },
     {
+        "relative_path": "N/post-processed/nosampling-uniform/march-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
         "relative_path": "N/post-processed/nosampling-uniform/april-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/nosampling-uniform/may-week-01/assembled.dat",
         "is_anomalous": false,
         "include_in_statistics": true
     },

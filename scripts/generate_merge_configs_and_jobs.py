@@ -42,7 +42,9 @@ def get_files(scenario: str, strategy: str, aggregation: str):
         case "N":
             return [
                 block("N", "january-week-01", False),
+                block("N", "march-week-01", False),
                 block("N", "april-week-01", False),
+                block("N", "may-week-01", False),
                 block("N", "july-week-01", False),
             ]
         case _:

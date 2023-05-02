@@ -2,8 +2,7 @@
 import math
 from pathlib import Path
 import jinja2
-
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.04  # was 0.06(++) 0.01(+) 0.008 (--) 0.0095 (--) 0.05 (++)
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.035  # was 0.06(++) 0.01(+) 0.008 (--) 0.0095 (--) 0.05 (++)
 EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05  # was 0.09 (++)
 
 FILE_NAMES = {
@@ -72,10 +71,7 @@ def get_num_samples(
                 if aggregation == "nosampling"
                 else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE
             )
-            if aggregation == "nosampling":
-                return int(target_windows * window_size * scaling_factor)
-            else:
-                return int(target_windows)
+            return int(target_windows * window_size * scaling_factor)
         case "hourly":
             raise NotImplementedError("Use get_hourly_strategy_extra_args instead")
 
