@@ -3,8 +3,8 @@ import math
 from pathlib import Path
 import jinja2
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.06  # was 0.05(-)
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.05  # was 0.06(++) 0.01(+) 0.008 (--) 0.0095 (--)
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05  # was 0.09 (++)
 
 FILE_NAMES = {
     # Normal
@@ -55,7 +55,7 @@ def get_hourly_strategy_extra_args(
     sample_length = math.ceil(
         samples_per_hourly_sample / SAMPLE_RESOLUTION[aggregation]
     )
-    correction = 0 if aggregation == "nosampling" else 3
+    correction = 1 if aggregation == "nosampling" else 6
     return f"--samples-per-hour {SAMPLES_PER_HOUR + correction} --sample-length {sample_length}"
 
 
@@ -99,7 +99,7 @@ def get_extra_args(
 
 if __name__ == "__main__":
     NUM_WINDOWS = 100000
-    WINDOW_SIZE = 128
+    WINDOW_SIZE = 256
     SCENARIO = "N"
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
