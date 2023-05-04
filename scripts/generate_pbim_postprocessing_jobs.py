@@ -100,31 +100,31 @@ def get_extra_args(
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS = 100000
+    NUM_WINDOWS = 200000
     WINDOW_SIZE = 256
-    SCENARIO = "S3"
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
-    for strategy in ["uniform", "weighted-random", "hourly"]:
-        for aggregation in ["nosampling", "mean", "interpolate"]:
-            for filename in FILE_NAMES[SCENARIO]:
-                input_path_parameter = f"/data/PBIM/{SCENARIO}/assembled/{aggregation}/{filename}/assembled.dat"
-                output_path_parameter = f"/data/PBIM/{SCENARIO}/post-processed/{aggregation}-{strategy}/{filename}/assembled.dat"
-                output_path = Path(
-                    f"k8s/assemble_jobs/pbim/post-process-jobs/{SCENARIO}/{strategy}/{filename}-{aggregation}-{strategy}.yml"
-                )
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                render_template_and_save(
-                    template,
-                    output_path,
-                    INPUT_FILE=input_path_parameter,
-                    OUTPUT_FILE=output_path_parameter,
-                    STRATEGY=strategy,
-                    STRATEGY_ARGS=get_extra_args(
-                        WINDOW_SIZE, NUM_WINDOWS, strategy, aggregation
-                    ),
-                    AGGREGATION=aggregation,
-                    FILENAME=filename,
-                    SCENARIO=SCENARIO.lower(),
-                    SEED=42,
-                )
+    for scenario in ["N", "S1", "S2", "S3"]:
+        for strategy in ["uniform", "weighted-random", "hourly"]:
+            for aggregation in ["nosampling", "mean", "interpolate"]:
+                for filename in FILE_NAMES[scenario]:
+                    input_path_parameter = f"/data/PBIM/{scenario}/assembled/{aggregation}/{filename}/assembled.dat"
+                    output_path_parameter = f"/data/PBIM/{scenario}/post-processed/{aggregation}-{strategy}/{filename}/assembled.dat"
+                    output_path = Path(
+                        f"k8s/assemble_jobs/pbim/post-process-jobs/{scenario}/{strategy}/{filename}-{aggregation}-{strategy}.yml"
+                    )
+                    output_path.parent.mkdir(parents=True, exist_ok=True)
+                    render_template_and_save(
+                        template,
+                        output_path,
+                        INPUT_FILE=input_path_parameter,
+                        OUTPUT_FILE=output_path_parameter,
+                        STRATEGY=strategy,
+                        STRATEGY_ARGS=get_extra_args(
+                            WINDOW_SIZE, NUM_WINDOWS, strategy, aggregation
+                        ),
+                        AGGREGATION=aggregation,
+                        FILENAME=filename,
+                        SCENARIO=scenario.lower(),
+                        SEED=42,
+                    )

@@ -5,15 +5,14 @@
   "files": [
     {
        "relative_path": "N/post-processed/nosampling-uniform/january-week-01/assembled.dat",
-       "is_anomalous": false
+       "is_anomalous": false,
+       "offset": 0.1,
+       "ratio": 0.2
     },
       {
        "relative_path": "N/post-processed/nosampling-uniform/april-week-01/assembled.dat",
-       "is_anomalous": false
-    },
-      {
-       "relative_path": "N/post-processed/nosampling-uniform/july-week-01/assembled.dat",
-       "is_anomalous": false
+       "is_anomalous": true,
+       "ratio": 0.2
     }
   ]
 }

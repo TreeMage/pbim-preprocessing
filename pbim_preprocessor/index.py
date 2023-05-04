@@ -28,14 +28,12 @@ def _write_index(
     measurements: List[int],
     anomalous: List[bool] | bool,
     output_path: Path,
+    original_lengths: List[int],
     existing_indices: List[List[CutIndexEntry]] | None = None,
     offsets: List[int] | None = None,
-    ratios: List[int] | None = None,
 ):
     if offsets is None:
         offsets = [0] * len(measurements)
-    if ratios is None:
-        ratios = [1] * len(measurements)
     if existing_indices is None:
         indices = [0] + measurements
         entries = [
@@ -53,7 +51,35 @@ def _write_index(
         while i < len(measurements):
             num_measurements = measurements[i]
             index = existing_indices[i]
+            offset = offsets[i]
+            length = original_lengths[i]
+            start_measurement_index = int(offset * length)
+            end_measurement_index = start_measurement_index + num_measurements
             for entry in index:
+                # Sample is before the cut
+                if (
+                    entry.start_measurement_index < start_measurement_index
+                    and entry.end_measurement_index < end_measurement_index
+                ):
+                    continue
+                # Sample is after the cut
+                if entry.start_measurement_index > end_measurement_index:
+                    continue
+                # Sample intersects start of the cut
+                if (
+                    entry.start_measurement_index
+                    < start_measurement_index
+                    < entry.end_measurement_index
+                ):
+                    entry.start_measurement_index = start_measurement_index
+                # Sample intersects end of the cut
+                if (
+                    entry.start_measurement_index
+                    < end_measurement_index
+                    < entry.end_measurement_index
+                ):
+                    entry.end_measurement_index = end_measurement_index
+
                 entry.start_measurement_index += current_offset
                 entry.end_measurement_index += current_offset
                 entry.anomalous = (

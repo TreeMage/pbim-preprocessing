@@ -14,7 +14,7 @@ def get_files(scenario: str, aggregation: str, resolution: Optional[str]):
             else f"{s}/post-processed/{aggregation}/assembled.dat",
             "is_anomalous": anomalous,
             "offset": 0.8 if scenario == "N" else 0,
-            "limit": 0.2,
+            "ratio": 0.2,
         }
 
     return [block("N", False), block(scenario, True)]

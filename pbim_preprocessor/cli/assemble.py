@@ -329,4 +329,4 @@ def assemble(
             TIME_BYTE_SIZE,
         ),
     )
-    _write_index([length] if not index else index, is_anomalous, output_path)
+    _write_index([length] if not index else index, is_anomalous, output_path, [length])

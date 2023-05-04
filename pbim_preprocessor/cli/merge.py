@@ -145,6 +145,10 @@ def _merge_predefined_files(
     indices = [
         _load_index(config.base_path / file.relative_path) for file in config.files
     ]
+    lengths = [
+        _load_metadata(config.base_path / file.relative_path).length
+        for file in config.files
+    ]
     for file in config.files:
         num_measurements += [
             _write_file(
@@ -163,8 +167,9 @@ def _merge_predefined_files(
         num_measurements,
         anomalous,
         config.output_file,
+        lengths,
         existing_indices=indices,
-        ratios=[file.ratio for file in config.files] if config.files else None,
+        offsets=[file.offset for file in config.files] if config.files else None,
     )
     return num_measurements
 
