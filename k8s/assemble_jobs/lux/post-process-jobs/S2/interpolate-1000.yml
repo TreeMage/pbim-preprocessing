@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 101127 --window-size 128"
+              value: "--num-samples 100000 --window-size 256"
             - name: SEED
               value: "42"
           resources:

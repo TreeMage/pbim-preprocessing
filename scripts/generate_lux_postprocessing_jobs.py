@@ -23,7 +23,7 @@ def get_num_samples(
     # windows = samples - window-size + 1 <=> samples = windows + window-size - 1
     match strategy:
         case "uniform":
-            return target_windows + window_size - 1
+            return target_windows
         case _:
             raise NotImplementedError("Only uniform strategy is supported")
 
@@ -42,8 +42,8 @@ def get_extra_args(
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS = 101000
-    WINDOW_SIZE = 128
+    NUM_WINDOWS = 100000
+    WINDOW_SIZE = 256
 
     template = load_template(Path("template/postprocess_lux_job_template.yml"))
     for scenario in SCENARIOS:
