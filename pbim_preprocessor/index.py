@@ -79,7 +79,11 @@ def _write_index(
                     < entry.end_measurement_index
                 ):
                     entry.end_measurement_index = end_measurement_index
-
+                # Sample is fully contained in the cut
+                # Adjust index to offset in the input file
+                entry.start_measurement_index -= start_measurement_index
+                entry.end_measurement_index -= start_measurement_index
+                # Adjust index to offset due to merging
                 entry.start_measurement_index += current_offset
                 entry.end_measurement_index += current_offset
                 entry.anomalous = (
