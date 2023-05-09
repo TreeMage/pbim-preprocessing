@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "hourly"
             - name: STRATEGY_ARGS
-              value: "--samples-per-hour 10 --sample-length 32"
+              value: "--samples-per-hour 13 --sample-length 32"
             - name: SEED
               value: "42"
           resources:

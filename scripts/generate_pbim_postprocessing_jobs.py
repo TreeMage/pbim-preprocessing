@@ -3,10 +3,14 @@ import math
 from pathlib import Path
 import jinja2
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = (
-    0.035  # was 0.06(++) 0.01(+) 0.008 (--) 0.0095 (--) 0.05 (++)
-)
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05  # was 0.09 (++)
+# 100k
+# EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = (
+#    0.035  # was 0.06(++) 0.01(+) 0.008 (--) 0.0095 (--) 0.05 (++)
+# )
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
+# 100k
+# EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05  # was 0.09 (++)
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
 
 FILE_NAMES = {
     # Normal
@@ -57,7 +61,8 @@ def get_hourly_strategy_extra_args(
     sample_length = math.ceil(
         samples_per_hourly_sample / SAMPLE_RESOLUTION[aggregation]
     )
-    correction = 1 if aggregation == "nosampling" else 6
+    # correction = 1 if aggregation == "nosampling" else 6  # 100k samples
+    correction = 1 if aggregation == "nosampling" else 9  # 200k samples
     return f"--samples-per-hour {SAMPLES_PER_HOUR + correction} --sample-length {sample_length}"
 
 

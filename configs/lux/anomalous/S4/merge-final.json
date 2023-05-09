@@ -1,0 +1,19 @@
+{
+  "base_path": "/data/LUX/",
+  "output_file": "/data/LUX/S4/merged/anomalous/final/assembled.dat",
+  "use_statistics_from": "/data/LUX/N/final/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/final/assembled.dat",
+        "is_anomalous": false,
+        "offset": 0.8,
+        "ratio": 0.2
+    },
+    {
+        "relative_path": "S4/post-processed/nosampling/assembled.dat",
+        "is_anomalous": true,
+        "offset": 0,
+        "ratio": 1.0
+    }
+]
+}

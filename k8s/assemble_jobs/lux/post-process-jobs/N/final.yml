@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pp-n-june-week-01-interpolate-hourly
+  name: pp-lux-n-nosampling-final
 spec:
   backoffLimit: 0
   template:
@@ -13,13 +13,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: "/data/PBIM/N/assembled/interpolate/june-week-01/assembled.dat"
+              value: "/data/LUX/N/assembled/nosampling/assembled.dat"
             - name: OUTPUT_FILE
-              value: "/data/PBIM/N/post-processed/interpolate-hourly/june-week-01/assembled.dat"
+              value: "/data/LUX/N/final/assembled.dat"
             - name: STRATEGY
-              value: "hourly"
+              value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--samples-per-hour 13 --sample-length 32"
+              value: "--num-samples 500000 --window-size 256"
             - name: SEED
               value: "42"
           resources:
