@@ -6,11 +6,11 @@
     {
         "relative_path": "N/final/assembled.dat",
         "is_anomalous": false,
-        "offset": 0.8,
-        "ratio": 0.2
+        "offset": 0.9,
+        "ratio": 0.1
     },
     {
-        "relative_path": "S4/post-processed/nosampling/assembled.dat",
+        "relative_path": "S4/final/assembled.dat",
         "is_anomalous": true,
         "offset": 0,
         "ratio": 1.0

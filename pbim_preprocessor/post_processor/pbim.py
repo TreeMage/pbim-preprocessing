@@ -126,16 +126,15 @@ class DatasetSampler:
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
         indices = []
+        exclude_indices = [
+            metadata.channel_order.index(channel) for channel in EXCLUDE_CHANNELS
+        ]
         with open(input_path, "rb") as f:
             for i in tqdm.trange(number_of_windows, desc="Loading windows"):
                 index_entry = self._find_index_entry_for_index(index, i)
                 if i + self._window_size >= index_entry.end_measurement_index:
                     continue
                 window = self._load_window(f, i, metadata)
-                exclude_indices = [
-                    metadata.channel_order.index(channel)
-                    for channel in EXCLUDE_CHANNELS
-                ]
                 window = np.delete(window, exclude_indices, axis=0)
                 if self._remove_zero_windows and np.all(window == 0):
                     continue
