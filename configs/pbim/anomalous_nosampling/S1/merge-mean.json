@@ -1,7 +1,7 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/S1/merged/anomalous/reference_nosampling/mean/assembled.dat",
-  "use_statistics_from": "/data/PBIM/N/merged/reference/mean-nosampling/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/eval/mean/assembled.dat",
   "files": [
     {
         "relative_path": "N/assembled/mean/february-week-01/assembled.dat",

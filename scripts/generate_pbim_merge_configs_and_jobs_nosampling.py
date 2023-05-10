@@ -69,7 +69,7 @@ def get_dataset_output_path(scenario: str,  aggregation: str):
 if __name__ == "__main__":
     job_template = load_template(Path("template/merge_pbim_job_template.yml"))
     merge_config_template = load_template(
-        Path("template/merge_pbim_config_template.json")
+        Path("template/merge_pbim_nosampling_config_template.json")
     )
     for scenario in ["S1", "S2", "S3"]:
         for aggregation in ["nosampling", "mean", "interpolate"]:

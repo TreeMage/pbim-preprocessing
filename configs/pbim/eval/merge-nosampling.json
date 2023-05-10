@@ -1,0 +1,16 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/N/merged/eval/nosampling/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/assembled/nosampling/february-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/assembled/nosampling/june-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    }
+]
+}
