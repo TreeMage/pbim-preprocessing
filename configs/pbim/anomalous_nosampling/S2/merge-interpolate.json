@@ -1,0 +1,27 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/S2/merged/anomalous/reference_nosampling/interpolate/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/reference/interpolate-nosampling/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/assembled/interpolate/february-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/assembled/interpolate/june-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "S2/assembled/interpolate/july-week-02/assembled.dat",
+        "is_anomalous": true,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "S2/assembled/interpolate/august-week-01/assembled.dat",
+        "is_anomalous": true,
+        "include_in_statistics": false
+    }
+]
+}
