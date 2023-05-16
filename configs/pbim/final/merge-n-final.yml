@@ -1,0 +1,34 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/N/merged/final/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/post-processed/final/january-week-01/assembled.dat",
+        "is_anomalous": false
+    },
+    {
+        "relative_path": "N/post-processed/final/february-week-01/assembled.dat",
+        "is_anomalous": false
+    },
+    {
+        "relative_path": "N/post-processed/final/march-week-01/assembled.dat",
+        "is_anomalous": false
+    },
+    {
+        "relative_path": "N/post-processed/final/april-week-01/assembled.dat",
+        "is_anomalous": false
+    },
+    {
+        "relative_path": "N/post-processed/final/may-week-01/assembled.dat",
+        "is_anomalous": false
+    },
+    {
+        "relative_path": "N/post-processed/final/june-week-01/assembled.dat",
+        "is_anomalous": false
+    },
+    {
+        "relative_path": "N/post-processed/final/july-week-01/assembled.dat",
+        "is_anomalous": false
+    }
+]
+}

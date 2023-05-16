@@ -1,0 +1,19 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/S2/merged/final/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/final/assembled.dat",
+  "files": [
+    {
+        "relative_path": "S2/post-processed/final/july-week-02/assembled.dat",
+        "is_anomalous": true,
+        "offset": 0.8889,
+        "ratio": 0.1111
+    },
+    {
+        "relative_path": "S2/post-processed/final/august-week-01/assembled.dat",
+        "is_anomalous": true,
+        "offset": 0.1111,
+        "ratio": 0.8889
+    }
+]
+}
