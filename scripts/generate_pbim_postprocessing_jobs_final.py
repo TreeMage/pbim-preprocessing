@@ -30,9 +30,16 @@ FILE_NAMES = {
     ],
 }
 
-SAMPLES_PER_HOUR = 4
-SAMPLE_RESOLUTION = {"mean": 25, "interpolate": 25, "nosampling": 75}
-DATASET_LENGTH_IN_HOURS = 4 * 24
+FILE_NAMES_UNDAMAGED_TEST = [
+        "april-week-02",
+        "january-week-02",
+        "june-week-02",
+        "may-week-02",
+        "february-week-02",
+        "july-week-02",
+        "march-week-02",
+    ]
+
 
 
 def load_template(template_path: Path) -> jinja2.Template:
@@ -50,8 +57,9 @@ def get_extra_args(window_size: int, num_windows: int) -> str:
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS_N = 2915962
+    NUM_WINDOWS_N = 2909482
     NUM_WINDOWS_S = 1133985
+    NUM_WINDOWS_N_TEST = 377995
     WINDOW_SIZE = 256
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
@@ -80,6 +88,32 @@ if __name__ == "__main__":
             SCENARIO=scenario.lower(),
             SEED=42,
         )
+    # Normal test data
+    scenario = "N"
+    for filename in FILE_NAMES_UNDAMAGED_TEST:
+        input_path_parameter = (
+            f"/data/PBIM/{scenario}/assembled/nosampling/{filename}/assembled.dat"
+        )
+        output_path_parameter = (
+            f"/data/PBIM/{scenario}/post-processed/final/{filename}/assembled.dat"
+        )
+        output_path = Path(
+            f"k8s/assemble_jobs/pbim/post-process-jobs/final/{scenario}/{filename}.yml"
+        )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        render_template_and_save(
+            template,
+            output_path,
+            INPUT_FILE=input_path_parameter,
+            OUTPUT_FILE=output_path_parameter,
+            STRATEGY="uniform",
+            STRATEGY_ARGS=get_extra_args(WINDOW_SIZE, NUM_WINDOWS_N_TEST),
+            AGGREGATION="nosampling",
+            FILENAME=filename,
+            SCENARIO=scenario.lower(),
+            SEED=42,
+        )
+
     # Damaged data
     for scenario in ["S1", "S2", "S3"]:
         for filename in FILE_NAMES[scenario]:

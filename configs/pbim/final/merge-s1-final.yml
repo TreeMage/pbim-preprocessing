@@ -4,16 +4,36 @@
   "use_statistics_from": "/data/PBIM/N/merged/final/assembled.dat",
   "files": [
     {
+      "relative_path": "N/post-processed/final/january-week-02/assembled.dat",
+      "is_anomalous": false
+    },
+    {
+      "relative_path": "N/post-processed/final/february-week-02/assembled.dat",
+      "is_anomalous": false
+    },
+    {
+      "relative_path": "N/post-processed/final/march-week-02/assembled.dat",
+      "is_anomalous": false
+    },
+    {
+      "relative_path": "N/post-processed/final/april-week-02/assembled.dat",
+      "is_anomalous": false
+    },
+    {
+      "relative_path": "N/post-processed/final/may-week-02/assembled.dat",
+      "is_anomalous": false
+    },
+    {
+      "relative_path": "N/post-processed/final/june-week-02/assembled.dat",
+      "is_anomalous": false
+    },
+    {
         "relative_path": "S1/post-processed/final/july-week-02/assembled.dat",
         "is_anomalous": true,
-        "offset": 0.8889,
-        "ratio": 0.1111
     },
     {
         "relative_path": "S1/post-processed/final/august-week-01/assembled.dat",
         "is_anomalous": true,
-        "offset": 0.1111,
-        "ratio": 0.8889
     }
 ]
 }

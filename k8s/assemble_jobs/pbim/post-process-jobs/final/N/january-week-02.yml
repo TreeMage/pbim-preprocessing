@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pp-n-may-week-01-nosampling-uniform
+  name: pp-n-january-week-02-nosampling-uniform
 spec:
   backoffLimit: 0
   template:
@@ -13,13 +13,13 @@ spec:
           imagePullPolicy: "Always"
           env:
             - name: INPUT_FILE
-              value: "/data/PBIM/N/assembled/nosampling/may-week-01/assembled.dat"
+              value: "/data/PBIM/N/assembled/nosampling/january-week-02/assembled.dat"
             - name: OUTPUT_FILE
-              value: "/data/PBIM/N/post-processed/final/may-week-01/assembled.dat"
+              value: "/data/PBIM/N/post-processed/final/january-week-02/assembled.dat"
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 2909482 --window-size 256"
+              value: "--num-samples 377995 --window-size 256"
             - name: SEED
               value: "42"
           resources:
