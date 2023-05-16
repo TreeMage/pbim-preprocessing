@@ -62,7 +62,7 @@ def get_output_path_config(scenario: str, aggregation: str):
     )
 
 
-def get_dataset_output_path(scenario: str,  aggregation: str):
+def get_dataset_output_path(scenario: str, aggregation: str):
     return f"/data/PBIM/{scenario}/merged/anomalous/reference_nosampling/{aggregation}/assembled.dat"
 
 
@@ -76,9 +76,7 @@ if __name__ == "__main__":
             output_path_job = Path(
                 f"k8s/assemble_jobs/pbim/merge_nosampling/{scenario}/merge-{aggregation}.yml"
             )
-            output_path_config = get_output_path_config(
-                scenario, aggregation
-            )
+            output_path_config = get_output_path_config(scenario, aggregation)
             config_path_parameter = Path("/app") / output_path_config
             output_path_config.parent.mkdir(parents=True, exist_ok=True)
             output_path_job.parent.mkdir(parents=True, exist_ok=True)
@@ -86,14 +84,10 @@ if __name__ == "__main__":
                 merge_config_template,
                 output_path_config,
                 STRATEGY="nosampling",
-                OUTPUT_FILE=get_dataset_output_path(
-                    scenario, aggregation
-                ),
+                OUTPUT_FILE=get_dataset_output_path(scenario, aggregation),
                 AGGREGATION=aggregation,
                 SCENARIO=scenario,
-                FILES=json.dumps(
-                    get_files(scenario, aggregation), indent=4
-                ),
+                FILES=json.dumps(get_files(scenario, aggregation), indent=4),
             )
             render_template_and_save(
                 job_template,

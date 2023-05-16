@@ -81,13 +81,35 @@ class DatasetSamplingStrategy(abc.ABC):
 
 
 class UniformSamplingStrategy(DatasetSamplingStrategy):
+    INTERVAL_LENGTH = 10000
+
     def __init__(self, num_samples: int, window_size: int):
         self._num_samples = num_samples
         self._window_size = window_size
 
+    @staticmethod
+    def _divide_interval(start: int, end: int, length: int):
+        parts = []
+        current_start = start
+        current_end = min(start + length, end)
+
+        while current_start < end:
+            parts.append((current_start, current_end))
+            current_start = current_end
+            current_end = min(current_start + length, end)
+
+        return parts
+
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
     ) -> List[int]:
+        if len(start_and_end_indices) == 1:
+            # Artificially create groups to avoid unbalanced sampling
+            start, end = start_and_end_indices[0]
+            start_and_end_indices = self._divide_interval(
+                start, end, self.INTERVAL_LENGTH
+            )
+
         available_samples = sum(end - start for start, end in start_and_end_indices)
         if available_samples < self._num_samples:
             raise ValueError(
