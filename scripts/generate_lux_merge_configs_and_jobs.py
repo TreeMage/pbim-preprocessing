@@ -13,8 +13,8 @@ def get_files(scenario: str, aggregation: str, resolution: Optional[str]):
             if resolution is not None
             else f"{s}/post-processed/{aggregation}/assembled.dat",
             "is_anomalous": anomalous,
-            "offset": 0.8 if scenario == "N" else 0,
-            "ratio": 0.2,
+            "offset": 0.9 if s == "N" else 0,
+            "ratio": 0.1 if s == "N" else 1,
         }
 
     return [block("N", False), block(scenario, True)]
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     )
     for scenario in ["S1", "S2", "S3", "S4"]:
         for aggregation in ["nosampling", "mean", "interpolate"]:
-            for resolution in ["25Hz", "250Hz", "1000Hz", "1500Hz"]:
+            for resolution in ["250Hz", "1000Hz", "1500Hz"]:
                 agg_res = (
                     f"{aggregation}-{resolution}"
                     if aggregation != "nosampling"

@@ -1,0 +1,19 @@
+{
+  "base_path": "../data/assembled/LUX/",
+  "output_file": "/tmp/test/assembled.dat",
+  "use_statistics_from": "../data/assembled/LUX/N/final/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/final/assembled.dat",
+        "is_anomalous": false,
+        "offset": 0.9,
+        "ratio": 0.1
+    },
+    {
+        "relative_path": "S1/final/assembled.dat",
+        "is_anomalous": true,
+        "offset": 0,
+        "ratio": 1.0
+    }
+]
+}

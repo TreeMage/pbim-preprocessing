@@ -42,13 +42,15 @@ def get_extra_args(
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS = 100000
+    NUM_WINDOWS_N = 1167000
+    NUM_WINDOWS_S = 116700
     WINDOW_SIZE = 256
 
     template = load_template(Path("template/postprocess_lux_job_template.yml"))
     for scenario in SCENARIOS:
+        num_windows = NUM_WINDOWS_N if scenario == "N" else NUM_WINDOWS_S
         for aggregation in ["nosampling", "mean", "interpolate"]:
-            for frequency in [25, 250, 1000, 1500]:
+            for frequency in [250, 1000, 1500]:
                 if aggregation == "nosampling":
                     input_path_parameter = (
                         f"/data/LUX/{scenario}/assembled/{aggregation}/assembled.dat"
@@ -71,7 +73,7 @@ if __name__ == "__main__":
                     OUTPUT_FILE=output_path_parameter,
                     STRATEGY="uniform",
                     STRATEGY_ARGS=get_extra_args(
-                        WINDOW_SIZE, NUM_WINDOWS, "uniform", aggregation
+                        WINDOW_SIZE, num_windows, "uniform", aggregation
                     ),
                     AGGREGATION=aggregation,
                     SCENARIO=scenario.lower(),

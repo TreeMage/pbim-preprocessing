@@ -31,15 +31,14 @@ FILE_NAMES = {
 }
 
 FILE_NAMES_UNDAMAGED_TEST = [
-        "april-week-02",
-        "january-week-02",
-        "june-week-02",
-        "may-week-02",
-        "february-week-02",
-        "july-week-02",
-        "march-week-02",
-    ]
-
+    "april-week-02",
+    "january-week-02",
+    "june-week-02",
+    "may-week-02",
+    "february-week-02",
+    "july-week-02",
+    "march-week-02",
+]
 
 
 def load_template(template_path: Path) -> jinja2.Template:

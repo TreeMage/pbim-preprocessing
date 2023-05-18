@@ -7,9 +7,9 @@ import jinja2
 # EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = (
 #    0.035  # was 0.06(++) 0.01(+) 0.008 (--) 0.0095 (--) 0.05 (++)
 # )
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
-# 100k
 # EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05  # was 0.09 (++)
+# 200k
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
 EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
 
 FILE_NAMES = {
@@ -105,11 +105,13 @@ def get_extra_args(
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS = 200000
+    NUM_WINDOWS_N = 714285
+    NUM_WINDOWS_S = 250000
     WINDOW_SIZE = 256
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
     for scenario in ["N", "S1", "S2", "S3"]:
+        num_windows = NUM_WINDOWS_N if scenario == "N" else NUM_WINDOWS_S
         for strategy in ["uniform", "weighted-random", "hourly"]:
             for aggregation in ["nosampling", "mean", "interpolate"]:
                 for filename in FILE_NAMES[scenario]:
@@ -126,7 +128,7 @@ if __name__ == "__main__":
                         OUTPUT_FILE=output_path_parameter,
                         STRATEGY=strategy,
                         STRATEGY_ARGS=get_extra_args(
-                            WINDOW_SIZE, NUM_WINDOWS, strategy, aggregation
+                            WINDOW_SIZE, num_windows, strategy, aggregation
                         ),
                         AGGREGATION=aggregation,
                         FILENAME=filename,
