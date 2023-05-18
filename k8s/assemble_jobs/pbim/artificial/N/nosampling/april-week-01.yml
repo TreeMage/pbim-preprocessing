@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: assemble-n-nosampling-april-week-01
+  name: assemble-n-mean-april-week-01
 spec:
   backoffLimit: 0
   template:
@@ -15,7 +15,7 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/nosampling/april-week-01/assembled.dat"
+              value: "/out/mean/april-week-01/assembled.dat"
             - name: MODE
               value: "pbim"
             - name: START_TIME
@@ -25,7 +25,7 @@ spec:
             - name: RESOLUTION
               value: "0"
             - name: STRATEGY
-              value: "nosampling"
+              value: "mean"
             - name: FORMAT
               value: "binary"
             - name: CHANNEL

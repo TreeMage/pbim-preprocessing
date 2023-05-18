@@ -58,7 +58,7 @@ def render_for_all_aggregations(
             output_path,
             scenario=scenario,
             filename=file_name,
-            strategy=aggregation,
+            strategy=aggregation if aggregation != "nosampling" else "mean",
             start_time=start_time.strftime("%Y-%m-%dT%H:%M:%S"),
             end_time=end_time.strftime("%Y-%m-%dT%H:%M:%S"),
             resolution=0 if aggregation == "nosampling" else 0.04,
