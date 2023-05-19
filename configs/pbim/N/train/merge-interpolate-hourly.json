@@ -1,0 +1,36 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/N/merged/reference/train/interpolate-hourly/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/post-processed/interpolate-hourly/april-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-hourly/january-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-hourly/june-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-hourly/may-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-hourly/february-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-hourly/march-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    }
+]
+}

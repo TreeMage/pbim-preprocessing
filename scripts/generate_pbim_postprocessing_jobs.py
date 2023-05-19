@@ -9,34 +9,27 @@ import jinja2
 # )
 # EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05  # was 0.09 (++)
 # 200k
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
+#EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
+#EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
 
-FILE_NAMES = {
-    # Normal
-    "N": [
-        "april-week-01",
-        "january-week-01",
-        "june-week-01",
-        "may-week-01",
-        "february-week-01",
-        "july-week-01",
-        "march-week-01",
-    ],
-    # Damaged
-    "S1": [
-        "july-week-02",
-        "august-week-01",
-    ],
-    "S2": [
-        "july-week-02",
-        "august-week-01",
-    ],
-    "S3": [
-        "july-week-02",
-        "august-week-01",
-    ],
-}
+
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 1#0.018
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 1#0.017
+
+WINDOW_SIZE = 256
+FILE_NAME_TEMPLATES_UNDAMAGED = [
+    "april-week",
+    "january-week",
+    "june-week",
+    "may-week",
+    "february-week",
+    "march-week",
+]
+
+FILE_NAME_TEMPLATES_DAMAGED = [
+    "july-week",
+    "august-week",
+]
 
 SAMPLES_PER_HOUR = 4
 SAMPLE_RESOLUTION = {"mean": 25, "interpolate": 25, "nosampling": 75}
@@ -62,7 +55,8 @@ def get_hourly_strategy_extra_args(
         samples_per_hourly_sample / SAMPLE_RESOLUTION[aggregation]
     )
     # correction = 1 if aggregation == "nosampling" else 6  # 100k samples
-    correction = 1 if aggregation == "nosampling" else 9  # 200k samples
+    #correction = 1 if aggregation == "nosampling" else 9  # 200k samples
+    correction = 1 if aggregation == "nosampling" else 9  # 666k samples
     return f"--samples-per-hour {SAMPLES_PER_HOUR + correction} --sample-length {sample_length}"
 
 
@@ -79,7 +73,7 @@ def get_num_samples(
                 if aggregation == "nosampling"
                 else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE
             )
-            return int(target_windows * window_size * scaling_factor)
+            return int(target_windows * scaling_factor)
         case "hourly":
             raise NotImplementedError("Use get_hourly_strategy_extra_args instead")
 
@@ -104,34 +98,68 @@ def get_extra_args(
             )
 
 
-if __name__ == "__main__":
-    NUM_WINDOWS_N = 714285
-    NUM_WINDOWS_S = 250000
-    WINDOW_SIZE = 256
+def render_for_all_strategies_and_aggregations(
+    scenario: str, num_windows: int, filename: str, template: jinja2.Template
+):
+    for strategy in ["uniform", "weighted-random", "hourly"]:
+        for aggregation in ["nosampling", "mean", "interpolate"]:
+            input_path_parameter = f"/data/PBIM/{scenario}/assembled/{aggregation}/{filename}/assembled.dat"
+            output_path_parameter = f"/data/PBIM/{scenario}/post-processed/{aggregation}-{strategy}/{filename}/assembled.dat"
+            output_path = Path(
+                f"k8s/assemble_jobs/pbim/post-process-jobs/{scenario}/{strategy}/{filename}-{aggregation}-{strategy}.yml"
+            )
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            render_template_and_save(
+                template,
+                output_path,
+                INPUT_FILE=input_path_parameter,
+                OUTPUT_FILE=output_path_parameter,
+                STRATEGY=strategy,
+                STRATEGY_ARGS=get_extra_args(
+                    WINDOW_SIZE, num_windows, strategy, aggregation
+                ),
+                AGGREGATION=aggregation,
+                FILENAME=filename,
+                SCENARIO=scenario.lower(),
+                SEED=42,
+            )
+
+
+def main():
+    NUM_WINDOWS_TRAINING = 666666
+    NUM_WINDOWS_VALIDATION = 41666
+    NUM_WINDOWS_THRESHOLD = 41666
+    NUM_WINDOWS_TEST = 83333
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
-    for scenario in ["N", "S1", "S2", "S3"]:
-        num_windows = NUM_WINDOWS_N if scenario == "N" else NUM_WINDOWS_S
-        for strategy in ["uniform", "weighted-random", "hourly"]:
-            for aggregation in ["nosampling", "mean", "interpolate"]:
-                for filename in FILE_NAMES[scenario]:
-                    input_path_parameter = f"/data/PBIM/{scenario}/assembled/{aggregation}/{filename}/assembled.dat"
-                    output_path_parameter = f"/data/PBIM/{scenario}/post-processed/{aggregation}-{strategy}/{filename}/assembled.dat"
-                    output_path = Path(
-                        f"k8s/assemble_jobs/pbim/post-process-jobs/{scenario}/{strategy}/{filename}-{aggregation}-{strategy}.yml"
-                    )
-                    output_path.parent.mkdir(parents=True, exist_ok=True)
-                    render_template_and_save(
-                        template,
-                        output_path,
-                        INPUT_FILE=input_path_parameter,
-                        OUTPUT_FILE=output_path_parameter,
-                        STRATEGY=strategy,
-                        STRATEGY_ARGS=get_extra_args(
-                            WINDOW_SIZE, num_windows, strategy, aggregation
-                        ),
-                        AGGREGATION=aggregation,
-                        FILENAME=filename,
-                        SCENARIO=scenario.lower(),
-                        SEED=42,
-                    )
+    # Training data
+    for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED:
+        file_name = f"{file_name_template}-01"
+        render_for_all_strategies_and_aggregations(
+            "N", NUM_WINDOWS_TRAINING, file_name, template
+        )
+    # Validation data
+    for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED:
+        file_name = f"{file_name_template}-02"
+        render_for_all_strategies_and_aggregations(
+            "N", NUM_WINDOWS_VALIDATION, file_name, template
+        )
+
+    # Threshold data
+    for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED:
+        file_name = f"{file_name_template}-03"
+        render_for_all_strategies_and_aggregations(
+            "N", NUM_WINDOWS_THRESHOLD, file_name, template
+        )
+
+    # Test
+    for file_name_template in FILE_NAME_TEMPLATES_DAMAGED:
+        file_name = f"{file_name_template}-04"
+        for scenario in ["S1", "S2", "S3"]:
+            render_for_all_strategies_and_aggregations(
+                scenario, NUM_WINDOWS_TEST, file_name, template
+            )
+
+
+if __name__ == "__main__":
+    main()

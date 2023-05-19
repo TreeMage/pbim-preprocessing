@@ -46,7 +46,7 @@ def render_for_all_aggregations(
     file_name_template: str, week: int, scenario: str, template: jinja2.Template
 ):
     file_name = f"{file_name_template}{week:02d}"
-    start_time = START_TIMES[file_name_template] + DURATION * (week - 1)
+    start_time = START_TIMES[file_name_template] + datetime.timedelta(weeks=week - 1)
     end_time = start_time + DURATION
     for aggregation in ["mean", "interpolate", "nosampling"]:
         output_path = Path(
@@ -58,7 +58,7 @@ def render_for_all_aggregations(
             output_path,
             scenario=scenario,
             filename=file_name,
-            strategy=aggregation if aggregation != "nosampling" else "mean",
+            strategy=aggregation,
             start_time=start_time.strftime("%Y-%m-%dT%H:%M:%S"),
             end_time=end_time.strftime("%Y-%m-%dT%H:%M:%S"),
             resolution=0 if aggregation == "nosampling" else 0.04,
@@ -69,7 +69,7 @@ def main():
     template = load_template(Path("template/assemble_job_template_pbim.yml"))
     scenario = "N"
     for file_name_template in NORMAL_FILES:
-        for week in [1, 2]:
+        for week in [1, 2, 3, 4]:
             render_for_all_aggregations(file_name_template, week, scenario, template)
 
     for scenario in ["S1", "S2", "S3"]:

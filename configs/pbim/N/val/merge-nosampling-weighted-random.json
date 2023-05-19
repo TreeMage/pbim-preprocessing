@@ -1,0 +1,36 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/N/merged/reference/val/nosampling-weighted-random/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/post-processed/nosampling-weighted-random/april-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/nosampling-weighted-random/january-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/nosampling-weighted-random/june-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/nosampling-weighted-random/may-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/nosampling-weighted-random/february-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/nosampling-weighted-random/march-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    }
+]
+}

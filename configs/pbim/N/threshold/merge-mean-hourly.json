@@ -1,0 +1,36 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/N/merged/reference/threshold/mean-hourly/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/post-processed/mean-hourly/april-week-03/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/january-week-03/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/june-week-03/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/may-week-03/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/february-week-03/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/march-week-03/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    }
+]
+}

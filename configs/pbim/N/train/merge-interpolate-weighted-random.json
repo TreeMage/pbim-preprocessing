@@ -1,0 +1,36 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/N/merged/reference/train/interpolate-weighted-random/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/post-processed/interpolate-weighted-random/april-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-weighted-random/january-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-weighted-random/june-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-weighted-random/may-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-weighted-random/february-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-weighted-random/march-week-01/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    }
+]
+}

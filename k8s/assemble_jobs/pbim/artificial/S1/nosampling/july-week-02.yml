@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: assemble-s1-mean-july-week-02
+  name: assemble-s1-nosampling-july-week-02
 spec:
   backoffLimit: 0
   template:
@@ -15,17 +15,17 @@ spec:
             - name: BASE_PATH
               value: "/data"
             - name: OUTPUT_PATH
-              value: "/out/mean/july-week-02/assembled.dat"
+              value: "/out/nosampling/july-week-02/assembled.dat"
             - name: MODE
               value: "pbim"
             - name: START_TIME
-              value: "2018-07-08T23:59:59"
+              value: "2018-07-12T00:00:00"
             - name: END_TIME
-              value: "2018-07-12T23:59:58"
+              value: "2018-07-15T23:59:59"
             - name: RESOLUTION
               value: "0"
             - name: STRATEGY
-              value: "mean"
+              value: "mean" 
             - name: FORMAT
               value: "binary"
             - name: CHANNEL
@@ -33,10 +33,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "8Gi"
+              memory: "20Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "12Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

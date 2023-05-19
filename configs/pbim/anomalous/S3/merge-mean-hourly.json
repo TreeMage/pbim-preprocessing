@@ -1,15 +1,35 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/S3/merged/anomalous/reference/mean-hourly/assembled.dat",
-  "use_statistics_from": "/data/PBIM/N/merged/reference/mean-hourly/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/reference/train/mean-hourly/assembled.dat",
   "files": [
     {
-        "relative_path": "N/post-processed/mean-hourly/february-week-01/assembled.dat",
+        "relative_path": "N/post-processed/mean-hourly/april-week-04/assembled.dat",
         "is_anomalous": false,
         "include_in_statistics": false
     },
     {
-        "relative_path": "N/post-processed/mean-hourly/june-week-01/assembled.dat",
+        "relative_path": "N/post-processed/mean-hourly/january-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/june-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/may-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/february-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/mean-hourly/march-week-04/assembled.dat",
         "is_anomalous": false,
         "include_in_statistics": false
     },

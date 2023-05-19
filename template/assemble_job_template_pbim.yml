@@ -25,7 +25,7 @@ spec:
             - name: RESOLUTION
               value: "{{resolution}}"
             - name: STRATEGY
-              value: "{{strategy}}"
+              {% if strategy == "nosampling" %}value: "mean" {% else %}value: "{{strategy}}" {% endif %}
             - name: FORMAT
               value: "binary"
             - name: CHANNEL
@@ -33,10 +33,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "8Gi"
+              memory: "20Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "12Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

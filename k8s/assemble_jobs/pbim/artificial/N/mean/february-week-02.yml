@@ -19,13 +19,13 @@ spec:
             - name: MODE
               value: "pbim"
             - name: START_TIME
-              value: "2018-02-04T23:59:59"
+              value: "2018-02-08T00:00:00"
             - name: END_TIME
-              value: "2018-02-08T23:59:58"
+              value: "2018-02-11T23:59:59"
             - name: RESOLUTION
               value: "0.04"
             - name: STRATEGY
-              value: "mean"
+              value: "mean" 
             - name: FORMAT
               value: "binary"
             - name: CHANNEL
@@ -33,10 +33,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "8Gi"
+              memory: "20Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "12Gi"
           command: ["bash", "./scripts/assemble.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

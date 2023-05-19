@@ -116,7 +116,7 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
                 f"Cannot sample {self._num_samples} from {available_samples} samples."
             )
         windows_per_group = [
-            round((end - start) * self._num_samples / available_samples)
+            max(round((end - start) * self._num_samples / available_samples), 1)
             for start, end in start_and_end_indices
         ]
         sample_indices = []

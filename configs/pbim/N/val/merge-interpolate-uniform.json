@@ -1,0 +1,36 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/N/merged/reference/val/interpolate-uniform/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/april-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/january-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/june-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/may-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/february-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/march-week-02/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": true
+    }
+]
+}

@@ -1,15 +1,35 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/S3/merged/anomalous/reference/interpolate-uniform/assembled.dat",
-  "use_statistics_from": "/data/PBIM/N/merged/reference/interpolate-uniform/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/reference/train/interpolate-uniform/assembled.dat",
   "files": [
     {
-        "relative_path": "N/post-processed/interpolate-uniform/february-week-01/assembled.dat",
+        "relative_path": "N/post-processed/interpolate-uniform/april-week-04/assembled.dat",
         "is_anomalous": false,
         "include_in_statistics": false
     },
     {
-        "relative_path": "N/post-processed/interpolate-uniform/june-week-01/assembled.dat",
+        "relative_path": "N/post-processed/interpolate-uniform/january-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/june-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/may-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/february-week-04/assembled.dat",
+        "is_anomalous": false,
+        "include_in_statistics": false
+    },
+    {
+        "relative_path": "N/post-processed/interpolate-uniform/march-week-04/assembled.dat",
         "is_anomalous": false,
         "include_in_statistics": false
     },
