@@ -9,26 +9,35 @@ import jinja2
 # )
 # EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.05  # was 0.09 (++)
 # 200k
-#EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
-#EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
+# EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
+# EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
 
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 1#0.018
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 1#0.017
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1 = 10
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1 = 10
+
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2 = 1
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2 = 1
+
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_3 = 1
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_3 = 1
+
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_4 = 1
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_4 = 1
 
 WINDOW_SIZE = 256
-FILE_NAME_TEMPLATES_UNDAMAGED = [
-    "april-week",
-    "january-week",
-    "june-week",
-    "may-week",
-    "february-week",
-    "march-week",
+MONTHS_UNDAMAGED = [
+    "april",
+    "january",
+    "june",
+    "may",
+    "february",
+    "march",
 ]
 
-FILE_NAME_TEMPLATES_DAMAGED = [
-    "july-week",
-    "august-week",
+MONTHS_DAMAGED = [
+    "july",
+    "august",
 ]
 
 SAMPLES_PER_HOUR = 4
@@ -50,46 +59,69 @@ def get_hourly_strategy_extra_args(
     target_windows: int, window_size: int, dataset_length_in_hours, aggregation: str
 ) -> str:
     windows_per_sample = target_windows / (SAMPLES_PER_HOUR * dataset_length_in_hours)
-    samples_per_hourly_sample = math.ceil(windows_per_sample + window_size - 1)
-    sample_length = math.ceil(
-        samples_per_hourly_sample / SAMPLE_RESOLUTION[aggregation]
-    )
+    samples_per_hourly_sample = round(windows_per_sample)
     # correction = 1 if aggregation == "nosampling" else 6  # 100k samples
-    #correction = 1 if aggregation == "nosampling" else 9  # 200k samples
-    correction = 1 if aggregation == "nosampling" else 9  # 666k samples
-    return f"--samples-per-hour {SAMPLES_PER_HOUR + correction} --sample-length {sample_length}"
+    # correction = 1 if aggregation == "nosampling" else 9  # 200k samples
+    # correction = 2 if aggregation == "nosampling" else 14  # 666k samples
+    return f"--samples-per-hour {SAMPLES_PER_HOUR} --sample-length {samples_per_hourly_sample} --window-size {window_size}"
+
+
+def get_scaling_factor(week: int, aggregation: str) -> float:
+    match week:
+        case 1:
+            return (
+                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1
+                if aggregation == "nosampling"
+                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1
+            )
+        case 2:
+            return (
+                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2
+                if aggregation == "nosampling"
+                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2
+            )
+        case 3:
+            return (
+                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_3
+                if aggregation == "nosampling"
+                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_3
+            )
+        case 4:
+            return (
+                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_4
+                if aggregation == "nosampling"
+                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_4
+            )
+        case _:
+            raise ValueError(f"Invalid week: {week}")
 
 
 def get_num_samples(
-    target_windows: int, window_size: int, strategy: str, aggregation: str
+    target_windows: int, window_size: int, strategy: str, aggregation: str, week: int
 ) -> int:
     # windows = samples - window-size + 1 <=> samples = windows + window-size - 1
     match strategy:
         case "uniform":
             return target_windows
         case "weighted-random":
-            scaling_factor = (
-                EMPIRICAL_SCALING_FACTOR_NOSAMPLING
-                if aggregation == "nosampling"
-                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE
-            )
+            scaling_factor = get_scaling_factor(week, aggregation)
             return int(target_windows * scaling_factor)
         case "hourly":
             raise NotImplementedError("Use get_hourly_strategy_extra_args instead")
 
 
 def get_extra_args(
-    window_size: int, num_windows: int, strategy: str, aggregation: str
+    window_size: int, num_windows: int, strategy: str, aggregation: str, week: int
 ) -> str:
     match strategy:
         case "uniform":
             num_samples = get_num_samples(
-                num_windows, window_size, strategy, aggregation
+                num_windows, window_size, strategy, aggregation, week
             )
             return f"--num-samples {num_samples} --window-size {window_size}"
         case "weighted-random":
             num_samples = get_num_samples(
-                num_windows, window_size, strategy, aggregation
+                num_windows, window_size, strategy, aggregation, week
             )
             return f"--num-samples {num_samples} --window-size {window_size}"
         case "hourly":
@@ -99,14 +131,15 @@ def get_extra_args(
 
 
 def render_for_all_strategies_and_aggregations(
-    scenario: str, num_windows: int, filename: str, template: jinja2.Template
+    scenario: str, num_windows: int, month: str, week: int, template: jinja2.Template
 ):
+    filename = f"{month}-week-{week:02d}"
     for strategy in ["uniform", "weighted-random", "hourly"]:
         for aggregation in ["nosampling", "mean", "interpolate"]:
             input_path_parameter = f"/data/PBIM/{scenario}/assembled/{aggregation}/{filename}/assembled.dat"
             output_path_parameter = f"/data/PBIM/{scenario}/post-processed/{aggregation}-{strategy}/{filename}/assembled.dat"
             output_path = Path(
-                f"k8s/assemble_jobs/pbim/post-process-jobs/{scenario}/{strategy}/{filename}-{aggregation}-{strategy}.yml"
+                f"k8s/assemble_jobs/pbim/post-process-jobs/{scenario}/{strategy}/{week:02d}/{filename}-{aggregation}-{strategy}.yml"
             )
             output_path.parent.mkdir(parents=True, exist_ok=True)
             render_template_and_save(
@@ -116,7 +149,7 @@ def render_for_all_strategies_and_aggregations(
                 OUTPUT_FILE=output_path_parameter,
                 STRATEGY=strategy,
                 STRATEGY_ARGS=get_extra_args(
-                    WINDOW_SIZE, num_windows, strategy, aggregation
+                    WINDOW_SIZE, num_windows, strategy, aggregation, week
                 ),
                 AGGREGATION=aggregation,
                 FILENAME=filename,
@@ -129,36 +162,41 @@ def main():
     NUM_WINDOWS_TRAINING = 666666
     NUM_WINDOWS_VALIDATION = 41666
     NUM_WINDOWS_THRESHOLD = 41666
-    NUM_WINDOWS_TEST = 83333
+    NUM_WINDOWS_TEST_UNDAMGED = 83333
+    NUM_WINDOWS_TEST_DAMAGED = 250000
 
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
     # Training data
-    for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED:
-        file_name = f"{file_name_template}-01"
+    for month in MONTHS_UNDAMAGED:
         render_for_all_strategies_and_aggregations(
-            "N", NUM_WINDOWS_TRAINING, file_name, template
+            "N", NUM_WINDOWS_TRAINING, month, 1, template
         )
     # Validation data
-    for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED:
-        file_name = f"{file_name_template}-02"
+    for month in MONTHS_UNDAMAGED:
         render_for_all_strategies_and_aggregations(
-            "N", NUM_WINDOWS_VALIDATION, file_name, template
+            "N", NUM_WINDOWS_VALIDATION, month, 2, template
         )
 
     # Threshold data
-    for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED:
-        file_name = f"{file_name_template}-03"
+    for month in MONTHS_UNDAMAGED:
         render_for_all_strategies_and_aggregations(
-            "N", NUM_WINDOWS_THRESHOLD, file_name, template
+            "N", NUM_WINDOWS_THRESHOLD, month, 3, template
         )
 
-    # Test
-    for file_name_template in FILE_NAME_TEMPLATES_DAMAGED:
-        file_name = f"{file_name_template}-04"
-        for scenario in ["S1", "S2", "S3"]:
-            render_for_all_strategies_and_aggregations(
-                scenario, NUM_WINDOWS_TEST, file_name, template
-            )
+    # Test data non-damaged
+    for month in MONTHS_UNDAMAGED:
+        render_for_all_strategies_and_aggregations(
+            "N", NUM_WINDOWS_TEST_UNDAMGED, month, 4, template
+        )
+
+    # Test damaged
+    for scenario in ["S1", "S2", "S3"]:
+        render_for_all_strategies_and_aggregations(
+            scenario, NUM_WINDOWS_TEST_DAMAGED, "july", 2, template
+        )
+        render_for_all_strategies_and_aggregations(
+            scenario, NUM_WINDOWS_TEST_DAMAGED, "august", 1, template
+        )
 
 
 if __name__ == "__main__":

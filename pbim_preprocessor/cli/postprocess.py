@@ -11,10 +11,9 @@ from pbim_preprocessor.post_processor.sampling import (
     UniformSamplingStrategy,
     WeightedRandomSamplingStrategy,
     HourlySamplingStrategy,
-    MinutelySamplingStrategy,
 )
 
-StrategyTypes = Literal["uniform", "hourly", "minutely", "weighted-random"]
+StrategyTypes = Literal["uniform", "hourly", "weighted-random"]
 
 
 def _validate_extra_args(strategy: StrategyTypes, extra_args: Dict[str, Any]):
@@ -51,12 +50,8 @@ def _make_strategy(
         case "hourly":
             return HourlySamplingStrategy(
                 samples_per_hour=int(extra_args["samples-per-hour"]),
-                sample_length_in_seconds=int(extra_args["sample-length"]),
-            )
-        case "minutely":
-            return MinutelySamplingStrategy(
-                samples_per_minute=int(extra_args["samples-per-minute"]),
-                sample_length_in_seconds=int(extra_args["sample-length"]),
+                windows_per_sample=int(extra_args["sample-length"]),
+                window_size=window_size,
             )
         case "weighted-random":
             return WeightedRandomSamplingStrategy(
@@ -81,9 +76,7 @@ def _group_extra_args(extra_args: List[Any]) -> Dict[str, Any]:
 @click.argument(
     "output-file", type=click.Path(exists=False, path_type=Path, dir_okay=False)
 )
-@click.argument(
-    "strategy", type=click.Choice(["uniform", "hourly", "minutely", "weighted-random"])
-)
+@click.argument("strategy", type=click.Choice(["uniform", "hourly", "weighted-random"]))
 @click.option("--window-size", type=int, default=128)
 @click.option("--remove-zero-windows", type=bool, default=True)
 @click.option("--seed", type=int, default=None)

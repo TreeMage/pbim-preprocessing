@@ -43,25 +43,34 @@ def _merge_windows(sample_indices: List[int], window_size: int):
 
 
 def _sample_next_interval(
-    time: np.ndarray,
-    sample_length_in_seconds: float,
+    windows_per_sample: int,
+    window_size: int,
     start_and_end_indices: List[Tuple[int, int]],
     start_index: int,
 ):
-    current_length = 0
-
     if (group_index := _find_group_index(start_index, start_and_end_indices)) is None:
         return None
 
     sample_indices = []
+    current_length_in_windows = 0
     current_start, current_end = start_and_end_indices[group_index]
     if start_index < current_start:
         start_index = current_start
     current_index = start_index
-    while current_length < sample_length_in_seconds:
-        sample_indices.append(current_index)
-        current_length = (time[current_index] - time[start_index]) / 1000
-        current_index += 1
+    while current_length_in_windows < windows_per_sample:
+        windows_in_current_cut = current_end - current_start - window_size + 1
+        if current_length_in_windows + windows_in_current_cut <= windows_per_sample:
+            sample_indices.extend(
+                [current_start + i for i in range(current_end - current_start)]
+            )
+            current_index = current_end
+            current_length_in_windows += windows_in_current_cut
+        else:
+            left_over_windows = windows_per_sample - current_length_in_windows
+            left_over_samples = left_over_windows + window_size - 1
+            sample_indices.extend([current_start + i for i in range(left_over_samples)])
+            current_index += left_over_samples
+            current_length_in_windows += left_over_windows
         if current_index >= current_end:
             group_index += 1
             if group_index >= len(start_and_end_indices):
@@ -221,11 +230,13 @@ class IntervalSamplingStrategy(DatasetSamplingStrategy):
         self,
         interval_length_in_seconds: int,
         samples_per_interval: int,
-        sample_length_in_seconds: int,
+        windows_per_sample: int,
+        window_size: int,
     ):
         self._interval_length_in_seconds = interval_length_in_seconds
         self._samples_per_interval = samples_per_interval
-        self._sample_length_in_seconds = sample_length_in_seconds
+        self._windows_per_sample = windows_per_sample
+        self._window_size = window_size
 
     @staticmethod
     def _make_datetime(timestamp: float) -> datetime.datetime:
@@ -264,8 +275,8 @@ class IntervalSamplingStrategy(DatasetSamplingStrategy):
                     time, self._make_timestamp(interval_start)
                 ).item()
                 interval = _sample_next_interval(
-                    time,
-                    self._sample_length_in_seconds,
+                    self._windows_per_sample,
+                    self._window_size,
                     start_and_end_indices,
                     start_index,
                 )
@@ -278,10 +289,7 @@ class IntervalSamplingStrategy(DatasetSamplingStrategy):
 
 
 class HourlySamplingStrategy(IntervalSamplingStrategy):
-    def __init__(self, samples_per_hour: int, sample_length_in_seconds: int):
-        super().__init__(3600, samples_per_hour, sample_length_in_seconds)
-
-
-class MinutelySamplingStrategy(IntervalSamplingStrategy):
-    def __init__(self, samples_per_minute: int, sample_length_in_seconds: int):
-        super().__init__(60, samples_per_minute, sample_length_in_seconds)
+    def __init__(
+        self, samples_per_hour: int, windows_per_sample: int, window_size: int
+    ):
+        super().__init__(3600, samples_per_hour, windows_per_sample, window_size)

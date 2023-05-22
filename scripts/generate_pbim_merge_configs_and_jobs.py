@@ -20,8 +20,9 @@ FILE_NAME_TEMPLATES_DAMAGED = [
 ]
 
 
-
-def get_files(scenario: str, strategy: str, aggregation: str, mode: Optional[str] = None):
+def get_files(
+    scenario: str, strategy: str, aggregation: str, mode: Optional[str] = None
+):
     def block(s: str, name: str, anomalous: bool):
         return {
             "relative_path": f"{s}/post-processed/{aggregation}-{strategy}/{name}/assembled.dat",
@@ -41,11 +42,13 @@ def get_files(scenario: str, strategy: str, aggregation: str, mode: Optional[str
                 case _:
                     raise ValueError(f"Unknown mode: {mode}")
             return [
-                block("N", f"{file_name_template}-{week:02d}", False) for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED
+                block("N", f"{file_name_template}-{week:02d}", False)
+                for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED
             ]
         case _:
             undamaged_blocks = [
-                block("N", f"{file_name_template}-04", False) for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED
+                block("N", f"{file_name_template}-04", False)
+                for file_name_template in FILE_NAME_TEMPLATES_UNDAMAGED
             ]
             damaged_blocks = [
                 block(scenario, "july-week-02", True),
@@ -67,7 +70,9 @@ def render_template_and_save(template: jinja2.Template, output_path: Path, **kwa
 def get_output_path_config(scenario: str, strategy: str, aggregation: str, mode: str):
     match scenario:
         case "N":
-            return Path(f"configs/pbim/{scenario}/{mode}/merge-{aggregation}-{strategy}.json")
+            return Path(
+                f"configs/pbim/{scenario}/{mode}/merge-{aggregation}-{strategy}.json"
+            )
         case _:
             return Path(
                 f"configs/pbim/anomalous/{scenario}/merge-{aggregation}-{strategy}.json"
@@ -82,7 +87,12 @@ def get_dataset_output_path(scenario: str, strategy: str, aggregation: str, mode
             return f"/data/PBIM/{scenario}/merged/anomalous/reference/{aggregation}-{strategy}/assembled.dat"
 
 
-def render_for_all_aggregations_and_strategies(scenario: str, job_template: jinja2.Template, merge_config_template: jinja2.Template, mode: str):
+def render_for_all_aggregations_and_strategies(
+    scenario: str,
+    job_template: jinja2.Template,
+    merge_config_template: jinja2.Template,
+    mode: str,
+):
     for strategy in ["hourly", "uniform", "weighted-random"]:
         for aggregation in ["nosampling", "mean", "interpolate"]:
             output_path_job = Path(
