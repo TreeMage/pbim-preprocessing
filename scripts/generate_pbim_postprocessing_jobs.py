@@ -12,9 +12,15 @@ import jinja2
 # EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
 # EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
 
+CORRECTION_FACTOR_HOURLY_MEAN_AND_INTERPOLATE = (
+    1.313  # was 1.315 (+) 1.305 (-) 1.310 (-)
+)
+CORRECTION_FACTOR_HOURLY_NOSAMPLING = 1.16  # was 1.315 (+) 1.2 (+)
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1 = 10
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1 = 10
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1 = (
+    4.52  # 1 (--) # was 4 (-) 4.3 (-) 4.35 (-) 4.45 (-)
+)
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1 = 4.8  # 1 (--) # 4 (-)
 
 EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2 = 1
 EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2 = 1
@@ -59,7 +65,12 @@ def get_hourly_strategy_extra_args(
     target_windows: int, window_size: int, dataset_length_in_hours, aggregation: str
 ) -> str:
     windows_per_sample = target_windows / (SAMPLES_PER_HOUR * dataset_length_in_hours)
-    samples_per_hourly_sample = round(windows_per_sample)
+    correction_factor = (
+        CORRECTION_FACTOR_HOURLY_NOSAMPLING
+        if aggregation == "nosampling"
+        else CORRECTION_FACTOR_HOURLY_MEAN_AND_INTERPOLATE
+    )
+    samples_per_hourly_sample = round(windows_per_sample * correction_factor)
     # correction = 1 if aggregation == "nosampling" else 6  # 100k samples
     # correction = 1 if aggregation == "nosampling" else 9  # 200k samples
     # correction = 2 if aggregation == "nosampling" else 14  # 666k samples

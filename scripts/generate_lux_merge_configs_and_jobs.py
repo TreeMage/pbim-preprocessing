@@ -6,12 +6,14 @@ from typing import Optional
 import jinja2
 
 
-def get_files(scenario: str, aggregation: str, resolution: Optional[str]):
+def get_files(
+    scenario: str, aggregation: str, window_size: int, resolution: Optional[str]
+):
     def block(s: str, anomalous: bool):
         return {
-            "relative_path": f"{s}/post-processed/{aggregation}/{resolution}/assembled.dat"
+            "relative_path": f"{s}/post-processed/{window_size}/{aggregation}/{resolution}/assembled.dat"
             if resolution is not None
-            else f"{s}/post-processed/{aggregation}/assembled.dat",
+            else f"{s}/post-processed/{window_size}/{aggregation}/assembled.dat",
             "is_anomalous": anomalous,
             "offset": 0.9 if s == "N" else 0,
             "ratio": 0.1 if s == "N" else 1,
@@ -38,14 +40,17 @@ def get_output_path_config(scenario: str, aggregation: str, resolution: Optional
     return Path(f"configs/lux/anomalous/{scenario}/{file_name}")
 
 
-def get_dataset_output_path(scenario: str, aggregation: str, resolution: Optional[str]):
+def get_dataset_output_path(
+    scenario: str, aggregation: str, window_size: int, resolution: Optional[str]
+):
     if resolution is not None:
-        return f"/data/LUX/{scenario}/merged/anomalous/reference/{aggregation}/{resolution}/assembled.dat"
+        return f"/data/LUX/{scenario}/merged/anomalous/reference/{window_size}/{aggregation}/{resolution}/assembled.dat"
     else:
-        return f"/data/LUX/{scenario}/merged/anomalous/reference/{aggregation}/assembled.dat"
+        return f"/data/LUX/{scenario}/merged/anomalous/reference/{window_size}/{aggregation}/assembled.dat"
 
 
 if __name__ == "__main__":
+    WINDOW_SIZE = 128
     job_template = load_template(Path("template/merge_lux_job_template.yml"))
     merge_config_template = load_template(
         Path("template/merge_lux_config_template.json")
@@ -76,8 +81,10 @@ if __name__ == "__main__":
                     OUTPUT_FILE=get_dataset_output_path(
                         scenario,
                         aggregation,
+                        WINDOW_SIZE,
                         resolution if aggregation != "nosampling" else None,
                     ),
+                    WINDOW_SIZE=WINDOW_SIZE,
                     AGGREGATION=aggregation,
                     RESOLUTION=resolution,
                     SCENARIO=scenario,
@@ -85,6 +92,7 @@ if __name__ == "__main__":
                         get_files(
                             scenario,
                             aggregation,
+                            WINDOW_SIZE,
                             resolution if aggregation != "nosampling" else None,
                         ),
                         indent=4,

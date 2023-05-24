@@ -15,11 +15,11 @@ spec:
             - name: INPUT_FILE
               value: "/data/LUX/S1/assembled/mean/1500Hz/assembled.dat"
             - name: OUTPUT_FILE
-              value: "/data/LUX/S1/post-processed/mean/1500Hz/assembled.dat"
+              value: "/data/LUX/S1/post-processed/128/mean/1500Hz/assembled.dat"
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 116700 --window-size 256"
+              value: "--num-samples 116700 --window-size 128"
             - name: SEED
               value: "42"
           resources:

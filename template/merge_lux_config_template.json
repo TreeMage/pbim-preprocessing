@@ -3,9 +3,9 @@
   "output_file": "{{OUTPUT_FILE}}",
   {%- if SCENARIO != "N" %}
   {%- if AGGREGATION == "nosampling" %}
-  "use_statistics_from": "/data/LUX/N/post-processed/{{AGGREGATION}}/assembled.dat",
+  "use_statistics_from": "/data/LUX/N/post-processed/{{WINDOW_SIZE}}/{{AGGREGATION}}/assembled.dat",
   {%- else %}
-  "use_statistics_from": "/data/LUX/N/post-processed/{{AGGREGATION}}/{{RESOLUTION}}/assembled.dat",
+  "use_statistics_from": "/data/LUX/N/post-processed/{{WINDOW_SIZE}}/{{AGGREGATION}}/{{RESOLUTION}}/assembled.dat",
   {%- endif %}
   {%- endif %}
   "files": {{FILES}}

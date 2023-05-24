@@ -15,11 +15,11 @@ spec:
             - name: INPUT_FILE
               value: "/data/LUX/N/assembled/nosampling/assembled.dat"
             - name: OUTPUT_FILE
-              value: "/data/PBIM/N/post-processed/nosampling/assembled.dat"
+              value: "/data/LUX/N/post-processed/128/nosampling/assembled.dat"
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 1167000 --window-size 256"
+              value: "--num-samples 1167000 --window-size 128"
             - name: SEED
               value: "42"
           resources:

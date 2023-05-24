@@ -44,7 +44,7 @@ def get_extra_args(
 if __name__ == "__main__":
     NUM_WINDOWS_N = 1167000
     NUM_WINDOWS_S = 116700
-    WINDOW_SIZE = 256
+    WINDOW_SIZE = 128
 
     template = load_template(Path("template/postprocess_lux_job_template.yml"))
     for scenario in SCENARIOS:
@@ -55,13 +55,13 @@ if __name__ == "__main__":
                     input_path_parameter = (
                         f"/data/LUX/{scenario}/assembled/{aggregation}/assembled.dat"
                     )
-                    output_path_parameter = f"/data/PBIM/{scenario}/post-processed/{aggregation}/assembled.dat"
+                    output_path_parameter = f"/data/LUX/{scenario}/post-processed/{WINDOW_SIZE}/{aggregation}/assembled.dat"
                     output_path = Path(
                         f"k8s/assemble_jobs/lux/post-process-jobs/{scenario}/{aggregation}.yml"
                     )
                 else:
                     input_path_parameter = f"/data/LUX/{scenario}/assembled/{aggregation}/{frequency}Hz/assembled.dat"
-                    output_path_parameter = f"/data/LUX/{scenario}/post-processed/{aggregation}/{frequency}Hz/assembled.dat"
+                    output_path_parameter = f"/data/LUX/{scenario}/post-processed/{WINDOW_SIZE}/{aggregation}/{frequency}Hz/assembled.dat"
                     output_path = Path(
                         f"k8s/assemble_jobs/lux/post-process-jobs/{scenario}/{aggregation}-{frequency}.yml"
                     )
