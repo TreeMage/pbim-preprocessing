@@ -42,7 +42,7 @@ spec:
             - mountPath: /out
               name: out
       imagePullSecrets:
-        - name: lsx-registry
+        - name: lsx-harbor
       restartPolicy: "Never"
       volumes:
         - name: data

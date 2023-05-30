@@ -21,8 +21,8 @@ EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1 = (
 )
 EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1 = 5.5  # 1 (--) # 4 (-) 4.8 (-)
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2 = 1
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2 = 1
+EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2 = 5
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2 = 6
 
 EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_3 = 1
 EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_3 = 1
@@ -33,7 +33,7 @@ EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_4 = 1
 WINDOW_SIZE = 256
 MONTHS_UNDAMAGED = [
     "april",
-    #    "january",
+    "january",
     "june",
     "may",
     "february",
@@ -178,6 +178,8 @@ def main():
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
     # Training data
     for month in MONTHS_UNDAMAGED:
+        if month == "january":
+            continue
         render_for_all_strategies_and_aggregations(
             "N", NUM_WINDOWS_TRAINING, month, 1, template
         )

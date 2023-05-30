@@ -28,7 +28,7 @@ spec:
             - mountPath: /tmp
               name: tmp
       imagePullSecrets:
-        - name: lsx-registry
+        - name: lsx-harbor
       restartPolicy: "Never"
       volumes:
         - name: data

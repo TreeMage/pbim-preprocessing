@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "weighted-random"
             - name: STRATEGY_ARGS
-              value: "--num-samples 250000 --window-size 256"
+              value: "--num-samples 1250000 --window-size 256"
             - name: SEED
               value: "42"
           resources:
@@ -36,7 +36,7 @@ spec:
             - mountPath: /tmp
               name: tmp
       imagePullSecrets:
-        - name: lsx-registry
+        - name: lsx-harbor
       restartPolicy: "Never"
       volumes:
         - name: data
