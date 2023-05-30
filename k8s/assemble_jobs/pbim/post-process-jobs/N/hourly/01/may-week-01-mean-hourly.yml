@@ -8,7 +8,7 @@ spec:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
+        - image: lsx-harbor.informatik.uni-wuerzburg.de/studkohlmann/pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "hourly"
             - name: STRATEGY_ARGS
-              value: "--samples-per-hour 4 --sample-length 2280 --window-size 256"
+              value: "--samples-per-hour 4 --sample-length 2281 --window-size 256"
             - name: SEED
               value: "42"
           resources:

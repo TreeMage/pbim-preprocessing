@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import math
 from pathlib import Path
 import jinja2
 
@@ -13,14 +12,14 @@ import jinja2
 # EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
 
 CORRECTION_FACTOR_HOURLY_MEAN_AND_INTERPOLATE = (
-    1.313  # was 1.315 (+) 1.305 (-) 1.310 (-)
+    1.314  # was 1.315 (+) 1.305 (-) 1.310 (-) 1.313 (-)
 )
-CORRECTION_FACTOR_HOURLY_NOSAMPLING = 1.16  # was 1.315 (+) 1.2 (+)
+CORRECTION_FACTOR_HOURLY_NOSAMPLING = 1.13  # was 1.315 (+) 1.2 (+) 1.16 (+)
 
 EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1 = (
     4.52  # 1 (--) # was 4 (-) 4.3 (-) 4.35 (-) 4.45 (-)
 )
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1 = 4.8  # 1 (--) # 4 (-)
+EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1 = 5.5  # 1 (--) # 4 (-) 4.8 (-)
 
 EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2 = 1
 EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2 = 1
@@ -34,7 +33,7 @@ EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_4 = 1
 WINDOW_SIZE = 256
 MONTHS_UNDAMAGED = [
     "april",
-    "january",
+    #    "january",
     "june",
     "may",
     "february",

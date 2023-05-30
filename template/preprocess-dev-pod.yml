@@ -8,7 +8,7 @@ spec:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
+        - image: lsx-harbor.informatik.uni-wuerzburg.de/studkohlmann/pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           resources:
