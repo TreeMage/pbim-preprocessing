@@ -11,26 +11,37 @@ import jinja2
 # EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE = 0.026  # was 0.035 0.025
 # EMPIRICAL_SCALING_FACTOR_NOSAMPLING = 0.035  # was 0.05 (++) 0.04 (+)
 
-CORRECTION_FACTOR_HOURLY_MEAN_AND_INTERPOLATE = (
-    1.314  # was 1.315 (+) 1.305 (-) 1.310 (-) 1.313 (-)
-)
-CORRECTION_FACTOR_HOURLY_NOSAMPLING = 1.13  # was 1.315 (+) 1.2 (+) 1.16 (+)
+CORRECTION_FACTORS_HOURLY_MEAN_AND_INTERPOLATE = {
+    1: 1.3145,  # was 1.315 (+) 1.305 (-) 1.310 (-) 1.313 (-) 1.3145 (663771)
+    2: 1.1,  # was 1.315 (51766)
+    3: 1.1,
+    4: 1,
+}
+CORRECTION_FACTORS_HOURLY_NOSAMPLING = {
+    1: 1.135,  # was 1.315 (+) 1.2 (+) 1.16 (+) 1.13 (657270)
+    2: 1.08,  # was 1.13 (44772)
+    3: 1.08,
+    4: 1,
+}
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1 = (
-    4.52  # 1 (--) # was 4 (-) 4.3 (-) 4.35 (-) 4.45 (-)
-)
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1 = 5.5  # 1 (--) # 4 (-) 4.8 (-)
+EMPIRICAL_SCALING_FACTORS_MEAN_AND_INTERPOLATE = {
+    1: 4.55,  # 1 (--) # was 4 (-) 4.3 (-) 4.35 (-) 4.45 (-) 4.52 (654749)
+    2: 25,  # 5 (7824)
+    3: 25,
+    4: 1,
+}
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2 = 5
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2 = 6
+EMPIRICAL_SCALING_FACTORS_NOSAMPLING = {
+    1: 5.6,  # 1 (--) # 4 (-) 4.8 (-) 5.5 (655856)
+    2: 30,  # 6 (5501)
+    3: 30,
+    4: 1,
+}
 
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_3 = 1
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_3 = 1
-
-EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_4 = 1
-EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_4 = 1
 
 WINDOW_SIZE = 256
+
+
 MONTHS_UNDAMAGED = [
     "april",
     "january",
@@ -61,13 +72,17 @@ def render_template_and_save(template: jinja2.Template, output_path: Path, **kwa
 
 
 def get_hourly_strategy_extra_args(
-    target_windows: int, window_size: int, dataset_length_in_hours, aggregation: str
+    target_windows: int,
+    window_size: int,
+    dataset_length_in_hours,
+    aggregation: str,
+    week: int,
 ) -> str:
     windows_per_sample = target_windows / (SAMPLES_PER_HOUR * dataset_length_in_hours)
     correction_factor = (
-        CORRECTION_FACTOR_HOURLY_NOSAMPLING
+        CORRECTION_FACTORS_HOURLY_NOSAMPLING[week]
         if aggregation == "nosampling"
-        else CORRECTION_FACTOR_HOURLY_MEAN_AND_INTERPOLATE
+        else CORRECTION_FACTORS_HOURLY_MEAN_AND_INTERPOLATE[week]
     )
     samples_per_hourly_sample = round(windows_per_sample * correction_factor)
     # correction = 1 if aggregation == "nosampling" else 6  # 100k samples
@@ -77,33 +92,11 @@ def get_hourly_strategy_extra_args(
 
 
 def get_scaling_factor(week: int, aggregation: str) -> float:
-    match week:
-        case 1:
-            return (
-                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_1
-                if aggregation == "nosampling"
-                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_1
-            )
-        case 2:
-            return (
-                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_2
-                if aggregation == "nosampling"
-                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_2
-            )
-        case 3:
-            return (
-                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_3
-                if aggregation == "nosampling"
-                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_3
-            )
-        case 4:
-            return (
-                EMPIRICAL_SCALING_FACTOR_NOSAMPLING_WEEK_4
-                if aggregation == "nosampling"
-                else EMPIRICAL_SCALING_FACTOR_MEAN_AND_INTERPOLATE_WEEK_4
-            )
-        case _:
-            raise ValueError(f"Invalid week: {week}")
+    return (
+        EMPIRICAL_SCALING_FACTORS_NOSAMPLING[week]
+        if aggregation == "nosampling"
+        else EMPIRICAL_SCALING_FACTORS_MEAN_AND_INTERPOLATE[week]
+    )
 
 
 def get_num_samples(
@@ -136,7 +129,7 @@ def get_extra_args(
             return f"--num-samples {num_samples} --window-size {window_size}"
         case "hourly":
             return get_hourly_strategy_extra_args(
-                num_windows, window_size, DATASET_LENGTH_IN_HOURS, aggregation
+                num_windows, window_size, DATASET_LENGTH_IN_HOURS, aggregation, week
             )
 
 
