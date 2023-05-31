@@ -1,27 +1,56 @@
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-import numpy as np
-from dataclasses_json import dataclass_json
+import struct
 
 
-@dataclass_json
+CUT_INDEX_ENTRY_SIZE = 17
+
+
 @dataclass
 class CutIndexEntry:
     start_measurement_index: int
     end_measurement_index: int
     anomalous: bool
 
-
-def _write_index_file(path: Path, entries: List[CutIndexEntry]):
-    with open(path.parent / f"{path.stem}.index.json", "w") as f:
-        json.dump(
-            [entry.to_dict() for entry in entries],
-            f,
-            indent=4,
+    def to_bytes(self) -> bytes:
+        return struct.pack(
+            "<qq?",
+            self.start_measurement_index,
+            self.end_measurement_index,
+            self.anomalous,
         )
+
+    @staticmethod
+    def from_bytes(data: bytes) -> "CutIndexEntry":
+        start, end, anomalous = struct.unpack("<qq?", data)
+        return CutIndexEntry(start, end, anomalous)
+
+
+@dataclass
+class CutIndex:
+    entries: List[CutIndexEntry]
+    version: int = 1
+
+    def to_bytes(self) -> bytes:
+        return struct.pack("<i", self.version) + b"".join(
+            [entry.to_bytes() for entry in self.entries]
+        )
+
+    @staticmethod
+    def from_bytes(data: bytes) -> "CutIndex":
+        entries = []
+        (version,) = struct.unpack("<i", data[:4])
+        for i in range(4, len(data), CUT_INDEX_ENTRY_SIZE):
+            entries.append(CutIndexEntry.from_bytes(data[i : i + CUT_INDEX_ENTRY_SIZE]))
+        return CutIndex(entries, version)
+
+
+def _write_index_file(path: Path, index: CutIndex):
+    serialized = index.to_bytes()
+    with open(path.parent / f"{path.stem}.index", "wb") as f:
+        f.write(serialized)
 
 
 def _write_index(
@@ -29,7 +58,7 @@ def _write_index(
     anomalous: List[bool] | bool,
     output_path: Path,
     original_lengths: List[int],
-    existing_indices: List[List[CutIndexEntry]] | None = None,
+    existing_indices: List[CutIndex] | None = None,
     offsets: List[int] | None = None,
 ):
     if offsets is None:
@@ -55,7 +84,7 @@ def _write_index(
             length = original_lengths[i]
             start_measurement_index = int(offset * length)
             end_measurement_index = start_measurement_index + num_measurements
-            for entry in index:
+            for entry in index.entries:
                 # Sample is before the cut
                 if (
                     entry.start_measurement_index < start_measurement_index
@@ -93,4 +122,5 @@ def _write_index(
             i += 1
             current_offset += num_measurements
 
-    _write_index_file(output_path, entries)
+    final_index = CutIndex(entries)
+    _write_index_file(output_path, final_index)

@@ -13,10 +13,16 @@ class LuxAccelerationParser:
         channels = []
         data = []
         with TdmsFile.open(file_path) as tdms_file:
-            time = tdms_file.groups()[0].channels()[0].time_track()
+            groups = [group for group in tdms_file.groups() if "All Data" in group.name]
+            if len(groups) != 1:
+                raise ValueError(
+                    f"Expected exactly one group with name 'All Data', but found {len(groups)}"
+                )
+            group = groups[0]
+            time = group.channels()[0].time_track()
             channels.append("time")
             data.append(time)
-            for channel in tdms_file.groups()[0].channels():
+            for channel in group.channels():
                 channels.append(channel.name)
                 data.append(channel[:])
 

@@ -6,7 +6,7 @@ import numpy as np
 import tqdm
 
 from pbim_preprocessor.cli.merge import _load_index
-from pbim_preprocessor.index import CutIndexEntry, _write_index_file
+from pbim_preprocessor.index import CutIndexEntry, _write_index_file, CutIndex
 from pbim_preprocessor.metadata import DatasetMetadata, _write_metadata_file
 from pbim_preprocessor.post_processor.sampling import DatasetSamplingStrategy
 from pbim_preprocessor.utils import _load_metadata
@@ -104,17 +104,15 @@ class DatasetSampler:
         return computed_indices
 
     @staticmethod
-    def _is_anomalous(index: int, cut_index: List[CutIndexEntry]) -> bool:
-        for entry in cut_index:
+    def _is_anomalous(index: int, cut_index: CutIndex) -> bool:
+        for entry in cut_index.entries:
             if entry.start_measurement_index <= index < entry.end_measurement_index:
                 return entry.anomalous
         raise ValueError(f"Index {index} is not in the cut index")
 
     @staticmethod
-    def _find_index_entry_for_index(
-        index: List[CutIndexEntry], i: int
-    ) -> CutIndexEntry:
-        for entry in index:
+    def _find_index_entry_for_index(index: CutIndex, i: int) -> CutIndexEntry:
+        for entry in index.entries:
             if entry.start_measurement_index <= i < entry.end_measurement_index:
                 return entry
 
@@ -171,4 +169,4 @@ class DatasetSampler:
             [end - start for start, end in contiguous_start_end_sample_indices]
         )
         _write_metadata_file(output_path, metadata)
-        _write_index_file(output_path, index_entries)
+        _write_index_file(output_path, CutIndex(index_entries))

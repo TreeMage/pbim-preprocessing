@@ -55,7 +55,7 @@ def _make_strategy(
             )
         case "weighted-random":
             return WeightedRandomSamplingStrategy(
-                num_samples=int(extra_args["num-samples"]),
+                num_windows=int(extra_args["num-samples"]),
                 window_size=window_size,
             )
 

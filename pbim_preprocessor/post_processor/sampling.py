@@ -9,6 +9,19 @@ import numpy as np
 from pbim_preprocessor.utils import LOGGER
 
 
+def _available_windows(start: int, end: int, window_size: int):
+    return max(end - start - window_size + 1, 0)
+
+
+def _available_windows_total(
+    start_and_end_indices: List[Tuple[int, int]], window_size: int
+):
+    return sum(
+        _available_windows(start, end, window_size)
+        for start, end in start_and_end_indices
+    )
+
+
 def _find_group_index(index: int, start_and_end_indices: List[Tuple[int, int]]):
     for i, (start, end) in enumerate(start_and_end_indices):
         if start <= index < end:
@@ -85,15 +98,13 @@ class DatasetSamplingStrategy(abc.ABC):
     @abc.abstractmethod
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
-    ) -> List[int]:
+    ) -> List[Tuple[int, int]]:
         pass
 
 
 class UniformSamplingStrategy(DatasetSamplingStrategy):
-    INTERVAL_LENGTH = 10000
-
-    def __init__(self, num_samples: int, window_size: int):
-        self._num_samples = num_samples
+    def __init__(self, num_windows: int, window_size: int):
+        self._num_windows = num_windows
         self._window_size = window_size
 
     @staticmethod
@@ -111,72 +122,41 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
 
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
-    ) -> List[int]:
-        if len(start_and_end_indices) == 1:
-            # Artificially create groups to avoid unbalanced sampling
-            start, end = start_and_end_indices[0]
-            start_and_end_indices = self._divide_interval(
-                start, end, self.INTERVAL_LENGTH
-            )
-
-        available_samples = sum(end - start for start, end in start_and_end_indices)
-        if available_samples < self._num_samples:
+    ) -> List[Tuple[int, int]]:
+        available_windows = _available_windows_total(
+            start_and_end_indices, self._window_size
+        )
+        if available_windows < self._num_windows:
             raise ValueError(
-                f"Cannot sample {self._num_samples} from {available_samples} samples."
+                f"Cannot sample {self._num_windows} from {available_windows} windows."
             )
         windows_per_group = [
-            max(round((end - start) * self._num_samples / available_samples), 1)
+            max(
+                round(
+                    (end - start - self._window_size)
+                    * self._num_windows
+                    / available_windows
+                ),
+                1,
+            )
             for start, end in start_and_end_indices
         ]
-        sample_indices = []
+        window_start_and_end_indices = []
         for (start, end), desired_windows in zip(
             start_and_end_indices, windows_per_group
         ):
-            group_length = end - start
-            if group_length / (desired_windows * (self._window_size + 1)) >= 1:
-                # We can sample individual windows
-                step = (
-                    group_length - desired_windows * self._window_size
-                ) // desired_windows
-            else:
-                # Windows will overlap
-                step = 1
-
-            sample_indices.extend(
-                [
-                    start + i * step
-                    for i in range(desired_windows)
-                    if start + i * step + self._window_size < end
-                ]
-            )
-        return _merge_windows(sample_indices, self._window_size)
-
-
-class RandomSamplingStrategy(DatasetSamplingStrategy):
-    def __init__(self, num_samples: int, window_size: int):
-        self._num_samples = num_samples
-        self._window_size = window_size
-
-    def compute_sample_indices(
-        self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
-    ) -> List[int]:
-        available_samples = sum(end - start for start, end in start_and_end_indices)
-        if available_samples < self._num_samples:
-            raise ValueError(
-                f"Cannot sample {self._num_samples} from {available_samples} samples."
-            )
-        window_indices = []
-        for start, end in start_and_end_indices:
-            window_indices.extend(list(range(start, end - self._window_size)))
-        sampled_indices = np.random.choice(
-            window_indices, self._num_samples, replace=False
-        ).tolist()
-        return _merge_windows(sorted(sampled_indices), self._window_size)
+            max_window_start_index = end - self._window_size
+            step = max(1, (max_window_start_index - start) // (desired_windows - 1))
+            for i in range(desired_windows):
+                window_start_and_end_indices.append(
+                    (start + i * step, start + i * step + self._window_size)
+                )
+        return window_start_and_end_indices
 
 
 class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
-    def __init__(self, num_samples: int, window_size: int):
-        self._num_samples = num_samples
+    def __init__(self, num_windows: int, window_size: int):
+        self._num_windows = num_windows
         self._window_size = window_size
 
     @staticmethod
@@ -192,11 +172,13 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
 
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
-    ) -> List[int]:
-        available_samples = sum(end - start for start, end in start_and_end_indices)
-        if available_samples < self._num_samples:
+    ) -> List[Tuple[int, int]]:
+        available_windows = _available_windows_total(
+            start_and_end_indices, self._window_size
+        )
+        if available_windows < self._num_windows:
             raise ValueError(
-                f"Cannot sample {self._num_samples} from {available_samples} samples."
+                f"Cannot sample {self._num_windows} from {available_windows} samples."
             )
         window_indices = []
         for start, end in start_and_end_indices:
@@ -207,22 +189,11 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
         weights = weights / np.sum(weights)
         sampled_indices = np.random.choice(
             window_indices,
-            self._num_samples // self._window_size,
+            self._num_windows // self._window_size,
             replace=False,
             p=weights,
-        ).tolist()
-        final_indices = []
-        last_index = -math.inf
-        for index in sorted(sampled_indices):
-            if index < last_index + self._window_size:
-                adjusted_index = last_index + self._window_size
-                remaining_length = index - last_index
-            else:
-                adjusted_index = index
-                remaining_length = self._window_size
-            last_index = index
-            final_indices.extend([adjusted_index + i for i in range(remaining_length)])
-        return final_indices
+        )
+        return [(index, index + self._window_size) for index in sampled_indices]
 
 
 class IntervalSamplingStrategy(DatasetSamplingStrategy):
@@ -293,3 +264,7 @@ class HourlySamplingStrategy(IntervalSamplingStrategy):
         self, samples_per_hour: int, windows_per_sample: int, window_size: int
     ):
         super().__init__(3600, samples_per_hour, windows_per_sample, window_size)
+
+
+if __name__ == "__main__":
+    print(_available_windows(0, 100, 99))

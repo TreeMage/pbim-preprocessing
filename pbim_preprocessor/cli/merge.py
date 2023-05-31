@@ -7,7 +7,7 @@ from typing import Optional, List, BinaryIO
 import click
 
 from pbim_preprocessor.metadata import DatasetMetadata, _write_metadata_file
-from pbim_preprocessor.index import _write_index, CutIndexEntry
+from pbim_preprocessor.index import _write_index, CutIndex
 from pbim_preprocessor.merge import MergeConfig
 from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER, _load_metadata
@@ -39,10 +39,10 @@ def _find_next_path(data_directory: Path, current: Path) -> Optional[Path]:
         return None
 
 
-def _load_index(path: Path) -> List[CutIndexEntry]:
-    index_path = path.parent / f"{path.stem}.index.json"
-    with open(index_path, "r") as f:
-        return [CutIndexEntry.from_dict(entry) for entry in json.load(f)]
+def _load_index(path: Path) -> CutIndex:
+    index_path = path.parent / f"{path.stem}.index"
+    with open(index_path, "rb") as f:
+        return CutIndex.from_bytes(f.read())
 
 
 def _parse_values(data: bytes, time_byte_size: int, channels: List[str]) -> List[float]:
