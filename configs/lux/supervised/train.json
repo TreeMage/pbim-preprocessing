@@ -6,27 +6,27 @@
     {
        "relative_path": "N/post-processed/supervised/256/nosampling/assembled.dat",
        "is_anomalous": false,
-       "ratio": 0.8888
+       "ratio": 0.8889
     },
     {
        "relative_path": "S1/post-processed/supervised/256/nosampling/assembled.dat",
        "is_anomalous": true,
-        "ratio": 0.8888
+        "ratio": 0.8889
     },
     {
       "relative_path": "S2/post-processed/supervised/256/nosampling/assembled.dat",
       "is_anomalous": true,
-      "ratio": 0.8888
+      "ratio": 0.8889
     },
     {
       "relative_path": "S3/post-processed/supervised/256/nosampling/assembled.dat",
       "is_anomalous": true,
-      "ratio": 0.8888
+      "ratio": 0.8889
     },
     {
       "relative_path": "S4/post-processed/supervised/256/nosampling/assembled.dat",
       "is_anomalous": true,
-      "ratio": 0.8888
+      "ratio": 0.8889
     }
   ]
 }
