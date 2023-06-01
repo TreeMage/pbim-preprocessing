@@ -1,3 +1,4 @@
+import shutil
 import struct
 from pathlib import Path
 from typing import List, BinaryIO, Optional, Tuple
@@ -142,31 +143,22 @@ class DatasetSampler:
         sample_indices = self._sampling_strategy.compute_sample_indices(
             time, contiguous_start_end_indices
         )
+        print("Copying data...")
+        shutil.copyfile(input_path, output_path)
         index_entries = []
-        with open(output_path, "wb") as output_file_handle:
-            with open(input_path, "rb") as input_file_handle:
-                contiguous_start_end_sample_indices = (
-                    self._compute_start_and_end_indices(sample_indices)
+        num_measurements = 0
+        for start, end in tqdm.tqdm(
+            sample_indices,
+            desc="Writing index entries",
+        ):
+            index_entries.append(
+                CutIndexEntry(
+                    start_measurement_index=start,
+                    end_measurement_index=end,
+                    anomalous=self._is_anomalous(start, index),
                 )
-                num_measurements = 0
-                for start, end in tqdm.tqdm(
-                    contiguous_start_end_sample_indices,
-                    desc="Writing continuous sample chunks",
-                ):
-                    index_entries.append(
-                        CutIndexEntry(
-                            start_measurement_index=num_measurements,
-                            end_measurement_index=num_measurements + end - start,
-                            anomalous=self._is_anomalous(start, index),
-                        )
-                    )
-                    num_measurements += end - start
-                    samples = self._load_raw_samples(
-                        input_file_handle, metadata, start, end
-                    )
-                    output_file_handle.write(samples)
-        metadata.length = sum(
-            [end - start for start, end in contiguous_start_end_sample_indices]
-        )
+            )
+            num_measurements += end - start
+        metadata.length = num_measurements
         _write_metadata_file(output_path, metadata)
         _write_index_file(output_path, CutIndex(index_entries))

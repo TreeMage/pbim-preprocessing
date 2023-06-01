@@ -30,21 +30,22 @@ class CutIndexEntry:
 
 @dataclass
 class CutIndex:
+    is_window_index: bool
     entries: List[CutIndexEntry]
     version: int = 1
 
     def to_bytes(self) -> bytes:
-        return struct.pack("<i", self.version) + b"".join(
+        return struct.pack("<?i", self.is_window_index, self.version) + b"".join(
             [entry.to_bytes() for entry in self.entries]
         )
 
     @staticmethod
     def from_bytes(data: bytes) -> "CutIndex":
         entries = []
-        (version,) = struct.unpack("<i", data[:4])
+        (is_window_index, version) = struct.unpack("<?i", data[:4])
         for i in range(4, len(data), CUT_INDEX_ENTRY_SIZE):
             entries.append(CutIndexEntry.from_bytes(data[i : i + CUT_INDEX_ENTRY_SIZE]))
-        return CutIndex(entries, version)
+        return CutIndex(is_window_index, entries, version)
 
 
 def _write_index_file(path: Path, index: CutIndex):
