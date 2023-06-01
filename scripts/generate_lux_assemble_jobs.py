@@ -4,7 +4,7 @@ from pathlib import Path
 import jinja2
 
 SCENARIOS = ["N", "S1", "S2", "S3", "S4"]
-FREQUENCIES = [25, 250, 1000, 1500]  # Hz
+FREQUENCIES = [250, 1000, 1500]  # Hz
 
 START_AND_END_TIMES = {
     "N": ("2014-01-23T00:00:00", "2014-01-31T11:59:59"),

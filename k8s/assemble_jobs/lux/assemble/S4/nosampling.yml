@@ -8,7 +8,7 @@ spec:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
+        - image: lsx-harbor.informatik.uni-wuerzburg.de/studkohlmann/pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
@@ -31,10 +31,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "32Gi"
+              memory: "24Gi"
             requests:
               cpu: "1"
-              memory: "32Gi"
+              memory: "8Gi"
           command: ["bash", "./scripts/assemble_lux_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container
@@ -42,7 +42,7 @@ spec:
             - mountPath: /out
               name: out
       imagePullSecrets:
-        - name: lsx-registry
+        - name: lsx-harbor
       restartPolicy: "Never"
       volumes:
         - name: data

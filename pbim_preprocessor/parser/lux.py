@@ -31,6 +31,7 @@ class LuxAccelerationParser:
 
 class LuxTemperatureParser:
     FIRST_TEMPERATURE_COLUMN_INDEX = 18
+    LAST_TEMPERATURE_COLUMN_INDEX = 25
 
     @staticmethod
     def _make_time_stamp_in_ns(value: datetime.time) -> float:
@@ -44,7 +45,7 @@ class LuxTemperatureParser:
     def parse(self, file: Path | IO) -> np.ndarray:
         df = pd.read_excel(file)
         df["average_temperature"] = df.values[
-            :, self.FIRST_TEMPERATURE_COLUMN_INDEX :
+            :, self.FIRST_TEMPERATURE_COLUMN_INDEX : self.LAST_TEMPERATURE_COLUMN_INDEX
         ].mean(axis=1)
         df["time"] = (
             df["Date"].values.astype(float)
