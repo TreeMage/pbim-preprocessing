@@ -161,4 +161,4 @@ class DatasetSampler:
             num_measurements += end - start
         metadata.length = num_measurements
         _write_metadata_file(output_path, metadata)
-        _write_index_file(output_path, CutIndex(index_entries))
+        _write_index_file(output_path, CutIndex(True, index_entries))

@@ -59,6 +59,7 @@ def _write_index(
     anomalous: List[bool] | bool,
     output_path: Path,
     original_lengths: List[int],
+    is_window_index: bool,
     existing_indices: List[CutIndex] | None = None,
     offsets: List[int] | None = None,
 ):
@@ -123,5 +124,5 @@ def _write_index(
             i += 1
             current_offset += num_measurements
 
-    final_index = CutIndex(entries)
+    final_index = CutIndex(is_window_index, entries)
     _write_index_file(output_path, final_index)
