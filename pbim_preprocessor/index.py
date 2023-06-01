@@ -42,8 +42,8 @@ class CutIndex:
     @staticmethod
     def from_bytes(data: bytes) -> "CutIndex":
         entries = []
-        (is_window_index, version) = struct.unpack("<?i", data[:4])
-        for i in range(4, len(data), CUT_INDEX_ENTRY_SIZE):
+        (is_window_index, version) = struct.unpack("<?i", data[:5])
+        for i in range(5, len(data), CUT_INDEX_ENTRY_SIZE):
             entries.append(CutIndexEntry.from_bytes(data[i : i + CUT_INDEX_ENTRY_SIZE]))
         return CutIndex(is_window_index, entries, version)
 
