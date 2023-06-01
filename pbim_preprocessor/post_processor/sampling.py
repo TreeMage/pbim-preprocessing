@@ -2,11 +2,11 @@ import abc
 import calendar
 import datetime
 import math
+import random
+
 from typing import List, Tuple
 
 import numpy as np
-
-from pbim_preprocessor.utils import LOGGER
 
 
 def _available_windows(start: int, end: int, window_size: int):
@@ -83,14 +83,13 @@ def _sample_next_interval(
             current_length_in_windows += windows_in_current_cut
         else:
             left_over_windows = windows_per_sample - current_length_in_windows
-            left_over_samples = left_over_windows + window_size - 1
             sample_indices.extend(
                 [
                     (current_start + i, current_start + i + window_size)
                     for i in range(left_over_windows)
                 ]
             )
-            current_index += left_over_samples
+            current_index += left_over_windows
             current_length_in_windows += left_over_windows
         if current_index >= current_end:
             group_index += 1
@@ -110,23 +109,26 @@ class DatasetSamplingStrategy(abc.ABC):
         pass
 
 
+class AlternatingRound:
+    def __init__(self):
+        self.up = True
+
+    def reset(self):
+        self.up = True
+
+    def __call__(self, value: float) -> int:
+        if self.up:
+            rounded = math.ceil(value)
+        else:
+            rounded = math.floor(value)
+        self.up = not self.up
+        return rounded
+
+
 class UniformSamplingStrategy(DatasetSamplingStrategy):
     def __init__(self, num_windows: int, window_size: int):
         self._num_windows = num_windows
         self._window_size = window_size
-
-    @staticmethod
-    def _divide_interval(start: int, end: int, length: int):
-        parts = []
-        current_start = start
-        current_end = min(start + length, end)
-
-        while current_start < end:
-            parts.append((current_start, current_end))
-            current_start = current_end
-            current_end = min(current_start + length, end)
-
-        return parts
 
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
@@ -138,9 +140,10 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
             raise ValueError(
                 f"Cannot sample {self._num_windows} from {available_windows} windows."
             )
+        alterating_round = AlternatingRound()
         windows_per_group = [
             max(
-                round(
+                alterating_round(
                     (end - start - self._window_size)
                     * self._num_windows
                     / available_windows
@@ -154,7 +157,7 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
             start_and_end_indices, windows_per_group
         ):
             max_window_start_index = end - self._window_size
-            step = max(1, (max_window_start_index - start) // (desired_windows - 1))
+            step = max(1, (max_window_start_index - start) // desired_windows)
             for i in range(desired_windows):
                 window_start_and_end_indices.append(
                     (start + i * step, start + i * step + self._window_size)
@@ -200,7 +203,7 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
             self._num_windows,
             replace=False,
             p=weights,
-        )
+        ).tolist()
         return [(index, index + self._window_size) for index in sampled_indices]
 
 
@@ -265,3 +268,15 @@ class HourlySamplingStrategy(IntervalSamplingStrategy):
         self, samples_per_hour: int, windows_per_sample: int, window_size: int
     ):
         super().__init__(3600, samples_per_hour, windows_per_sample, window_size)
+
+
+if __name__ == "__main__":
+    strat = UniformSamplingStrategy(666666, 256)
+    indices = []
+    current_start = 0
+    for i in range(259000):
+        gap = random.randint(1, 300)
+        length = random.randint(1000, 2000)
+        indices.append((current_start + gap, current_start + gap + length))
+        current_start += gap + length
+    print(len(strat.compute_sample_indices(np.arange(1), indices)))

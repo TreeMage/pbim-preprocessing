@@ -79,16 +79,16 @@ def get_hourly_strategy_extra_args(
     week: int,
 ) -> str:
     windows_per_sample = target_windows / (SAMPLES_PER_HOUR * dataset_length_in_hours)
-    correction_factor = (
-        CORRECTION_FACTORS_HOURLY_NOSAMPLING[week]
-        if aggregation == "nosampling"
-        else CORRECTION_FACTORS_HOURLY_MEAN_AND_INTERPOLATE[week]
-    )
-    samples_per_hourly_sample = round(windows_per_sample * correction_factor)
+    # correction_factor = (
+    #    CORRECTION_FACTORS_HOURLY_NOSAMPLING[week]
+    #    if aggregation == "nosampling"
+    #    else CORRECTION_FACTORS_HOURLY_MEAN_AND_INTERPOLATE[week]
+    # )
+    samples_per_hourly_sample = round(windows_per_sample)
     # correction = 1 if aggregation == "nosampling" else 6  # 100k samples
     # correction = 1 if aggregation == "nosampling" else 9  # 200k samples
     # correction = 2 if aggregation == "nosampling" else 14  # 666k samples
-    return f"--samples-per-hour {SAMPLES_PER_HOUR} --sample-length {samples_per_hourly_sample} --window-size {window_size}"
+    return f"--samples-per-hour {SAMPLES_PER_HOUR} --windows-per-sample {samples_per_hourly_sample} --window-size {window_size}"
 
 
 def get_scaling_factor(week: int, aggregation: str) -> float:
@@ -107,8 +107,7 @@ def get_num_samples(
         case "uniform":
             return target_windows
         case "weighted-random":
-            scaling_factor = get_scaling_factor(week, aggregation)
-            return int(target_windows * scaling_factor)
+            return target_windows
         case "hourly":
             raise NotImplementedError("Use get_hourly_strategy_extra_args instead")
 
@@ -121,12 +120,12 @@ def get_extra_args(
             num_samples = get_num_samples(
                 num_windows, window_size, strategy, aggregation, week
             )
-            return f"--num-samples {num_samples} --window-size {window_size}"
+            return f"--num-windows {num_samples} --window-size {window_size}"
         case "weighted-random":
             num_samples = get_num_samples(
                 num_windows, window_size, strategy, aggregation, week
             )
-            return f"--num-samples {num_samples} --window-size {window_size}"
+            return f"--num-windows {num_samples} --window-size {window_size}"
         case "hourly":
             return get_hourly_strategy_extra_args(
                 num_windows, window_size, DATASET_LENGTH_IN_HOURS, aggregation, week
@@ -171,8 +170,6 @@ def main():
     template = load_template(Path("template/postprocess_pbim_job_template.yml"))
     # Training data
     for month in MONTHS_UNDAMAGED:
-        if month == "january":
-            continue
         render_for_all_strategies_and_aggregations(
             "N", NUM_WINDOWS_TRAINING, month, 1, template
         )

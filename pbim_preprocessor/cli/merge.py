@@ -62,7 +62,7 @@ def _estimate_steps(f: BinaryIO, chunk_size: int, ratio: float = 1.0) -> int:
     return math.ceil(size * ratio / chunk_size)
 
 
-def _write_file(
+def _write_file_contiguous(
     input_file_path: Path,
     output_file_handle: BinaryIO,
     metadata: DatasetMetadata,
@@ -70,7 +70,7 @@ def _write_file(
     offset: float = 0.0,
     ratio: float = 1.0,
     include_in_statistics: bool = True,
-) -> int:
+):
     assert offset + ratio <= 1.0
     num_measurements = 0
     with open(input_file_path, "rb") as f:
@@ -125,6 +125,82 @@ def _write_file(
         return num_measurements
 
 
+def _write_file_windowed(
+    input_file_path: Path,
+    output_file_handle: BinaryIO,
+    metadata: DatasetMetadata,
+    index: CutIndex,
+    statistics_collector: Optional[StatisticsCollector] = None,
+    offset: float = 0.0,
+    ratio: float = 1.0,
+    include_in_statistics: bool = True,
+):
+    start_index_entry = int(offset * len(index.entries))
+    stop_index_entry = int((offset + ratio) * len(index.entries))
+    num_measurements = 0
+    with open(input_file_path, "rb") as f:
+        for index_entry in index.entries[start_index_entry:stop_index_entry]:
+            f.seek(
+                index_entry.start_measurement_index * metadata.measurement_size_in_bytes
+            )
+            data = f.read(
+                (
+                    index_entry.end_measurement_index
+                    - index_entry.start_measurement_index
+                )
+                * metadata.measurement_size_in_bytes
+            )
+            output_file_handle.write(data)
+            num_measurements += (
+                index_entry.end_measurement_index - index_entry.start_measurement_index
+            )
+            if statistics_collector is not None and include_in_statistics:
+                values = _parse_values(
+                    data,
+                    metadata.time_byte_size,
+                    metadata.channel_order,
+                )
+
+                for channel, value in zip(metadata.channel_order, values):
+                    statistics_collector.add(channel, value)
+
+    return num_measurements
+
+
+def _write_file(
+    input_file_path: Path,
+    output_file_handle: BinaryIO,
+    metadata: DatasetMetadata,
+    index: CutIndex,
+    statistics_collector: Optional[StatisticsCollector] = None,
+    offset: float = 0.0,
+    ratio: float = 1.0,
+    include_in_statistics: bool = True,
+) -> int:
+    assert offset + ratio <= 1.0
+    if index.is_window_index:
+        return _write_file_windowed(
+            input_file_path,
+            output_file_handle,
+            metadata,
+            index,
+            statistics_collector,
+            offset,
+            ratio,
+            include_in_statistics,
+        )
+    else:
+        return _write_file_contiguous(
+            input_file_path,
+            output_file_handle,
+            metadata,
+            statistics_collector,
+            offset,
+            ratio,
+            include_in_statistics,
+        )
+
+
 def _merge_predefined_files(
     config: MergeConfig,
     output_file_handle: BinaryIO,
@@ -145,16 +221,22 @@ def _merge_predefined_files(
     indices = [
         _load_index(config.base_path / file.relative_path) for file in config.files
     ]
+    # Check that all indices are either windowed or none are
+    if any(index.is_window_index for index in indices) and not all(
+        index.is_window_index for index in indices
+    ):
+        raise ValueError("All indices must be windowed or none must be windowed")
     lengths = [
         _load_metadata(config.base_path / file.relative_path).length
         for file in config.files
     ]
-    for file in config.files:
+    for file, index in zip(config.files, indices):
         num_measurements += [
             _write_file(
                 config.base_path / file.relative_path,
                 output_file_handle,
                 metadata,
+                index,
                 statistics_collector,
                 file.offset,
                 file.ratio,

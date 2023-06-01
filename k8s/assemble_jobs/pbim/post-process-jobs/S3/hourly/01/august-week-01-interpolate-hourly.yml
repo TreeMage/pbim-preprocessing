@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "hourly"
             - name: STRATEGY_ARGS
-              value: "--samples-per-hour 4 --sample-length 856 --window-size 256"
+              value: "--samples-per-hour 4 --windows-per-sample 651 --window-size 256"
             - name: SEED
               value: "42"
           resources:

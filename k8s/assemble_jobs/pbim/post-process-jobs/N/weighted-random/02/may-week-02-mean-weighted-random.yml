@@ -19,7 +19,7 @@ spec:
             - name: STRATEGY
               value: "weighted-random"
             - name: STRATEGY_ARGS
-              value: "--num-samples 499992 --window-size 256"
+              value: "--num-windows 41666 --window-size 256"
             - name: SEED
               value: "42"
           resources:
