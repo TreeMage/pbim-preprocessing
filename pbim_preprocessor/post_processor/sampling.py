@@ -60,7 +60,7 @@ def _sample_next_interval(
     window_size: int,
     start_and_end_indices: List[Tuple[int, int]],
     start_index: int,
-):
+) -> Tuple[List[Tuple[int, int]], int] | None:
     if (group_index := _find_group_index(start_index, start_and_end_indices)) is None:
         return None
 
@@ -74,14 +74,22 @@ def _sample_next_interval(
         windows_in_current_cut = current_end - current_start - window_size + 1
         if current_length_in_windows + windows_in_current_cut <= windows_per_sample:
             sample_indices.extend(
-                [current_start + i for i in range(current_end - current_start)]
+                [
+                    (current_start + i, current_start + i + window_size)
+                    for i in range(windows_in_current_cut)
+                ]
             )
             current_index = current_end
             current_length_in_windows += windows_in_current_cut
         else:
             left_over_windows = windows_per_sample - current_length_in_windows
             left_over_samples = left_over_windows + window_size - 1
-            sample_indices.extend([current_start + i for i in range(left_over_samples)])
+            sample_indices.extend(
+                [
+                    (current_start + i, current_start + i + window_size)
+                    for i in range(left_over_windows)
+                ]
+            )
             current_index += left_over_samples
             current_length_in_windows += left_over_windows
         if current_index >= current_end:
@@ -189,7 +197,7 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
         weights = weights / np.sum(weights)
         sampled_indices = np.random.choice(
             window_indices,
-            self._num_windows // self._window_size,
+            self._num_windows,
             replace=False,
             p=weights,
         )
@@ -219,10 +227,10 @@ class IntervalSamplingStrategy(DatasetSamplingStrategy):
 
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
-    ) -> List[int]:
+    ) -> List[Tuple[int, int]]:
         final_indices = []
         start_date = self._make_datetime(time[start_and_end_indices[0][0]])
-        end_date = self._make_datetime(time[start_and_end_indices[-1][1] - 1])
+        end_date = self._make_datetime(time[start_and_end_indices[-1][1]] - 1)
         current_date = start_date
         while current_date < end_date - datetime.timedelta(
             seconds=self._interval_length_in_seconds
@@ -235,13 +243,6 @@ class IntervalSamplingStrategy(DatasetSamplingStrategy):
                 )
                 if interval_start > end_date:
                     break
-                if len(final_indices) > 0 and interval_start < self._make_datetime(
-                    time[final_indices[-1]]
-                ):
-                    LOGGER.warn(
-                        f"Skipping interval start {interval_start} because it is before the last sample."
-                    )
-                    continue
                 start_index = np.searchsorted(
                     time, self._make_timestamp(interval_start)
                 ).item()
@@ -264,7 +265,3 @@ class HourlySamplingStrategy(IntervalSamplingStrategy):
         self, samples_per_hour: int, windows_per_sample: int, window_size: int
     ):
         super().__init__(3600, samples_per_hour, windows_per_sample, window_size)
-
-
-if __name__ == "__main__":
-    print(_available_windows(0, 100, 99))

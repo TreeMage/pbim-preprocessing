@@ -25,15 +25,12 @@ def _validate_extra_args(strategy: StrategyTypes, extra_args: Dict[str, Any]):
 
     match strategy:
         case "uniform":
-            _raise_if_not_present("num-samples")
+            _raise_if_not_present("num-windows")
         case "hourly":
             _raise_if_not_present("samples-per-hour")
-            _raise_if_not_present("sample-length")
-        case "minutely":
-            _raise_if_not_present("samples-per-minute")
-            _raise_if_not_present("sample-length")
+            _raise_if_not_present("windows-per-sample")
         case "weighted-random":
-            _raise_if_not_present("num-samples")
+            _raise_if_not_present("num-windows")
         case _:
             raise click.BadParameter(f"Unknown strategy: {strategy}")
 
@@ -44,18 +41,18 @@ def _make_strategy(
     match strategy:
         case "uniform":
             return UniformSamplingStrategy(
-                num_samples=int(extra_args["num-samples"]),
+                num_windows=int(extra_args["num-windows"]),
                 window_size=window_size,
             )
         case "hourly":
             return HourlySamplingStrategy(
                 samples_per_hour=int(extra_args["samples-per-hour"]),
-                windows_per_sample=int(extra_args["sample-length"]),
+                windows_per_sample=int(extra_args["windows-per-sample"]),
                 window_size=window_size,
             )
         case "weighted-random":
             return WeightedRandomSamplingStrategy(
-                num_windows=int(extra_args["num-samples"]),
+                num_windows=int(extra_args["num-windows"]),
                 window_size=window_size,
             )
 
