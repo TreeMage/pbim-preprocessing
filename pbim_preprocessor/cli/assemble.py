@@ -330,5 +330,10 @@ def assemble(
         ),
     )
     _write_index(
-        [length] if not index else index, is_anomalous, output_path, [length], False
+        output_path,
+        False,
+        [length] if not index else index,
+        is_anomalous,
+        [length],
+        None,
     )

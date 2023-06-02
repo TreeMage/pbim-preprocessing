@@ -1,19 +1,18 @@
 {
-  "base_path": "../data/assembled/LUX/",
+  "base_path": "../data/assembled/PBIM/N/post-processed/nosampling",
   "output_file": "/tmp/test/assembled.dat",
-  "use_statistics_from": "../data/assembled/LUX/N/final/assembled.dat",
   "files": [
     {
-        "relative_path": "N/final/assembled.dat",
+        "relative_path": "january-week-01/assembled.dat",
         "is_anomalous": false,
-        "offset": 0.9,
-        "ratio": 0.1
+        "offset": 0.5,
+        "ratio": 0.05
     },
     {
-        "relative_path": "S1/final/assembled.dat",
+        "relative_path": "april-week-01/assembled.dat",
         "is_anomalous": true,
-        "offset": 0,
-        "ratio": 1.0
+        "offset": 0.5,
+        "ratio": 0.02
     }
 ]
 }

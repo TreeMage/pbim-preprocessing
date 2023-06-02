@@ -1,5 +1,6 @@
 import json
 import math
+import shutil
 import struct
 from pathlib import Path
 from typing import Optional, List, BinaryIO
@@ -11,6 +12,15 @@ from pbim_preprocessor.index import _write_index, CutIndex
 from pbim_preprocessor.merge import MergeConfig
 from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER, _load_metadata
+
+
+def _is_window_index_or_raise(indices: List[CutIndex]) -> bool:
+    # Check that all indices are either windowed or none are
+    if any(index.is_window_index for index in indices) and not all(
+        index.is_window_index for index in indices
+    ):
+        raise ValueError("All indices must be windowed or none must be windowed")
+    return indices[0].is_window_index
 
 
 def _find_start_path(data_directory: Path) -> Path:
@@ -54,12 +64,15 @@ def _parse_values(data: bytes, time_byte_size: int, channels: List[str]) -> List
 CHUNK_SIZE = 8 * 1024 * 1024
 
 
-def _estimate_steps(f: BinaryIO, chunk_size: int, ratio: float = 1.0) -> int:
+def _estimate_steps(
+    f: BinaryIO, chunk_size: int, ratio: float = 1.0, offset: float = 0
+) -> int:
     f.seek(0, 2)
     size = f.tell()
     f.seek(0)
+    actual_size = (1 - offset) * size
 
-    return math.ceil(size * ratio / chunk_size)
+    return math.ceil(actual_size * ratio / chunk_size)
 
 
 def _write_file_contiguous(
@@ -74,7 +87,7 @@ def _write_file_contiguous(
     assert offset + ratio <= 1.0
     num_measurements = 0
     with open(input_file_path, "rb") as f:
-        steps = _estimate_steps(f, CHUNK_SIZE, ratio)
+        steps = _estimate_steps(f, CHUNK_SIZE, ratio, offset)
         LOGGER.info(f"Processing {input_file_path} (Estimated steps: {steps})")
         i = 0
         f.seek(0, 2)
@@ -137,34 +150,59 @@ def _write_file_windowed(
 ):
     start_index_entry = int(offset * len(index.entries))
     stop_index_entry = int((offset + ratio) * len(index.entries))
-    num_measurements = 0
+    total_windows = stop_index_entry - start_index_entry
     with open(input_file_path, "rb") as f:
-        for index_entry in index.entries[start_index_entry:stop_index_entry]:
-            f.seek(
-                index_entry.start_measurement_index * metadata.measurement_size_in_bytes
-            )
-            data = f.read(
-                (
-                    index_entry.end_measurement_index
-                    - index_entry.start_measurement_index
+        steps = _estimate_steps(f, CHUNK_SIZE, ratio, offset)
+        LOGGER.info(f"Processing {input_file_path} (Estimated steps: {steps})")
+        i = 0
+        f.seek(0, 2)
+        start_measurement_index = index.entries[
+            start_index_entry
+        ].start_measurement_index
+        end_measurement_index = index.entries[
+            stop_index_entry - 1
+        ].end_measurement_index
+        f.seek(start_measurement_index * metadata.measurement_size_in_bytes)
+        measurements_to_write = end_measurement_index - start_measurement_index
+        num_measurements = 0
+        left_over = b""
+        while True:
+            new_data = f.read(CHUNK_SIZE)
+            chunk = left_over + new_data
+            if chunk:
+                LOGGER.info(f"Processing chunk {i + 1}/{steps} of {input_file_path}")
+                measurements_in_chunk = len(chunk) // metadata.measurement_size_in_bytes
+                if num_measurements + measurements_in_chunk > measurements_to_write:
+                    chunk = chunk[
+                        : (measurements_to_write - num_measurements)
+                        * metadata.measurement_size_in_bytes
+                    ]
+                    measurements_in_chunk = measurements_to_write - num_measurements
+                output_file_handle.write(
+                    chunk[: measurements_in_chunk * metadata.measurement_size_in_bytes]
                 )
-                * metadata.measurement_size_in_bytes
-            )
-            output_file_handle.write(data)
-            num_measurements += (
-                index_entry.end_measurement_index - index_entry.start_measurement_index
-            )
-            if statistics_collector is not None and include_in_statistics:
-                values = _parse_values(
-                    data,
-                    metadata.time_byte_size,
-                    metadata.channel_order,
-                )
+                num_measurements += measurements_in_chunk
+                left_over = chunk[
+                    measurements_in_chunk * metadata.measurement_size_in_bytes :
+                ]
+                if statistics_collector is not None and include_in_statistics:
+                    for step in range(measurements_in_chunk):
+                        start = step * metadata.measurement_size_in_bytes
+                        end = (step + 1) * metadata.measurement_size_in_bytes
+                        values = _parse_values(
+                            chunk[start:end],
+                            metadata.time_byte_size,
+                            metadata.channel_order,
+                        )
 
-                for channel, value in zip(metadata.channel_order, values):
-                    statistics_collector.add(channel, value)
-
-    return num_measurements
+                        for channel, value in zip(metadata.channel_order, values):
+                            statistics_collector.add(channel, value)
+                if num_measurements >= measurements_to_write:
+                    break
+            else:
+                break
+            i += 1
+    return total_windows
 
 
 def _write_file(
@@ -206,7 +244,7 @@ def _merge_predefined_files(
     output_file_handle: BinaryIO,
 ) -> List[int]:
     _validate_config(config)
-    num_measurements = []
+    num_measurements_or_windows = []
     statistics_collector = (
         StatisticsCollector()
         if not config.keep_statistics and config.use_statistics_from is None
@@ -221,17 +259,13 @@ def _merge_predefined_files(
     indices = [
         _load_index(config.base_path / file.relative_path) for file in config.files
     ]
-    # Check that all indices are either windowed or none are
-    if any(index.is_window_index for index in indices) and not all(
-        index.is_window_index for index in indices
-    ):
-        raise ValueError("All indices must be windowed or none must be windowed")
+    is_window_indices = _is_window_index_or_raise(indices)
     lengths = [
         _load_metadata(config.base_path / file.relative_path).length
         for file in config.files
     ]
     for file, index in zip(config.files, indices):
-        num_measurements += [
+        num_measurements_or_windows += [
             _write_file(
                 config.base_path / file.relative_path,
                 output_file_handle,
@@ -243,17 +277,36 @@ def _merge_predefined_files(
                 file.include_in_statistics,
             )
         ]
-    _write_metadata(config, metadata, sum(num_measurements), statistics_collector)
+    if is_window_indices:
+        length = 0
+        for i, num_windows in enumerate(num_measurements_or_windows):
+            offset, ratio, index, = (
+                config.files[i].offset,
+                config.files[i].ratio,
+                indices[i],
+            )
+            start_index_entry = index.entries[int(offset * len(index.entries))]
+            stop_index_entry = index.entries[
+                int((offset + ratio) * len(index.entries)) - 1
+            ]
+            length += (
+                stop_index_entry.end_measurement_index
+                - start_index_entry.start_measurement_index
+            )
+    else:
+        length = sum(num_measurements_or_windows)
+    _write_metadata(config, metadata, length, statistics_collector)
     anomalous = [file.is_anomalous for file in config.files] if config.files else False
     _write_index(
-        num_measurements,
-        anomalous,
         config.output_file,
+        is_window_indices,
+        num_measurements_or_windows,
+        anomalous,
         lengths,
         existing_indices=indices,
         offsets=[file.offset for file in config.files] if config.files else None,
     )
-    return num_measurements
+    return num_measurements_or_windows
 
 
 def _merge_files_by_date():

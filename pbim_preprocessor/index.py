@@ -54,75 +54,126 @@ def _write_index_file(path: Path, index: CutIndex):
         f.write(serialized)
 
 
-def _write_index(
+def _build_index_windowed(
+    windows: List[int],
+    anomalous: List[bool] | bool,
+    existing_indices: List[CutIndex],
+    offsets: List[int],
+):
+    entries = []
+    i = 0
+    current_offset = 0
+    while i < len(windows):
+        current_index = existing_indices[i]
+        index_offset = offsets[i]
+        current_start_index = int(len(current_index.entries) * index_offset)
+        current_end_index = current_start_index + windows[i]
+        for index_entry in current_index.entries[current_start_index:current_end_index]:
+            length = (
+                index_entry.end_measurement_index - index_entry.start_measurement_index
+            )
+            entries.append(
+                CutIndexEntry(
+                    current_offset,
+                    current_offset + length,
+                    anomalous[i] if isinstance(anomalous, list) else anomalous,
+                )
+            )
+            current_offset += length
+        i += 1
+    return CutIndex(True, entries)
+
+
+def _build_index_contiguous(
     measurements: List[int],
     anomalous: List[bool] | bool,
-    output_path: Path,
     original_lengths: List[int],
+    existing_indices: List[CutIndex],
+    offsets: List[int],
+):
+    entries = []
+    i = 0
+    current_offset = 0
+    while i < len(measurements):
+        num_measurements = measurements[i]
+        index = existing_indices[i]
+        offset = offsets[i]
+        length = original_lengths[i]
+        start_measurement_index = int(offset * length)
+        end_measurement_index = start_measurement_index + num_measurements
+        for entry in index.entries:
+            # Sample is before the cut
+            if (
+                entry.start_measurement_index < start_measurement_index
+                and entry.end_measurement_index < end_measurement_index
+            ):
+                continue
+            # Sample is after the cut
+            if entry.start_measurement_index > end_measurement_index:
+                continue
+            # Sample intersects start of the cut
+            if (
+                entry.start_measurement_index
+                < start_measurement_index
+                < entry.end_measurement_index
+            ):
+                entry.start_measurement_index = start_measurement_index
+            # Sample intersects end of the cut
+            if (
+                entry.start_measurement_index
+                < end_measurement_index
+                < entry.end_measurement_index
+            ):
+                entry.end_measurement_index = end_measurement_index
+            # Sample is fully contained in the cut
+            # Adjust index to offset in the input file
+            entry.start_measurement_index -= start_measurement_index
+            entry.end_measurement_index -= start_measurement_index
+            # Adjust index to offset due to merging
+            entry.start_measurement_index += current_offset
+            entry.end_measurement_index += current_offset
+            entry.anomalous = anomalous[i] if isinstance(anomalous, list) else anomalous
+            entries.append(entry)
+        i += 1
+        current_offset += num_measurements
+    return CutIndex(False, entries)
+
+
+def _write_index(
+    output_path: Path,
     is_window_index: bool,
-    existing_indices: List[CutIndex] | None = None,
+    measurements_or_windows: List[int],
+    anomalous: List[bool] | bool,
+    original_lengths: List[int] | None,
+    existing_indices: List[CutIndex] | None,
     offsets: List[int] | None = None,
 ):
     if offsets is None:
-        offsets = [0] * len(measurements)
-    if existing_indices is None:
-        indices = [0] + measurements
-        entries = [
-            CutIndexEntry(
-                start,
-                end,
-                anomalous[i] if isinstance(anomalous, list) else anomalous,
-            )
-            for i, (start, end) in enumerate(zip(indices[:-1], indices[1:]))
-        ]
+        offsets = [0] * len(measurements_or_windows)
+    if is_window_index:
+        index = _build_index_windowed(
+            measurements_or_windows, anomalous, existing_indices, offsets
+        )
     else:
-        entries = []
-        i = 0
-        current_offset = 0
-        while i < len(measurements):
-            num_measurements = measurements[i]
-            index = existing_indices[i]
-            offset = offsets[i]
-            length = original_lengths[i]
-            start_measurement_index = int(offset * length)
-            end_measurement_index = start_measurement_index + num_measurements
-            for entry in index.entries:
-                # Sample is before the cut
-                if (
-                    entry.start_measurement_index < start_measurement_index
-                    and entry.end_measurement_index < end_measurement_index
-                ):
-                    continue
-                # Sample is after the cut
-                if entry.start_measurement_index > end_measurement_index:
-                    continue
-                # Sample intersects start of the cut
-                if (
-                    entry.start_measurement_index
-                    < start_measurement_index
-                    < entry.end_measurement_index
-                ):
-                    entry.start_measurement_index = start_measurement_index
-                # Sample intersects end of the cut
-                if (
-                    entry.start_measurement_index
-                    < end_measurement_index
-                    < entry.end_measurement_index
-                ):
-                    entry.end_measurement_index = end_measurement_index
-                # Sample is fully contained in the cut
-                # Adjust index to offset in the input file
-                entry.start_measurement_index -= start_measurement_index
-                entry.end_measurement_index -= start_measurement_index
-                # Adjust index to offset due to merging
-                entry.start_measurement_index += current_offset
-                entry.end_measurement_index += current_offset
-                entry.anomalous = (
-                    anomalous[i] if isinstance(anomalous, list) else anomalous
-                )
-                entries.append(entry)
-            i += 1
-            current_offset += num_measurements
-
-    final_index = CutIndex(is_window_index, entries)
-    _write_index_file(output_path, final_index)
+        if original_lengths is None:
+            raise ValueError("original_lengths must be provided for contiguous indices")
+        if existing_indices is None:
+            if existing_indices is None:
+                indices = [0] + measurements_or_windows
+                entries = [
+                    CutIndexEntry(
+                        start,
+                        end,
+                        anomalous[i] if isinstance(anomalous, list) else anomalous,
+                    )
+                    for i, (start, end) in enumerate(zip(indices[:-1], indices[1:]))
+                ]
+                existing_indices = [CutIndex(False, entries)]
+        index = _build_index_contiguous(
+            measurements_or_windows,
+            anomalous,
+            original_lengths,
+            existing_indices,
+            offsets,
+        )
+    _write_index_file(output_path, index)
