@@ -17,10 +17,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "24Gi"
+              memory: "64Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "32Gi"
           command: ["bash", "./scripts/merge.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

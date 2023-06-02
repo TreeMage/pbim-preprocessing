@@ -116,6 +116,7 @@ def render_for_all_aggregations_and_strategies(
                 FILES=json.dumps(
                     get_files(scenario, strategy, aggregation, mode), indent=4
                 ),
+                MODE=mode
             )
             render_template_and_save(
                 job_template,

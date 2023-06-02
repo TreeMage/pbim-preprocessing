@@ -1,7 +1,7 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "{{OUTPUT_FILE}}",
-  {%- if SCENARIO != "N" %}
+  {%- if SCENARIO != "N" or MODE == "val" or MODE == "threshold" %}
   "use_statistics_from": "/data/PBIM/N/merged/reference/train/{{AGGREGATION}}-{{STRATEGY}}/assembled.dat",
   {%- endif %}
   "files": {{FILES}}

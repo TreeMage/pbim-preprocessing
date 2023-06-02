@@ -1,6 +1,7 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/N/merged/reference/val/nosampling-weighted-random/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/reference/train/nosampling-weighted-random/assembled.dat",
   "files": [
     {
         "relative_path": "N/post-processed/nosampling-weighted-random/april-week-02/assembled.dat",
