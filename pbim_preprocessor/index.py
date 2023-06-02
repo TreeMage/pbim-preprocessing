@@ -72,14 +72,23 @@ def _build_index_windowed(
             length = (
                 index_entry.end_measurement_index - index_entry.start_measurement_index
             )
+            start = (
+                index_entry.start_measurement_index
+                + current_offset
+                - current_index.entries[current_start_index].start_measurement_index
+            )
             entries.append(
                 CutIndexEntry(
-                    current_offset,
-                    current_offset + length,
+                    start,
+                    start + length,
                     anomalous[i] if isinstance(anomalous, list) else anomalous,
                 )
             )
-            current_offset += length
+        block_length = (
+            current_index.entries[current_end_index - 1].end_measurement_index
+            - current_index.entries[current_start_index].start_measurement_index
+        )
+        current_offset += block_length
         i += 1
     return CutIndex(True, entries)
 
