@@ -124,7 +124,6 @@ class DatasetSampler:
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
-        number_of_windows = 100000
         indices = []
         exclude_indices = [
             metadata.channel_order.index(channel) for channel in EXCLUDE_CHANNELS

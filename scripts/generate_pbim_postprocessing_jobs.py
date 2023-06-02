@@ -58,7 +58,7 @@ MONTHS_DAMAGED = [
 
 SAMPLES_PER_HOUR = 4
 SAMPLE_RESOLUTION = {"mean": 25, "interpolate": 25, "nosampling": 75}
-DATASET_LENGTH_IN_HOURS = 4 * 24
+DATASET_LENGTH_IN_HOURS = 3 * 24 + 23
 
 
 def load_template(template_path: Path) -> jinja2.Template:

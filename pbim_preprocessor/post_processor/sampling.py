@@ -109,20 +109,21 @@ class DatasetSamplingStrategy(abc.ABC):
         pass
 
 
-class AlternatingRound:
+class RoundingWithFractionalTracker:
     def __init__(self):
-        self.up = True
+        self.fractional_part = 0.0
 
     def reset(self):
-        self.up = True
+        self.fractional_part = 0.0
 
     def __call__(self, value: float) -> int:
-        if self.up:
-            rounded = math.ceil(value)
-        else:
-            rounded = math.floor(value)
-        self.up = not self.up
-        return rounded
+        new_fractional_part = self.fractional_part + value - math.floor(value)
+        floored = math.floor(value)
+        if new_fractional_part >= 1:
+            new_fractional_part -= 1
+            floored += 1
+        self.fractional_part = new_fractional_part
+        return floored
 
 
 class UniformSamplingStrategy(DatasetSamplingStrategy):
@@ -140,11 +141,11 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
             raise ValueError(
                 f"Cannot sample {self._num_windows} from {available_windows} windows."
             )
-        alterating_round = AlternatingRound()
+        fractional_rounding = RoundingWithFractionalTracker()
         windows_per_group = [
             max(
-                alterating_round(
-                    (end - start - self._window_size)
+                fractional_rounding(
+                    _available_windows(start, end, self._window_size)
                     * self._num_windows
                     / available_windows
                 ),
@@ -268,15 +269,3 @@ class HourlySamplingStrategy(IntervalSamplingStrategy):
         self, samples_per_hour: int, windows_per_sample: int, window_size: int
     ):
         super().__init__(3600, samples_per_hour, windows_per_sample, window_size)
-
-
-if __name__ == "__main__":
-    strat = UniformSamplingStrategy(666666, 256)
-    indices = []
-    current_start = 0
-    for i in range(259000):
-        gap = random.randint(1, 300)
-        length = random.randint(1000, 2000)
-        indices.append((current_start + gap, current_start + gap + length))
-        current_start += gap + length
-    print(len(strat.compute_sample_indices(np.arange(1), indices)))
