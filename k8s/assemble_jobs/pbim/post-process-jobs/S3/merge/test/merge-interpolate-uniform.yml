@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-s3-interpolate-uniform
+  name: merge-s3-interpolate-uniform-test
 spec:
   backoffLimit: 0
   template:

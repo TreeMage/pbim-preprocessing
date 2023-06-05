@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-n-nosampling-weighted-random
+  name: merge-n-nosampling-weighted-random-train
 spec:
   backoffLimit: 0
   template:
@@ -17,7 +17,7 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "64Gi"
+              memory: "128Gi"
             requests:
               cpu: "1"
               memory: "32Gi"

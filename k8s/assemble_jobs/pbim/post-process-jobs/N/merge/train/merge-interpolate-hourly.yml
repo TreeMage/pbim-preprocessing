@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-n-interpolate-hourly
+  name: merge-n-interpolate-hourly-train
 spec:
   backoffLimit: 0
   template:

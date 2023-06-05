@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-{{SCENARIO}}-{{AGGREGATION}}-{{STRATEGY}}
+  name: merge-{{SCENARIO}}-{{AGGREGATION}}-{{STRATEGY}}{% if MODE is defined %}-{{MODE}}{% endif %}
 spec:
   backoffLimit: 0
   template:

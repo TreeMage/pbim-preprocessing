@@ -1,7 +1,6 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/N/merged/reference/threshold/mean-weighted-random/assembled.dat",
-  "use_statistics_from": "/data/PBIM/N/merged/reference/train/mean-weighted-random/assembled.dat",
   "files": [
     {
         "relative_path": "N/post-processed/mean-weighted-random/april-week-03/assembled.dat",

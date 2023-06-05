@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-n-mean-weighted-random
+  name: merge-n-mean-weighted-random-threshold
 spec:
   backoffLimit: 0
   template:

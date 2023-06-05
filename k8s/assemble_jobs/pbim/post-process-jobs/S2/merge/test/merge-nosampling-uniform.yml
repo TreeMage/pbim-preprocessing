@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-s2-nosampling-uniform
+  name: merge-s2-nosampling-uniform-test
 spec:
   backoffLimit: 0
   template:

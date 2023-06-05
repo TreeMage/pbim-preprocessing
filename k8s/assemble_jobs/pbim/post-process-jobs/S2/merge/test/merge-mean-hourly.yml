@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-s2-mean-hourly
+  name: merge-s2-mean-hourly-test
 spec:
   backoffLimit: 0
   template:

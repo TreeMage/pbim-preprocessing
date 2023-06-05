@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-n-interpolate-weighted-random
+  name: merge-n-interpolate-weighted-random-val
 spec:
   backoffLimit: 0
   template:

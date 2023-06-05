@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-n-mean-hourly
+  name: merge-n-mean-hourly-train
 spec:
   backoffLimit: 0
   template:

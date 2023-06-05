@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-n-nosampling-uniform
+  name: merge-n-nosampling-uniform-threshold
 spec:
   backoffLimit: 0
   template:

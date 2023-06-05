@@ -1,7 +1,6 @@
 {
   "base_path": "/data/PBIM/",
   "output_file": "/data/PBIM/N/merged/reference/threshold/mean-uniform/assembled.dat",
-  "use_statistics_from": "/data/PBIM/N/merged/reference/train/mean-uniform/assembled.dat",
   "files": [
     {
         "relative_path": "N/post-processed/mean-uniform/april-week-03/assembled.dat",
