@@ -31,10 +31,10 @@ spec:
           resources:
             limits:
               cpu: "2"
-              memory: "24Gi"
+              memory: "48Gi"
             requests:
               cpu: "1"
-              memory: "8Gi"
+              memory: "16Gi"
           command: ["bash", "./scripts/assemble_lux_dataset.sh"]
           volumeMounts:
             - mountPath: /data # directory IN the container

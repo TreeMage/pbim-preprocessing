@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: merge-n-nosampling-hourly
+  name: merge-n-nosampling-hourly-val
 spec:
   backoffLimit: 0
   template:

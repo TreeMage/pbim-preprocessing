@@ -61,6 +61,11 @@ def _parse_values(data: bytes, time_byte_size: int, channels: List[str]) -> List
     return [*struct.unpack(format_string, data)]
 
 
+def _sort_indices(indices: List[CutIndex]) -> None:
+    for index in indices:
+        index.entries.sort(key=lambda x: x.start_measurement_index)
+
+
 CHUNK_SIZE = 8 * 1024 * 1024
 
 
@@ -259,6 +264,8 @@ def _merge_predefined_files(
     indices = [
         _load_index(config.base_path / file.relative_path) for file in config.files
     ]
+    # Ensure that all indices are sorted according to the start_measurement_index
+    _sort_indices(indices)
     is_window_indices = _is_window_index_or_raise(indices)
     lengths = [
         _load_metadata(config.base_path / file.relative_path).length
