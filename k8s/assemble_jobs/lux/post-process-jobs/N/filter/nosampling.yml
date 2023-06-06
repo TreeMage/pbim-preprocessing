@@ -8,7 +8,7 @@ spec:
     spec:
       priorityClassName: research-med
       containers:
-        - image: ls6-stud-registry.informatik.uni-wuerzburg.de/studkohlmann-pbim-preprocessor:0.1
+        - image: lsx-harbor.informatik.uni-wuerzburg.de/studkohlmann/pbim-preprocessor:0.1
           name: preprocess
           imagePullPolicy: "Always"
           env:
@@ -21,7 +21,7 @@ spec:
             - name: STRATEGY
               value: "noop"
             - name: STRATEGY_ARGS
-              value: "--window-size 2500 --sampling-rate 2500 --lower-bound-first-frequency 2.5 --upper-bound-first-frequency 25 --lower-bound 0 --upper-bound 250 --top-k 10"
+              value: "--window-size 512 --sampling-rate 2500 --lower-bound-first-frequency 2.5 --upper-bound-first-frequency 25 --lower-bound 0 --upper-bound 250 --top-k 10"
             - name: SEED
               value: "42"
           resources:
@@ -38,7 +38,7 @@ spec:
             - mountPath: /tmp
               name: tmp
       imagePullSecrets:
-        - name: lsx-registry
+        - name: lsx-harbor
       restartPolicy: "Never"
       volumes:
         - name: data

@@ -12,6 +12,8 @@ spec:
           name: preprocess
           imagePullPolicy: "Always"
           env:
+            - name: MODE
+              value: "pbim"
             - name: INPUT_FILE
               value: "/data/PBIM/S2/assembled/mean/july-week-02/assembled.dat"
             - name: OUTPUT_FILE

@@ -130,7 +130,6 @@ class BaseDatasetSampler(abc.ABC):
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
         number_of_windows = metadata.length - self._window_size + 1
-        number_of_windows = 500000
         indices = []
         exclude_indices = [
             metadata.channel_order.index(channel)
