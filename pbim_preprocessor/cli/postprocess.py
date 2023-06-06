@@ -52,6 +52,7 @@ def _validate_extra_args(
             _raise_if_not_present("lower-bound-first-frequency")
             _raise_if_not_present("upper-bound-first-frequency")
             _raise_if_not_present("top-k")
+            _raise_if_not_present("grace-period")
         case _:
             raise click.BadParameter(f"Unknown mode: {mode}")
 
@@ -103,6 +104,7 @@ def _make_sampler(
             lower_bound = float(extra_args["lower-bound"])
             upper_bound = float(extra_args["upper-bound"])
             top_k = int(extra_args["top-k"])
+            grace_period = int(extra_args["grace-period"])
             return LuxDatasetSampler(
                 window_size=window_size,
                 sampling_strategy=strategy,
@@ -112,6 +114,7 @@ def _make_sampler(
                 lower_frequency_bound=lower_bound,
                 upper_frequency_bound=upper_bound,
                 top_k=top_k,
+                grace_period=grace_period,
             )
 
 

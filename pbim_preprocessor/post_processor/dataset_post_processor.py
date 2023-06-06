@@ -233,6 +233,7 @@ class LuxDatasetSampler(BaseDatasetSampler):
         lower_frequency_bound: float,
         upper_frequency_bound: float,
         top_k: int,
+        grace_period: int,
         sampling_strategy: DatasetSamplingStrategy,
     ):
         is_sampling = not isinstance(sampling_strategy, NoopSamplingStrategy)
@@ -255,6 +256,8 @@ class LuxDatasetSampler(BaseDatasetSampler):
         self._lower_frequency_bound = lower_frequency_bound
         self._upper_frequency_bound = upper_frequency_bound
         self._top_k = top_k
+        self._grace_period = grace_period
+        self._grace_period_counter = None
 
     def _is_window_valid(self, window: np.ndarray) -> bool:
         assert window.shape[0] == 1
@@ -266,7 +269,7 @@ class LuxDatasetSampler(BaseDatasetSampler):
         sorted_frequency_indices = np.argsort(np.abs(fft))[::-1]
         top_frequency = frequencies[sorted_frequency_indices[0]]
         top_k_frequencies = frequencies[sorted_frequency_indices[: self._top_k]]
-        return (
+        valid = (
             (
                 self._lower_frequency_bound_first_frequency
                 <= top_frequency
@@ -275,3 +278,10 @@ class LuxDatasetSampler(BaseDatasetSampler):
             and np.all(self._lower_frequency_bound <= top_k_frequencies)
             and np.all(top_k_frequencies <= self._upper_frequency_bound)
         )
+        if valid:
+            self._grace_period_counter = self._grace_period
+        elif self._grace_period_counter is not None:
+            self._grace_period_counter -= 1
+            valid = self._grace_period_counter > 0
+            self._grace_period_counter = self._grace_period_counter if valid else None
+        return valid

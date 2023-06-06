@@ -1,14 +1,17 @@
 import datetime
+import struct
 import zipfile
 from pathlib import Path
-from typing import Generator, Dict, Any, List, Optional, Tuple
+from typing import Generator, Dict, Any, List, Optional, Tuple, BinaryIO
 
 import numpy as np
 
+from pbim_preprocessor.cli.merge import _load_index
+from pbim_preprocessor.metadata import DatasetMetadata
 from pbim_preprocessor.model import EOF, Measurement
 from pbim_preprocessor.parser.lux import LuxAccelerationParser, LuxTemperatureParser
 from pbim_preprocessor.sampling import SamplingStrategy
-from pbim_preprocessor.utils import LOGGER
+from pbim_preprocessor.utils import LOGGER, _load_metadata
 
 
 class LuxAssembler:
@@ -16,12 +19,10 @@ class LuxAssembler:
     PREFIX_PATH = "DynamicMeasurements"
     TEMPERATURE_PATH = f"displacement and temperatures.xlsx"
 
-    def __init__(
-        self, zip_file_path: Path, resolution: float, strategy: SamplingStrategy
-    ):
+    def __init__(self, file_path: Path, resolution: float, strategy: SamplingStrategy):
         self._acceleration_parser = LuxAccelerationParser()
         self._temperature_parser = LuxTemperatureParser()
-        self._zip_file_path = zip_file_path
+        self._file_path = file_path
         self._resolution = resolution
         self._strategy = strategy
 
@@ -138,7 +139,7 @@ class LuxAssembler:
         differences = np.abs(temperatures[:, 0] - time)
         return temperatures[np.argmin(differences)][1]
 
-    def assemble(
+    def _assemble_from_zip(
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
@@ -148,7 +149,7 @@ class LuxAssembler:
         sanitized_channels = [
             channel for channel in channels if channel != "Temperature"
         ]
-        with zipfile.ZipFile(self._zip_file_path, "r") as zip_file:
+        with zipfile.ZipFile(self._file_path, "r") as zip_file:
             if parse_temperature:
                 LOGGER.info("Parsing temperatures.")
                 with zip_file.open(self.TEMPERATURE_PATH, "r") as f:
@@ -220,3 +221,59 @@ class LuxAssembler:
                         f"Reached end time while searching for next folder. Stopping."
                     )
                     break
+
+    def _load_pre_assembled(
+        self, f: BinaryIO, index: int, metadata: DatasetMetadata
+    ) -> Dict[str, float]:
+        f.seek(index * metadata.measurement_size_in_bytes)
+        data = f.read(metadata.measurement_size_in_bytes)
+        format_str = f"<{'q' if metadata.time_byte_size == 8 else 'i'}{'f' * (len(metadata.channel_order) - 1)}f"
+        parsed = struct.unpack(format_str, data)
+        return {
+            channel: value for channel, value in zip(metadata.channel_order, parsed)
+        }
+
+    def _assemble_from_pre_assembled(
+        self,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        channels: List[str],
+    ) -> Generator[Dict[str, float] | EOF, Any, None]:
+        metadata = _load_metadata(self._file_path)
+        index = _load_index(self._file_path)
+        f = open(self._file_path, "rb")
+        target_time = start_time + datetime.timedelta(seconds=self._resolution)
+        samples = []
+        for entry in index.entries:
+            for i in range(entry.start_measurement_index, entry.end_measurement_index):
+                sample = self._load_pre_assembled(f, i, metadata)
+                time = datetime.datetime.fromtimestamp(sample["Time"] / 1000)
+                if time < start_time:
+                    continue
+                if time > end_time or target_time > end_time:
+                    return
+                if self._resolution > 0:
+                    if time <= target_time:
+                        samples.append(sample)
+                    else:
+                        sampled = {}
+                        samples = []
+                        target_time += datetime.timedelta(seconds=self._resolution)
+                else:
+                    yield {channel: sample[channel] for channel in channels}
+            yield EOF()
+
+    def assemble(
+        self,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        channels: List[str],
+    ) -> Generator[Dict[str, float] | EOF, Any, None]:
+        if self._file_path.name.endswith(".zip"):
+            LOGGER.info(f"Using zip file {self._file_path}.")
+            yield from self._assemble_from_zip(start_time, end_time, channels)
+        elif self._file_path.name.endswith(".dat"):
+            LOGGER.info(f"Using pre-assembled data from {self._file_path}.")
+            yield from self._assemble_from_pre_assembled(start_time, end_time, channels)
+        else:
+            raise ValueError(f"Unknown file type {self._file_path}.")
