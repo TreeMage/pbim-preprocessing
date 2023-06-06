@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Any, Dict, Literal, Optional
+from typing import List, Any, Dict, Literal, Optional, Tuple
 
 import click
 import numpy as np
@@ -18,6 +18,27 @@ from pbim_preprocessor.post_processor.sampling import (
 
 StrategyTypes = Literal["uniform", "hourly", "weighted-random"]
 Modes = Literal["pbim", "lux"]
+
+
+def _get_lux_postprocess_params(extra_args: Dict[str, Any]) -> Tuple[Any, ...]:
+    sampling_rate = extra_args.get("sampling-rate", None)
+    lower_bound_first_frequency = extra_args.get("lower-bound-first-frequency", None)
+    upper_bound_first_frequency = extra_args.get("upper-bound-first-frequency")
+
+    lower_bound = extra_args.get("lower-bound", None)
+    upper_bound = extra_args.get("upper-bound", None)
+    top_k = extra_args.get("top-k", None)
+    grace_period = extra_args.get("grace-period", None)
+
+    return (
+        sampling_rate,
+        lower_bound,
+        upper_bound,
+        top_k,
+        grace_period,
+        lower_bound_first_frequency,
+        upper_bound_first_frequency,
+    )
 
 
 def _validate_extra_args(
@@ -46,13 +67,16 @@ def _validate_extra_args(
         case "pbim":
             pass
         case "lux":
-            _raise_if_not_present("sampling-rate")
-            _raise_if_not_present("lower-bound")
-            _raise_if_not_present("upper-bound")
-            _raise_if_not_present("lower-bound-first-frequency")
-            _raise_if_not_present("upper-bound-first-frequency")
-            _raise_if_not_present("top-k")
-            _raise_if_not_present("grace-period")
+            params = _get_lux_postprocess_params(extra_args)
+            existing = [p is not None for p in params]
+            if any(existing) and not all(existing):
+                _raise_if_not_present("sampling-rate")
+                _raise_if_not_present("lower-bound")
+                _raise_if_not_present("upper-bound")
+                _raise_if_not_present("lower-bound-first-frequency")
+                _raise_if_not_present("upper-bound-first-frequency")
+                _raise_if_not_present("top-k")
+                _raise_if_not_present("grace-period")
         case _:
             raise click.BadParameter(f"Unknown mode: {mode}")
 
@@ -94,27 +118,37 @@ def _make_sampler(
                 sampling_strategy=strategy,
             )
         case "lux":
-            sampling_rate = int(extra_args["sampling-rate"])
-            lower_bound_first_frequency = float(
-                extra_args["lower-bound-first-frequency"]
-            )
-            upper_bound_first_frequency = float(
-                extra_args["upper-bound-first-frequency"]
-            )
-            lower_bound = float(extra_args["lower-bound"])
-            upper_bound = float(extra_args["upper-bound"])
-            top_k = int(extra_args["top-k"])
-            grace_period = int(extra_args["grace-period"])
+            params = _get_lux_postprocess_params(extra_args)
+            if any([p is None for p in params]):
+                filter_config = None
+            else:
+                (
+                    sampling_rate,
+                    lower_bound,
+                    upper_bound,
+                    top_k,
+                    grace_period,
+                    lower_bound_first_frequency,
+                    upper_bound_first_frequency,
+                ) = params
+                filter_config = LuxDatasetSampler.FilterConfig(
+                    sampling_rate=int(sampling_rate),
+                    lower_frequency_bound_first_frequency=float(
+                        lower_bound_first_frequency
+                    ),
+                    upper_frequency_bound_first_frequency=float(
+                        upper_bound_first_frequency
+                    ),
+                    lower_frequency_bound=float(lower_bound),
+                    upper_frequency_bound=float(upper_bound),
+                    top_k=int(top_k),
+                    grace_period=int(grace_period),
+                )
+
             return LuxDatasetSampler(
                 window_size=window_size,
                 sampling_strategy=strategy,
-                sampling_rate=sampling_rate,
-                lower_frequency_bound_first_frequency=lower_bound_first_frequency,
-                upper_frequency_bound_first_frequency=upper_bound_first_frequency,
-                lower_frequency_bound=lower_bound,
-                upper_frequency_bound=upper_bound,
-                top_k=top_k,
-                grace_period=grace_period,
+                filter_config=filter_config,
             )
 
 

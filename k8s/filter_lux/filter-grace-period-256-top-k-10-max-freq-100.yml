@@ -15,7 +15,7 @@ spec:
             - name: MODE
               value: "lux"
             - name: INPUT_FILE
-              value: "/data/LUX/N/nosampling/assembled.dat"
+              value: "/data/LUX/N/assembled/nosampling/assembled.dat"
             - name: OUTPUT_FILE
               value: "/data/LUX/N/filter/grace-period-256-top-k-10-max-freq-100/assembled.dat"
             - name: STRATEGY

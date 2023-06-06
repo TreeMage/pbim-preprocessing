@@ -1,32 +1,37 @@
 {
   "base_path": "/data/LUX/",
-  "output_file": "/data/LUX/supervised/train/assembled.dat",
-  "keep_statistics": false,
+  "output_file": "/data/LUX/supervised/test/assembled.dat",
+  "use_statistics_from": "/data/LUX/supervised/train/assembled.dat",
   "files": [
     {
        "relative_path": "N/post-processed/supervised/nosampling/assembled.dat",
        "is_anomalous": false,
-       "ratio": 0.8
+       "offset": 0.9,
+       "ratio": 0.1
     },
     {
        "relative_path": "S1/post-processed/supervised/nosampling/assembled.dat",
        "is_anomalous": true,
-        "ratio": 0.8
+       "offset": 0.9,
+       "ratio": 0.1
     },
     {
       "relative_path": "S2/post-processed/supervised/nosampling/assembled.dat",
       "is_anomalous": true,
-      "ratio": 0.8
+      "offset": 0.9,
+      "ratio": 0.1
     },
     {
       "relative_path": "S3/post-processed/supervised/nosampling/assembled.dat",
       "is_anomalous": true,
-      "ratio": 0.8
+      "offset": 0.9,
+      "ratio": 0.1
     },
     {
       "relative_path": "S4/post-processed/supervised/nosampling/assembled.dat",
       "is_anomalous": true,
-      "ratio": 0.8
+      "offset": 0.9,
+      "ratio": 0.1
     }
   ]
 }

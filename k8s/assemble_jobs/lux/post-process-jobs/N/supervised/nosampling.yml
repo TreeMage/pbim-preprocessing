@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: pp-lux-n-nosampling-uniform
+  name: pp-lux-n-supervised-nosampling-uniform
 spec:
   backoffLimit: 0
   template:
@@ -12,14 +12,16 @@ spec:
           name: preprocess
           imagePullPolicy: "Always"
           env:
+            - name: MODE
+              value: "lux"
             - name: INPUT_FILE
               value: "/data/LUX/N/assembled/nosampling/assembled.dat"
             - name: OUTPUT_FILE
-              value: "/data/LUX/N/post-processed/supervised/256/nosampling/assembled.dat"
+              value: "/data/LUX/N/post-processed/supervised/nosampling/assembled.dat"
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-samples 5262059 --window-size 256"
+              value: "--num-windows 5846733 --window-size 256"
             - name: SEED
               value: "42"
           resources:

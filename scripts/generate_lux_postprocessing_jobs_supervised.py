@@ -36,14 +36,14 @@ def get_extra_args(
             num_samples = get_num_samples(
                 num_windows, window_size, strategy, aggregation
             )
-            return f"--num-samples {num_samples} --window-size {window_size}"
+            return f"--num-windows {num_samples} --window-size {window_size}"
         case _:
             raise NotImplementedError("Only uniform strategy is supported")
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS_N = 5262059
-    NUM_WINDOWS_S = 1315514
+    NUM_WINDOWS_N = 5846733
+    NUM_WINDOWS_S = 1461682
     WINDOW_SIZE = 256
 
     template = load_template(Path("template/postprocess_lux_job_template.yml"))
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         input_path_parameter = (
             f"/data/LUX/{scenario}/assembled/{aggregation}/assembled.dat"
         )
-        output_path_parameter = f"/data/LUX/{scenario}/post-processed/supervised/{WINDOW_SIZE}/{aggregation}/assembled.dat"
+        output_path_parameter = f"/data/LUX/{scenario}/post-processed/supervised/{aggregation}/assembled.dat"
         output_path = Path(
             f"k8s/assemble_jobs/lux/post-process-jobs/{scenario}/supervised/{aggregation}.yml"
         )
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                 WINDOW_SIZE, num_windows, "uniform", aggregation
             ),
             AGGREGATION=aggregation,
-            SCENARIO=scenario.lower(),
+            SCENARIO=f"{scenario.lower()}-supervised",
             FREQUENCY=2500,
             SEED=42,
         )

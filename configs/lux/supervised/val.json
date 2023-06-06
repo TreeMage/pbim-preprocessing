@@ -4,34 +4,34 @@
   "use_statistics_from": "/data/LUX/supervised/train/assembled.dat",
   "files": [
     {
-       "relative_path": "N/post-processed/supervised/256/nosampling/assembled.dat",
+       "relative_path": "N/post-processed/supervised/nosampling/assembled.dat",
        "is_anomalous": false,
-       "offset": 0.8889,
-       "ratio": 0.1111
+       "offset": 0.8,
+       "ratio": 0.1
     },
     {
-       "relative_path": "S1/post-processed/supervised/256/nosampling/assembled.dat",
+       "relative_path": "S1/post-processed/supervised/nosampling/assembled.dat",
        "is_anomalous": true,
-       "offset": 0.8889,
-       "ratio": 0.1111
+       "offset": 0.8,
+       "ratio": 0.1
     },
     {
-      "relative_path": "S2/post-processed/supervised/256/nosampling/assembled.dat",
+      "relative_path": "S2/post-processed/supervised/nosampling/assembled.dat",
       "is_anomalous": true,
-      "offset": 0.8889,
-      "ratio": 0.1111
+      "offset": 0.8,
+      "ratio": 0.1
     },
     {
-      "relative_path": "S3/post-processed/supervised/256/nosampling/assembled.dat",
+      "relative_path": "S3/post-processed/supervised/nosampling/assembled.dat",
       "is_anomalous": true,
-      "offset": 0.8889,
-      "ratio": 0.1111
+      "offset": 0.8,
+      "ratio": 0.1
     },
     {
-      "relative_path": "S4/post-processed/supervised/256/nosampling/assembled.dat",
+      "relative_path": "S4/post-processed/supervised/nosampling/assembled.dat",
       "is_anomalous": true,
-      "offset": 0.8889,
-      "ratio": 0.1111
+      "offset": 0.8,
+      "ratio": 0.1
     }
   ]
 }

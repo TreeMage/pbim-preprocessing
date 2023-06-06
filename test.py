@@ -28,7 +28,7 @@ for (grace_period, top_k, max_freq) in combinations:
         template,
         job_output_path,
         SEED=42,
-        INPUT_FILE="/data/LUX/N/nosampling/assembled.dat",
+        INPUT_FILE="/data/LUX/N/assembled/nosampling/assembled.dat",
         OUTPUT_FILE=output_file,
         STRATEGY="noop",
         SCENARIO=f"{grace_period}-{top_k}-{max_freq}",
