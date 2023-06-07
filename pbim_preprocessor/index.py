@@ -168,16 +168,6 @@ def _write_index(
             raise ValueError("original_lengths must be provided for contiguous indices")
         if existing_indices is None:
             if existing_indices is None:
-                indices = [0] + measurements_or_windows
-                entries = [
-                    CutIndexEntry(
-                        start,
-                        end,
-                        anomalous[i] if isinstance(anomalous, list) else anomalous,
-                    )
-                    for i, (start, end) in enumerate(zip(indices[:-1], indices[1:]))
-                ]
-                existing_indices = [CutIndex(False, [entry]) for entry in entries]
                 existing_indices = [
                     CutIndex(
                         False,

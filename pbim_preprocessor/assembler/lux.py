@@ -230,9 +230,11 @@ class LuxAssembler:
         data = f.read(metadata.measurement_size_in_bytes)
         format_str = f"<{'q' if metadata.time_byte_size == 8 else 'i'}{'f' * (len(metadata.channel_order) - 1)}"
         parsed = struct.unpack(format_str, data)
-        return {
+        sample = {
             channel: value for channel, value in zip(metadata.channel_order, parsed)
         }
+        sample["time"] = sample.pop("Time")
+        return sample
 
     @staticmethod
     def _make_datetime(time: float) -> datetime.datetime:
@@ -240,27 +242,28 @@ class LuxAssembler:
 
     def _assemble_from_pre_assembled(
         self,
-        start_time: datetime.datetime,
-        end_time: datetime.datetime,
         channels: List[str],
     ) -> Generator[Dict[str, float] | EOF, Any, None]:
         metadata = _load_metadata(self._file_path)
         index = _load_index(self._file_path)
         f = open(self._file_path, "rb")
-        target_time = start_time + datetime.timedelta(seconds=self._resolution)
         samples = []
-        for idx, entry in enumerate(index.entries):
-            sample = self._load_pre_assembled(f, entry.end_measurement_index, metadata)
-            if self._make_datetime(sample["Time"]) < start_time:
-                LOGGER.info(f"Skipping index entry {idx + 1} since it is too early.")
-                continue
+        for idx, entry in enumerate(index.entries[:1]):
+            sample = self._load_pre_assembled(
+                f, entry.start_measurement_index, metadata
+            )
+            target_time = self._make_datetime(sample["time"]) + datetime.timedelta(
+                seconds=self._resolution / 2
+            )
+            current_index_length = (
+                entry.end_measurement_index - entry.start_measurement_index
+            )
             for i in range(entry.start_measurement_index, entry.end_measurement_index):
                 sample = self._load_pre_assembled(f, i, metadata)
-                time = self._make_datetime(sample["Time"])
-                if time < start_time:
-                    continue
-                if time > end_time or target_time > end_time:
-                    return
+                LOGGER.debug(
+                    f"Loading sample ({i+1}/{current_index_length}) of entry {idx+1}/{len(index.entries)}."
+                )
+                time = self._make_datetime(sample["time"])
                 if self._resolution > 0:
                     if time <= target_time:
                         samples.append(
@@ -281,6 +284,7 @@ class LuxAssembler:
                             )
                             for channel in channels
                         }
+                        sampled["time"] = int(target_time.timestamp() * 1000)
                         yield sampled
                         samples = []
                         target_time += datetime.timedelta(seconds=self._resolution)
@@ -299,6 +303,6 @@ class LuxAssembler:
             yield from self._assemble_from_zip(start_time, end_time, channels)
         elif self._file_path.name.endswith(".dat"):
             LOGGER.info(f"Using pre-assembled data from {self._file_path}.")
-            yield from self._assemble_from_pre_assembled(start_time, end_time, channels)
+            yield from self._assemble_from_pre_assembled(channels)
         else:
             raise ValueError(f"Unknown file type {self._file_path}.")

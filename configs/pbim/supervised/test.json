@@ -1,0 +1,74 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/supervised/test/assembled.dat",
+  "use_statisics_from": "/data/PBIM/supervised/train/assembled.dat",
+  "files":[
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/january-week-04/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/february-week-04/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/march-week-04/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/april-week-04/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/may-week-04/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/june-week-04/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "S1/supervised/post-processed/nosampling-uniform/july-week-02/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.1,
+    "offset": 0.9
+  },
+  {
+    "relative_path": "S1/supervised/post-processed/nosampling-uniform/august-week-01/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.1,
+    "offset": 0.9
+  },
+  {
+    "relative_path": "S2/supervised/post-processed/nosampling-uniform/july-week-02/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.1,
+    "offset": 0.9
+  },
+  {
+    "relative_path": "S2/supervised/post-processed/nosampling-uniform/august-week-01/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.1,
+    "offset": 0.9
+  },
+  {
+    "relative_path": "S3/supervised/post-processed/nosampling-uniform/july-week-02/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.1,
+    "offset": 0.9
+  },
+  {
+    "relative_path": "S3/supervised/post-processed/nosampling-uniform/august-week-01/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.1,
+    "offset": 0.9
+  }
+]
+
+}

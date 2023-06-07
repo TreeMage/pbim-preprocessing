@@ -17,7 +17,7 @@ def render_template_and_save(template: jinja2.Template, output_path: Path, **kwa
 
 template = load_template(Path("template/postprocess_lux_job_template.yml"))
 
-combinations = itertools.product([64, 128, 256], [6, 8, 10], [100, 200, 300])
+combinations = itertools.product([64, 128, 256, 512], [6, 8, 10], [100, 200, 300])
 commands = []
 for (grace_period, top_k, max_freq) in combinations:
     file_name = f"grace-period-{grace_period}-top-k-{top_k}-max-freq-{max_freq}"

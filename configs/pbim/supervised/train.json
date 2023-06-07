@@ -1,0 +1,98 @@
+{
+  "base_path": "/data/PBIM/",
+  "output_file": "/data/PBIM/supervised/train/assembled.dat",
+  "keep_statistics": false,
+  "files": [
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/january-week-01/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/january-week-02/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/february-week-01/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/february-week-02/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/march-week-01/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/march-week-02/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/april-week-01/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/april-week-02/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/may-week-01/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/may-week-02/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/june-week-01/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "N/supervised/post-processed/nosampling-uniform/june-week-02/assembled.dat",
+    "is_anomalous": false,
+    "ratio": 1
+  },
+  {
+    "relative_path": "S1/supervised/post-processed/nosampling-uniform/july-week-02/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.8
+  },
+  {
+    "relative_path": "S1/supervised/post-processed/nosampling-uniform/august-week-01/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.8
+  },
+  {
+    "relative_path": "S2/supervised/post-processed/nosampling-uniform/july-week-02/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.8
+  },
+  {
+    "relative_path": "S2/supervised/post-processed/nosampling-uniform/august-week-01/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.8
+  },
+  {
+    "relative_path": "S3/supervised/post-processed/nosampling-uniform/july-week-02/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.8
+  },
+  {
+    "relative_path": "S3/supervised/post-processed/nosampling-uniform/august-week-01/assembled.dat",
+    "is_anomalous": true,
+    "ratio": 0.8
+  }
+]
+
+}
