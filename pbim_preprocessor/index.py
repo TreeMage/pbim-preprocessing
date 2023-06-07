@@ -177,7 +177,22 @@ def _write_index(
                     )
                     for i, (start, end) in enumerate(zip(indices[:-1], indices[1:]))
                 ]
-                existing_indices = [CutIndex(False, entries)]
+                existing_indices = [CutIndex(False, [entry]) for entry in entries]
+                existing_indices = [
+                    CutIndex(
+                        False,
+                        [
+                            CutIndexEntry(
+                                0,
+                                end,
+                                anomalous[i]
+                                if isinstance(anomalous, list)
+                                else anomalous,
+                            )
+                        ],
+                    )
+                    for i, end in enumerate(measurements_or_windows)
+                ]
         index = _build_index_contiguous(
             measurements_or_windows,
             anomalous,

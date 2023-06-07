@@ -222,16 +222,21 @@ class LuxAssembler:
                     )
                     break
 
+    @staticmethod
     def _load_pre_assembled(
-        self, f: BinaryIO, index: int, metadata: DatasetMetadata
+        f: BinaryIO, index: int, metadata: DatasetMetadata
     ) -> Dict[str, float]:
         f.seek(index * metadata.measurement_size_in_bytes)
         data = f.read(metadata.measurement_size_in_bytes)
-        format_str = f"<{'q' if metadata.time_byte_size == 8 else 'i'}{'f' * (len(metadata.channel_order) - 1)}f"
+        format_str = f"<{'q' if metadata.time_byte_size == 8 else 'i'}{'f' * (len(metadata.channel_order) - 1)}"
         parsed = struct.unpack(format_str, data)
         return {
             channel: value for channel, value in zip(metadata.channel_order, parsed)
         }
+
+    @staticmethod
+    def _make_datetime(time: float) -> datetime.datetime:
+        return datetime.datetime.fromtimestamp(time / 1000, tz=datetime.timezone.utc)
 
     def _assemble_from_pre_assembled(
         self,
@@ -244,19 +249,39 @@ class LuxAssembler:
         f = open(self._file_path, "rb")
         target_time = start_time + datetime.timedelta(seconds=self._resolution)
         samples = []
-        for entry in index.entries:
+        for idx, entry in enumerate(index.entries):
+            sample = self._load_pre_assembled(f, entry.end_measurement_index, metadata)
+            if self._make_datetime(sample["Time"]) < start_time:
+                LOGGER.info(f"Skipping index entry {idx + 1} since it is too early.")
+                continue
             for i in range(entry.start_measurement_index, entry.end_measurement_index):
                 sample = self._load_pre_assembled(f, i, metadata)
-                time = datetime.datetime.fromtimestamp(sample["Time"] / 1000)
+                time = self._make_datetime(sample["Time"])
                 if time < start_time:
                     continue
                 if time > end_time or target_time > end_time:
                     return
                 if self._resolution > 0:
                     if time <= target_time:
-                        samples.append(sample)
+                        samples.append(
+                            {
+                                channel: Measurement(
+                                    measurement=sample[channel],
+                                    time=int(time.timestamp() * 1000),
+                                )
+                                for channel in channels
+                            }
+                        )
                     else:
-                        sampled = {}
+                        sampled = {
+                            channel: self._strategy.sample(
+                                [s[channel] for s in samples],
+                                target_time
+                                - datetime.timedelta(seconds=self._resolution / 2),
+                            )
+                            for channel in channels
+                        }
+                        yield sampled
                         samples = []
                         target_time += datetime.timedelta(seconds=self._resolution)
                 else:

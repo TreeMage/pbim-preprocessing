@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import List, Dict, Optional, Any
 
 import click
+import numpy as np
 
 from pbim_preprocessor.assembler.grandstand import GrandStandAssembler
 from pbim_preprocessor.assembler.lux import LuxAssembler
@@ -329,11 +330,12 @@ def assemble(
             TIME_BYTE_SIZE,
         ),
     )
+    num_measurements = np.diff([0] + index).tolist()
     _write_index(
         output_path,
         False,
-        [length] if not index else index,
+        num_measurements,
         is_anomalous,
-        [length],
+        num_measurements,
         None,
     )
