@@ -303,6 +303,7 @@ class LuxAssembler:
             yield from self._assemble_from_zip(start_time, end_time, channels)
         elif self._file_path.name.endswith(".dat"):
             LOGGER.info(f"Using pre-assembled data from {self._file_path}.")
+            LOGGER.warn(f"Start and end time will be ignored.")
             yield from self._assemble_from_pre_assembled(channels)
         else:
             raise ValueError(f"Unknown file type {self._file_path}.")

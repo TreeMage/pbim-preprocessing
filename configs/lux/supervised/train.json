@@ -1,6 +1,6 @@
 {
   "base_path": "/data/LUX/",
-  "output_file": "/data/LUX/supervised/train/assembled.dat",
+  "output_file": "/data/LUX/N/supervised/train/assembled.dat",
   "keep_statistics": false,
   "files": [
     {
