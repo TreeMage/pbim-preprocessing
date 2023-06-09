@@ -64,7 +64,7 @@ def load_template(template_path: Path) -> jinja2.Template:
 def generate(config_path: Path):
     config = Config.from_json(config_path.read_text())
     template = load_template(config.template_path)
-    config.output_path.mkdir(parents=True, exist_ok=True)
+    config.output_path_job.mkdir(parents=True, exist_ok=True)
     for assembly_config in config.assembly_configs:
-        output_path = config.output_path / f"{assembly_config.identifier}.yml"
+        output_path = config.output_path_job / f"{assembly_config.identifier}.yml"
         output_path.write_text(template.render(assembly_config.to_flat_dict()))

@@ -31,22 +31,29 @@ if __name__ == "__main__":
         for aggregation in ["nosampling", "mean", "interpolate"]:
             for frequency in FREQUENCIES:
                 if aggregation == "nosampling":
-                    output_path = Path(
+                    output_path_job = Path(
                         f"k8s/assemble_jobs/lux/assemble/{scenario}/{aggregation}.yml"
                     )
                 else:
-                    output_path = Path(
+                    output_path_job = Path(
                         f"k8s/assemble_jobs/lux/assemble/{scenario}/{aggregation}-{frequency}Hz.yml"
                     )
-                output_path.parent.mkdir(parents=True, exist_ok=True)
+                output_path_job.parent.mkdir(parents=True, exist_ok=True)
                 start_time, end_time = START_AND_END_TIMES[scenario]
                 if aggregation == "nosampling":
                     resolution = 0
                 else:
                     resolution = 1 / frequency
+                output_path = (
+                    f"/out/{scenario}/{aggregation}/{frequency}Hz/assembled.dat"
+                    if aggregation != "nosampling"
+                    else f"/out/{scenario}/{aggregation}/assembled.dat"
+                )
                 render_template_and_save(
                     template,
-                    output_path,
+                    output_path_job,
+                    OUTPUT_PATH=output_path,
+                    BASE_PATH="/data/lux-rezipped.zip",
                     START_TIME=start_time,
                     END_TIME=end_time,
                     AGGREGATION=aggregation,

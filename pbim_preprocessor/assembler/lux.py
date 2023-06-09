@@ -248,7 +248,7 @@ class LuxAssembler:
         index = _load_index(self._file_path)
         f = open(self._file_path, "rb")
         samples = []
-        for idx, entry in enumerate(index.entries[:1]):
+        for idx, entry in enumerate(index.entries):
             sample = self._load_pre_assembled(
                 f, entry.start_measurement_index, metadata
             )
