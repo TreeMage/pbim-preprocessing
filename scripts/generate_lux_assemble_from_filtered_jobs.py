@@ -28,17 +28,14 @@ if __name__ == "__main__":
                 output_path_job.parent.mkdir(parents=True, exist_ok=True)
                 base_path = f"/out/{scenario}/filtered/nosampling/assembled.dat"
                 resolution = 1 / frequency
+                dummy_time = "1970-01-01T00:00:00"
                 render_template_and_save(
                     template,
                     output_path_job,
                     BASE_PATH=base_path,
                     OUTPUT_PATH=f"/out/{scenario}/filtered/{aggregation}/{frequency}Hz/assembled.dat",
-                    START_TIME=datetime.datetime(
-                        1970, 1, 1
-                    ),  # Ignored when assembling from pre-assembled
-                    END_TIME=datetime.datetime(
-                        1970, 1, 1
-                    ),  # Ignored when assembling from pre-assembled
+                    START_TIME=dummy_time,  # Ignored when assembling from pre-assembled
+                    END_TIME=dummy_time,  # Ignored when assembling from pre-assembled
                     AGGREGATION=aggregation,
                     SCENARIO=scenario,
                     RESOLUTION=resolution,

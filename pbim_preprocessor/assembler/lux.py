@@ -276,17 +276,18 @@ class LuxAssembler:
                             }
                         )
                     else:
-                        sampled = {
-                            channel: self._strategy.sample(
-                                [s[channel] for s in samples],
-                                target_time
-                                - datetime.timedelta(seconds=self._resolution / 2),
-                            )
-                            for channel in channels
-                        }
-                        sampled["time"] = int(target_time.timestamp() * 1000)
-                        yield sampled
-                        samples = []
+                        if len(samples) > 0:
+                            sampled = {
+                                channel: self._strategy.sample(
+                                    [s[channel] for s in samples],
+                                    target_time
+                                    - datetime.timedelta(seconds=self._resolution / 2),
+                                )
+                                for channel in channels
+                            }
+                            sampled["time"] = int(target_time.timestamp() * 1000)
+                            yield sampled
+                            samples = []
                         target_time += datetime.timedelta(seconds=self._resolution)
                 else:
                     yield {channel: sample[channel] for channel in channels}
