@@ -1,7 +1,7 @@
 {
   "base_path": "/data/PBIM/",
-  "output_file": "/data/PBIM/supervised/test/assembled.dat",
-  "use_statistics_from": "/data/PBIM/supervised/train/assembled.dat",
+  "output_file": "/data/PBIM/N/supervised/test/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/supervised/train/assembled.dat",
   "files":[
   {
     "relative_path": "N/supervised/post-processed/nosampling-uniform/january-week-04/assembled.dat",

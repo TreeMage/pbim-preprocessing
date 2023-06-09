@@ -1,6 +1,6 @@
 {
   "base_path": "/data/PBIM/",
-  "output_file": "/data/PBIM/supervised/train/assembled.dat",
+  "output_file": "/data/PBIM/N/supervised/train/assembled.dat",
   "keep_statistics": false,
   "files": [
   {
