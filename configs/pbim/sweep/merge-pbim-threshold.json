@@ -1,7 +1,7 @@
 {
   "base_path": "/data/PBIM/",
-  "output_file": "/data/PBIM/N/merged/sweep/val/assembled.dat",
-  "use_statistics_from": "/data/PBIM/N/merged/sweep/threshold/assembled.dat",
+  "output_file": "/data/PBIM/N/merged/sweep/threshold/assembled.dat",
+  "use_statistics_from": "/data/PBIM/N/merged/sweep/train/assembled.dat",
   "files": [
     {
         "relative_path": "N/post-processed/sweep/nosampling-uniform/april-week-03/assembled.dat",
