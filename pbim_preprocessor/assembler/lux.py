@@ -202,7 +202,6 @@ class LuxAssembler:
                     adjusted_time = current_time + datetime.timedelta(
                         seconds=sampled_time[step]
                     )
-                    # FIXME: This needs to be in microseconds not milliseconds.
                     timestamp_in_micro_seconds = adjusted_time.timestamp() * 1e6
                     step_data["time"] = int(timestamp_in_micro_seconds)
                     if parse_temperature:
@@ -263,8 +262,6 @@ class LuxAssembler:
         index = _load_index(self._file_path)
         f = open(self._file_path, "rb")
         samples = []
-        sum = 0
-        count = 0
         for idx, entry in enumerate(index.entries):
             sample = self._load_pre_assembled(
                 f, entry.start_measurement_index, metadata
@@ -304,15 +301,11 @@ class LuxAssembler:
                             }
                             sampled["time"] = self._make_timestamp(target_time)
                             yield sampled
-                            sum += len(samples)
                             samples = []
-                        count += 1
                         target_time += datetime.timedelta(seconds=self._resolution)
                 else:
                     yield {channel: sample[channel] for channel in channels}
             yield EOF()
-
-        print(f"Average samples per step: {sum / count}")
 
     def assemble(
         self,
