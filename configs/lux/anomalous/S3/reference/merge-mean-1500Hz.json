@@ -1,0 +1,21 @@
+{
+  "base_path": "/data/LUX/",
+  "output_file": "/data/LUX/S3/merged/anomalous/reference/mean/1500Hz/assembled.dat",
+  "use_statistics_from": "/data/LUX/N/post-processed/reference/mean/1500Hz/assembled.dat",
+  "files": [
+    {
+        "relative_path": "N/post-processed/reference/mean/1500Hz/assembled.dat",
+        "is_anomalous": false,
+        "offset": 0.9,
+        "ratio": 0.1,
+        "shuffle": true
+    },
+    {
+        "relative_path": "S3/post-processed/reference/mean/1500Hz/assembled.dat",
+        "is_anomalous": true,
+        "offset": 0,
+        "ratio": 1,
+        "shuffle": true
+    }
+]
+}

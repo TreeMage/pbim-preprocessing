@@ -19,6 +19,13 @@ class DatasetMetadata:
     length: int
     statistics: Dict[str, ChannelStatistics]
     time_byte_size: int
+    time_unit: Literal["milliseconds", "microseconds"] = "milliseconds"
+
+    def is_time_in_milliseconds(self) -> bool:
+        return self.time_unit == "milliseconds"
+
+    def is_time_in_microseconds(self) -> bool:
+        return self.time_unit == "microseconds"
 
 
 def _write_metadata_file(path: Path, metadata: DatasetMetadata):

@@ -98,6 +98,7 @@ def _make_metadata(
                 length=length,
                 statistics=statistics,
                 time_byte_size=time_byte_size,
+                time_unit="microseconds",
             )
 
 

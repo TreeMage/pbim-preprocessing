@@ -135,8 +135,10 @@ class LuxAssembler:
         ]
 
     @staticmethod
-    def _find_temperature_for_time(temperatures: np.ndarray, time: float) -> float:
-        differences = np.abs(temperatures[:, 0] - time)
+    def _find_temperature_for_time(
+        temperatures: np.ndarray, time_in_microseconds: float
+    ) -> float:
+        differences = np.abs(temperatures[:, 0] - time_in_microseconds / 1000)
         return temperatures[np.argmin(differences)][1]
 
     def _assemble_from_zip(
@@ -200,11 +202,12 @@ class LuxAssembler:
                     adjusted_time = current_time + datetime.timedelta(
                         seconds=sampled_time[step]
                     )
-                    timestamp_in_ms = adjusted_time.timestamp() * 1000
-                    step_data["time"] = int(timestamp_in_ms)
+                    # FIXME: This needs to be in microseconds not milliseconds.
+                    timestamp_in_micro_seconds = adjusted_time.timestamp() * 1e6
+                    step_data["time"] = int(timestamp_in_micro_seconds)
                     if parse_temperature:
                         step_data["Temperature"] = self._find_temperature_for_time(
-                            temperatures, timestamp_in_ms
+                            temperatures, timestamp_in_micro_seconds
                         )
                     yield step_data
                 LOGGER.info(
@@ -234,11 +237,23 @@ class LuxAssembler:
             channel: value for channel, value in zip(metadata.channel_order, parsed)
         }
         sample["time"] = sample.pop("Time")
+        if metadata.is_time_in_milliseconds():
+            sample["time"] *= 1000
         return sample
 
     @staticmethod
     def _make_datetime(time: float) -> datetime.datetime:
-        return datetime.datetime.fromtimestamp(time / 1000, tz=datetime.timezone.utc)
+        """
+        :param time: Time in micro seconds since epoch.
+        """
+        return datetime.datetime.fromtimestamp(time / 1e6, tz=datetime.timezone.utc)
+
+    @staticmethod
+    def _make_timestamp(time: datetime.datetime) -> int:
+        """
+        :return: Time in micro seconds since epoch.
+        """
+        return int(time.timestamp() * 1e6)
 
     def _assemble_from_pre_assembled(
         self,
@@ -248,6 +263,8 @@ class LuxAssembler:
         index = _load_index(self._file_path)
         f = open(self._file_path, "rb")
         samples = []
+        sum = 0
+        count = 0
         for idx, entry in enumerate(index.entries):
             sample = self._load_pre_assembled(
                 f, entry.start_measurement_index, metadata
@@ -264,13 +281,15 @@ class LuxAssembler:
                     f"Loading sample ({i+1}/{current_index_length}) of entry {idx+1}/{len(index.entries)}."
                 )
                 time = self._make_datetime(sample["time"])
+                print(sample["time"])
                 if self._resolution > 0:
                     if time <= target_time:
                         samples.append(
                             {
                                 channel: Measurement(
                                     measurement=sample[channel],
-                                    time=int(time.timestamp() * 1000),
+                                    # This needs time in milliseconds.
+                                    time=self._make_timestamp(time) // 1000,
                                 )
                                 for channel in channels
                             }
@@ -279,19 +298,21 @@ class LuxAssembler:
                         if len(samples) > 0:
                             sampled = {
                                 channel: self._strategy.sample(
-                                    [s[channel] for s in samples],
-                                    target_time
-                                    - datetime.timedelta(seconds=self._resolution / 2),
+                                    [s[channel] for s in samples], target_time
                                 )
                                 for channel in channels
                             }
-                            sampled["time"] = int(target_time.timestamp() * 1000)
+                            sampled["time"] = self._make_timestamp(target_time)
                             yield sampled
+                            sum += len(samples)
                             samples = []
+                        count += 1
                         target_time += datetime.timedelta(seconds=self._resolution)
                 else:
                     yield {channel: sample[channel] for channel in channels}
             yield EOF()
+
+        print(f"Average samples per step: {sum / count}")
 
     def assemble(
         self,

@@ -3,12 +3,14 @@ import math
 import shutil
 import struct
 from pathlib import Path
+import random
+
 from typing import Optional, List, BinaryIO
 
 import click
 
 from pbim_preprocessor.metadata import DatasetMetadata, _write_metadata_file
-from pbim_preprocessor.index import _write_index, CutIndex
+from pbim_preprocessor.index import _write_index, CutIndex, CutIndexEntry
 from pbim_preprocessor.merge import MergeConfig
 from pbim_preprocessor.statistic import StatisticsCollector
 from pbim_preprocessor.utils import LOGGER, _load_metadata
@@ -61,9 +63,22 @@ def _parse_values(data: bytes, time_byte_size: int, channels: List[str]) -> List
     return [*struct.unpack(format_string, data)]
 
 
-def _sort_index(indices: List[CutIndex]) -> None:
+def _sort_indices(indices: List[CutIndex]) -> None:
     for index in indices:
         index.entries.sort(key=lambda x: x.start_measurement_index)
+
+
+def _sample_index_entries(
+    index: CutIndex, offset: float, ratio: float, shuffle: bool
+) -> List[CutIndexEntry]:
+    entries = index.entries.copy()
+    if shuffle:
+        random.shuffle(entries)
+    start = int(offset * len(index.entries))
+    end = int((offset + ratio) * len(index.entries))
+    if shuffle:
+        entries.sort(key=lambda x: x.start_measurement_index)
+    return entries[start:end]
 
 
 CHUNK_SIZE = 8 * 1024 * 1024
@@ -152,21 +167,17 @@ def _write_file_windowed(
     offset: float = 0.0,
     ratio: float = 1.0,
     include_in_statistics: bool = True,
+    shuffle: bool = False,
 ):
-    start_index_entry = int(offset * len(index.entries))
-    stop_index_entry = int((offset + ratio) * len(index.entries))
-    total_windows = stop_index_entry - start_index_entry
+    entries = _sample_index_entries(index, offset, ratio, shuffle)
+    total_windows = len(entries)
     with open(input_file_path, "rb") as f:
         steps = _estimate_steps(f, CHUNK_SIZE, ratio, offset)
         LOGGER.info(f"Processing {input_file_path} (Estimated steps: {steps})")
         i = 0
         f.seek(0, 2)
-        start_measurement_index = index.entries[
-            start_index_entry
-        ].start_measurement_index
-        end_measurement_index = index.entries[
-            stop_index_entry - 1
-        ].end_measurement_index
+        start_measurement_index = index.entries[0].start_measurement_index
+        end_measurement_index = index.entries[-1].end_measurement_index
         f.seek(start_measurement_index * metadata.measurement_size_in_bytes)
         measurements_to_write = end_measurement_index - start_measurement_index
         num_measurements = 0
@@ -219,6 +230,7 @@ def _write_file(
     offset: float = 0.0,
     ratio: float = 1.0,
     include_in_statistics: bool = True,
+    shuffle: bool = False,
 ) -> int:
     assert offset + ratio <= 1.0
     if index.is_window_index:
@@ -231,6 +243,7 @@ def _write_file(
             offset,
             ratio,
             include_in_statistics,
+            shuffle,
         )
     else:
         return _write_file_contiguous(
@@ -265,7 +278,7 @@ def _merge_predefined_files(
         _load_index(config.base_path / file.relative_path) for file in config.files
     ]
     # Ensure that all indices are sorted according to the start_measurement_index
-    _sort_index(indices)
+    _sort_indices(indices)
     is_window_indices = _is_window_index_or_raise(indices)
     lengths = [
         _load_metadata(config.base_path / file.relative_path).length
@@ -282,6 +295,7 @@ def _merge_predefined_files(
                 file.offset,
                 file.ratio,
                 file.include_in_statistics,
+                file.shuffle,
             )
         ]
     if is_window_indices:

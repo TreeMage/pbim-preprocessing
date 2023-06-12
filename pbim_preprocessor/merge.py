@@ -25,6 +25,7 @@ class FileConfig:
     offset: float = 0.0
     ratio: float = 1.0
     include_in_statistics: bool = True
+    shuffle: bool = False
 
 
 @dataclass_json
