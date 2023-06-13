@@ -1,17 +1,36 @@
 import math
 from typing import List, Tuple
 
+from pbim_preprocessor.index import CutIndex
 
-def _available_windows(start: int, end: int, window_size: int):
+
+def available_windows(start: int, end: int, window_size: int):
     return max(end - start - window_size + 1, 0)
 
 
-def _available_windows_total(
-    start_and_end_indices: List[Tuple[int, int]], window_size: int
-):
+def available_windows_total(
+    indices: CutIndex | List[Tuple[int, int]], window_size: int
+) -> int:
+    if isinstance(indices, CutIndex):
+        return _available_windows_total_index(indices, window_size)
+    elif isinstance(indices, list):
+        return _available_windows_total_start_end_indices(indices, window_size)
+    else:
+        raise TypeError(f"Unknown type {type(indices)}")
+
+
+def _available_windows_total_start_end_indices(
+    indices: List[Tuple[int, int]], window_size: int
+) -> int:
+    return sum(available_windows(start, end, window_size) for start, end in indices)
+
+
+def _available_windows_total_index(indices: CutIndex, window_size: int) -> int:
     return sum(
-        _available_windows(start, end, window_size)
-        for start, end in start_and_end_indices
+        available_windows(
+            entry.start_measurement_index, entry.end_measurement_index, window_size
+        )
+        for entry in indices.entries
     )
 
 

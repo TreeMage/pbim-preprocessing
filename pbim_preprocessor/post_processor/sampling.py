@@ -7,8 +7,8 @@ from typing import List, Tuple
 import numpy as np
 
 from pbim_preprocessor.post_processor.utils import (
-    _available_windows,
-    _available_windows_total,
+    available_windows,
+    available_windows_total,
     _find_group_index,
     RoundingWithFractionalTracker,
 )
@@ -83,20 +83,20 @@ class UniformSamplingStrategy(DatasetSamplingStrategy):
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
     ) -> List[Tuple[int, int]]:
-        available_windows = _available_windows_total(
+        windows_available = available_windows_total(
             start_and_end_indices, self._window_size
         )
-        if available_windows < self._num_windows:
+        if windows_available < self._num_windows:
             raise ValueError(
-                f"Cannot sample {self._num_windows} from {available_windows} windows."
+                f"Cannot sample {self._num_windows} from {windows_available} windows."
             )
         fractional_rounding = RoundingWithFractionalTracker()
         windows_per_group = [
             max(
                 fractional_rounding(
-                    _available_windows(start, end, self._window_size)
+                    available_windows(start, end, self._window_size)
                     * self._num_windows
-                    / available_windows
+                    / windows_available
                 ),
                 1,
             )
@@ -134,12 +134,12 @@ class WeightedRandomSamplingStrategy(DatasetSamplingStrategy):
     def compute_sample_indices(
         self, time: np.ndarray, start_and_end_indices: List[Tuple[int, int]]
     ) -> List[Tuple[int, int]]:
-        available_windows = _available_windows_total(
+        windows_available = available_windows_total(
             start_and_end_indices, self._window_size
         )
-        if available_windows < self._num_windows:
+        if windows_available < self._num_windows:
             raise ValueError(
-                f"Cannot sample {self._num_windows} from {available_windows} samples."
+                f"Cannot sample {self._num_windows} from {windows_available} samples."
             )
         window_indices = []
         for start, end in start_and_end_indices:

@@ -16,6 +16,7 @@ from pbim_preprocessor.post_processor.sampling import (
     DatasetSamplingStrategy,
     NoopSamplingStrategy,
 )
+from pbim_preprocessor.post_processor.utils import available_windows_total
 from pbim_preprocessor.utils import _load_metadata
 
 
@@ -130,23 +131,26 @@ class BaseDatasetSampler(abc.ABC):
         output_path.parent.mkdir(parents=True, exist_ok=True)
         metadata = _load_metadata(input_path)
         index = _load_index(input_path)
-        number_of_windows = metadata.length - self._window_size + 1
+        number_of_windows = available_windows_total(index, self._window_size)
         indices = []
         exclude_indices = [
             metadata.channel_order.index(channel)
             for channel in self._channels_excluded_in_window_validity_check
         ]
         with open(input_path, "rb") as f:
-            for i in tqdm.trange(number_of_windows, desc="Loading windows"):
-                index_entry = self._find_index_entry_for_index(index, i)
-                if i + self._window_size >= index_entry.end_measurement_index:
-                    continue
-                if self._check_window_validity:
-                    window = self._load_window(f, i, metadata)
-                    window = np.delete(window, exclude_indices, axis=0)
-                    if not self._window_validity_check_predicate(window):
-                        continue
-                indices.append(i)
+            with tqdm.tqdm(total=number_of_windows, desc="Loading windows") as pbar:
+                for entry in index.entries:
+                    for i in range(
+                        entry.start_measurement_index,
+                        entry.end_measurement_index - self._window_size + 1,
+                    ):
+                        if self._check_window_validity:
+                            window = self._load_window(f, i, metadata)
+                            window = np.delete(window, exclude_indices, axis=0)
+                            if not self._window_validity_check_predicate(window):
+                                continue
+                        indices.append(i)
+                        pbar.update(1)
             time = self._load_time(f, metadata)
         contiguous_start_end_indices = self._compute_start_and_end_indices(indices)
         if self._drop_windows_shorter_than_window_size:
