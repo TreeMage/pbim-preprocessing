@@ -254,6 +254,18 @@ class LuxAssembler:
         """
         return int(time.timestamp() * 1e6)
 
+    def _make_sample_dict(
+        self, channels: List[str], time: datetime, sample: Dict[str, float]
+    ) -> Dict[str, Measurement]:
+        return {
+            channel: Measurement(
+                measurement=sample[channel],
+                # This needs time in milliseconds.
+                time=self._make_timestamp(time) // 1000,
+            )
+            for channel in channels
+        }
+
     def _assemble_from_pre_assembled(
         self,
         channels: List[str],
@@ -278,19 +290,9 @@ class LuxAssembler:
                     f"Loading sample ({i+1}/{current_index_length}) of entry {idx+1}/{len(index.entries)}."
                 )
                 time = self._make_datetime(sample["time"])
-                print(sample["time"])
                 if self._resolution > 0:
                     if time <= target_time:
-                        samples.append(
-                            {
-                                channel: Measurement(
-                                    measurement=sample[channel],
-                                    # This needs time in milliseconds.
-                                    time=self._make_timestamp(time) // 1000,
-                                )
-                                for channel in channels
-                            }
-                        )
+                        samples.append(self._make_sample_dict(channels, time, sample))
                     else:
                         if len(samples) > 0:
                             sampled = {
@@ -301,7 +303,7 @@ class LuxAssembler:
                             }
                             sampled["time"] = self._make_timestamp(target_time)
                             yield sampled
-                            samples = []
+                            samples = [self._make_sample_dict(channels, time, sample)]
                         target_time += datetime.timedelta(seconds=self._resolution)
                 else:
                     yield {channel: sample[channel] for channel in channels}
