@@ -42,8 +42,8 @@ def get_extra_args(
 
 
 if __name__ == "__main__":
-    NUM_WINDOWS_N = 5000000
-    NUM_WINDOWS_S = 500000
+    NUM_WINDOWS_N = 931383
+    NUM_WINDOWS_S = 93138
     WINDOW_SIZE = 256
 
     template = load_template(Path("template/postprocess_lux_job_template.yml"))

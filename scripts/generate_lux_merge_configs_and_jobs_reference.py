@@ -61,7 +61,7 @@ if __name__ == "__main__":
                 )
                 agg_res_path = agg_res.replace("-", "/")
                 output_path_job = Path(
-                    f"k8s/assemble_jobs/lux/post-process-jobs/{scenario}/merge/reference/merge-{agg_res}.yml"
+                    f"k8s/assemble_jobs/lux/post-process-jobs/reference/{scenario}/merge/merge-{agg_res}.yml"
                 )
                 output_path_config = get_output_path_config(
                     scenario,

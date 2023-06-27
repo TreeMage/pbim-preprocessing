@@ -21,7 +21,7 @@ spec:
             - name: STRATEGY
               value: "uniform"
             - name: STRATEGY_ARGS
-              value: "--num-windows 5000000 --window-size 256"
+              value: "--num-windows 931383 --window-size 256"
             - name: SEED
               value: "42"
           resources:
