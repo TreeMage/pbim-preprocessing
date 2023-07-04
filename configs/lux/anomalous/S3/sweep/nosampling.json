@@ -1,0 +1,17 @@
+{
+  "base_path": "/data/LUX/",
+  "output_file": "/data/LUX/S3/merged/anomalous/sweep/assembled.dat",
+  "use_statistics_from": "/data/LUX/N/post-processed/sweep/nosampling/assembled.dat",
+  "files": [
+    {
+        "relative_path": "/data/LUX/N/post-processed/sweep/nosampling/assembled.dat",
+        "is_anomalous": false,
+        "offset": 0.9,
+        "ratio": 0.1
+    },
+    {
+        "relative_path": "/data/LUX/S3/post-processed/sweep/nosampling/assembled.dat",
+        "is_anomalous": true
+    }
+  ]
+}
